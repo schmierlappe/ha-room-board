@@ -1654,3 +1654,74 @@
   .wx-clouds--near { animation: none; }
   .wx-orb--sun::after { animation: none; }
 }
+
+/* ---------- the sky (src/weather/sky.tsx) ----------
+ *
+ * Layers of lit cloud over the scene's own sky colour, and one canvas over
+ * them for what falls, flashes and blows. The cloud's colour is the flood
+ * its lighting is multiplied with; its cover, relief and noise are in the
+ * filter. Each layer is two identical tiles slid by one. */
+.wx-sky { opacity: 1; }
+.wx-sky-clouds {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  pointer-events: none;
+  will-change: transform;
+  animation: wx-sky-drift 160s linear infinite;
+}
+.wx-sky-tint { flood-color: #f4f7fb; }
+.wx-sky-clouds--far { opacity: 0.7; animation-duration: 260s; }
+.wx-sky-clouds--near { opacity: 0.95; animation-duration: 150s; }
+.wx-sky[data-animate="false"] .wx-sky-clouds { animation: none; }
+@keyframes wx-sky-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+/* A passing sky keeps the clouds high, the blue showing under them. */
+.wx-sky[data-scene="partly"] .wx-sky-clouds {
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 88%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 88%);
+}
+/* Overcast is grey through, darker underneath; rain darker; a storm slate. */
+.wx-sky[data-scene="cloud"] .wx-sky-tint { flood-color: #d9dee6; }
+.wx-sky[data-scene="cloud"] .wx-sky-clouds--far .wx-sky-tint { flood-color: #b9c1cd; }
+.wx-sky[data-scene="rain"] .wx-sky-tint { flood-color: #a9b3c2; }
+.wx-sky[data-scene="rain"] .wx-sky-clouds--far .wx-sky-tint { flood-color: #7e8898; }
+.wx-sky[data-scene="storm"] .wx-sky-tint { flood-color: #6f7887; }
+.wx-sky[data-scene="storm"] .wx-sky-clouds--far .wx-sky-tint { flood-color: #4a5260; }
+.wx-sky[data-scene="snow"] .wx-sky-tint { flood-color: #e8ecf2; }
+.wx-sky[data-scene="snow"] .wx-sky-clouds--far .wx-sky-tint { flood-color: #c9d0da; }
+/* Wind: thin streaks of cloud, hurrying. */
+.wx-sky[data-scene="wind"] .wx-sky-clouds--far { animation-duration: 70s; }
+.wx-sky[data-scene="wind"] .wx-sky-clouds--near { animation-duration: 40s; }
+/* Fog: low banks, soft, drifting slowly across the lower part. */
+.wx-sky-clouds--fog-far,
+.wx-sky-clouds--fog-near { filter: blur(6px); }
+.wx-sky-clouds--fog-far { top: 12%; opacity: 0.7; animation-duration: 120s; }
+.wx-sky-clouds--fog-near { top: 30%; opacity: 0.85; animation-duration: 80s; animation-direction: reverse; }
+.wx-sky[data-scene="fog"] .wx-sky-tint { flood-color: #dde2ea; }
+/* After dark the clouds take the moonlight: dim, blue-grey. */
+.wx-sky[data-night="true"] .wx-sky-tint { flood-color: #5b6578; }
+.wx-sky[data-night="true"] .wx-sky-clouds--far .wx-sky-tint { flood-color: #3c4556; }
+.wx-sky[data-night="true"][data-scene="partly"] .wx-sky-clouds { opacity: 0.6; }
+
+.wx-sky-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+/* The lightning lights the whole sky for a moment (sky.tsx animates it). */
+.wx-sky-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(90% 70% at 50% 20%, rgb(225 232 255 / 0.9), rgb(180 195 230 / 0.35) 60%, transparent);
+  mix-blend-mode: screen;
+}
