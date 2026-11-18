@@ -55,6 +55,20 @@ views:
 
 To open it straight away on a device — the tablet on the wall, your phone — pick it under your profile → **Browser settings** → **Dashboard**.
 
+### Full screen on a tablet or phone
+
+The board fills the screen below whatever Home Assistant shows above it. For the whole screen:
+
+- **Home Assistant's sidebar and header:** install [kiosk-mode](https://github.com/NemesisRE/kiosk-mode) from HACS (category Dashboard) and add to the top of the board's dashboard (Raw configuration editor):
+
+  ```yaml
+  kiosk_mode:
+    kiosk: true
+  ```
+
+  To keep them on the desktop and hide them only on the tablet, use `hide_sidebar` / `hide_header` in kiosk-mode's per-user or per-entity settings instead, or open the dashboard with `?kiosk` in its address on the tablet. Without the sidebar there is no menu on that screen: keep a way back to Home Assistant's settings in mind, such as the address without `?kiosk`.
+- **Android's status and navigation bars:** in the Home Assistant Companion app, Settings → Companion app → turn on **Full screen** (it may sit under *Other settings*, depending on the app's version).
+
 ## Options
 
 | Option | Default | What it does |
