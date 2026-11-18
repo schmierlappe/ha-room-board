@@ -12906,34 +12906,46 @@
 
 /* ---------- a phone, as iOS lays one out ----------
  *
- * The foot: the dock (or the activity bar) floats over the end of the
- * tiles in its frosted glass, and the tiles scroll on under it, rather than
- * stopping in a hard line above it. The tiles keep room at their end to
- * scroll clear of it, and the whole sits above the home indicator.
+ * The foot: the dock (or the activity bar) is a bar across the whole width,
+ * down to the screen's edge, as iOS draws its tab bars — rounded at the top
+ * only, its words above the home indicator. The tiles scroll on under its
+ * frosted glass and keep room at their end to scroll clear of it.
  *
  * The top: without a photo, the band is as tall as what is in it — the
  * clock, the room and the picker — rather than a fixed share of the screen
- * with nothing in the middle. With a photo it keeps its share. */
+ * with nothing in the middle. With a photo it keeps its share. Under the
+ * status bar, the card runs the photo up behind it (src/card.tsx). */
+.rb-board[data-narrow="true"] {
+  --rb-safe-foot: var(--rb-safe-bottom, env(safe-area-inset-bottom, 0px));
+}
 .rb-board[data-narrow="true"] .rb-panel {
-  padding-bottom: max(var(--rb-pad), env(safe-area-inset-bottom, 0px));
+  padding-bottom: 0;
 }
 .rb-board[data-narrow="true"] .rb-panel-body {
   position: relative;
 }
 .rb-board[data-narrow="true"] .rb-panel-body > :is(.rb-act-bar, .rb-dock) {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: calc(var(--rb-pad) * -1);
+  right: calc(var(--rb-pad) * -1);
   bottom: 0;
+  width: auto;
   margin: 0;
+  border-radius: 1.2rem 1.2rem 0 0;
+}
+.rb-board[data-narrow="true"] .rb-panel-body > .rb-act-bar {
+  padding: 0.65rem calc(0.7rem + var(--rb-pad)) calc(0.65rem + var(--rb-safe-foot));
+}
+.rb-board[data-narrow="true"] .rb-panel-body > .rb-dock {
+  padding: 0.25rem var(--rb-pad) var(--rb-safe-foot);
 }
 .rb-board[data-narrow="true"] .rb-panel-body:has(> .rb-dock) > .rb-grid {
-  padding-bottom: 6.6rem;
-  scroll-padding-bottom: 6.6rem;
+  padding-bottom: calc(7rem + var(--rb-safe-foot));
+  scroll-padding-bottom: calc(7rem + var(--rb-safe-foot));
 }
 .rb-board[data-narrow="true"] .rb-panel-body:has(> .rb-act-bar) > .rb-grid {
-  padding-bottom: 3.2rem;
-  scroll-padding-bottom: 3.2rem;
+  padding-bottom: calc(3.6rem + var(--rb-safe-foot));
+  scroll-padding-bottom: calc(3.6rem + var(--rb-safe-foot));
 }
 .rb-board[data-narrow="true"]:not(:has(.rb-scene-photo)) {
   grid-template-rows: auto 1fr;
