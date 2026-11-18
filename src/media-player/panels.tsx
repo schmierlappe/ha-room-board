@@ -499,6 +499,7 @@ export function Panels(props: {
                   <PlayingBars size="0.85rem" />
                 </Show>
                 <span class="mp-truncate">{activeName()}</span>
+                <Icon icon="mdi:unfold-more-horizontal" width="14" class="mp-nav-speaker-more" />
               </button>
             </Show>
 
