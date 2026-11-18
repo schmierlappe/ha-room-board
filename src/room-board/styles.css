@@ -12950,3 +12950,19 @@
 .rb-board[data-narrow="true"]:not(:has(.rb-scene-photo)) {
   grid-template-rows: auto 1fr;
 }
+
+/* The tiles on a phone, as iOS sizes its widgets: two columns, and every row
+   exactly as tall as a column is wide — a small tile square, a wide one
+   twice as wide as it is tall, a big one square across both. Left to their
+   content, the rows came out as tall as the tallest tile in them: a small
+   tile beside a tall one grew into a rectangle, and a wide one with little
+   in it into a band of empty space. */
+.rb-board[data-narrow="true"] .rb-grid {
+  --rb-cell: calc((100cqw - 2 * var(--rb-pad) - 0.65rem) / 2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: var(--rb-cell);
+}
+.rb-board[data-narrow="true"] .rb-grid > .rb-card {
+  min-height: 0;
+  overflow: hidden;
+}
