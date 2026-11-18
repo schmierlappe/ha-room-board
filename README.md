@@ -59,7 +59,7 @@ To open it straight away on a device — the tablet on the wall, your phone — 
 
 | Option | Default | What it does |
 | --- | --- | --- |
-| `rooms` | `[]` | The rooms, each `kind: room` with an `area` (its area id), and optionally `label`, `icon` and `image` (a photo, e.g. `/local/rooms/living.jpg`). The room picker at the foot of the photo switches between them. |
+| `rooms` | `[]` | The rooms, each `kind: room` with an `area` (its area id), and optionally `label`, `icon` and `image` (a photo, e.g. `/local/rooms/living.jpg`; without one, the area's own picture from Home Assistant is used). The room picker at the foot of the photo switches between them. |
 | `subtitle` | `My Home` | A line under the room's name. |
 | `clock` | `24h` | `24h`, `12h` or `off`: the clock on the photo. |
 | `clockStyle` | `bold` | `bold`, `thin`, `hairline`, `mono`, `frosted` or `gradient`: how the digits look. |
