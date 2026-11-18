@@ -87,6 +87,8 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
   --foreground: var(--primary-text-color, #e1e1e1);
   --popover: var(--card-background-color, var(--primary-background-color, #1c1c1c));
   --popover-foreground: var(--primary-text-color, #e1e1e1);
+  --card: var(--ha-card-background, var(--card-background-color, var(--background)));
+  --border: var(--divider-color, rgba(127, 127, 127, 0.2));
   --primary: var(--primary-color, #03a9f4);
   --primary-foreground: var(--text-primary-color, #fff);
 }
