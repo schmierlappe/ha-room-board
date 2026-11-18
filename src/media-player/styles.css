@@ -1,0 +1,5580 @@
+/* Media Player widget styles.
+   Doubled class selectors (.mp-x.mp-x) where host defaults would otherwise win.
+   --widget-color comes from the tone/color props on <Widget>. */
+
+/* The host reset doesn't reach elements the widget creates, so width:100% plus
+   padding would otherwise overflow its own container. */
+.mp-tile-root,
+.mp-tile-root *,
+.mp-panel,
+.mp-panel * {
+  box-sizing: border-box;
+}
+
+/* ---------- tile ---------- */
+
+.mp-tile-root.mp-tile-root {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  min-width: 0;
+}
+
+.mp-tile.mp-tile {
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.9rem 1rem 0.75rem;
+  text-align: left;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.mp-backdrop {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.5;
+  filter: blur(30px) saturate(1.25);
+  transform: scale(1.4);
+  pointer-events: none;
+}
+
+.mp-scrim {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.07) 0%, transparent 38%),
+    /* anchor the bottom so the times row doesn't sit on a visible seam */
+    linear-gradient(0deg, rgb(var(--mp-scrim-rgb, 10 10 12) / 0.55) 0%, transparent 32%),
+    linear-gradient(
+      100deg,
+      rgb(var(--mp-scrim-rgb, 10 10 12) / 0.9) 0%,
+      rgb(var(--mp-scrim-rgb, 10 10 12) / 0.66) 52%,
+      rgb(var(--mp-scrim-rgb, 10 10 12) / 0.5) 100%
+    );
+  pointer-events: none;
+}
+
+/* Over the blurred art: white words on the dark shade of a dark theme, the
+   theme's own on the light card of a light one (util.ts, themeVars). */
+.mp-tile[data-art="true"] {
+  color: var(--mp-art-ink, #fff);
+}
+
+.mp-art {
+  width: 3.5rem;
+  height: 3.5rem;
+  flex: none;
+  border-radius: 0.9rem;
+  /* contain, not cover: Music Assistant's artwork is not consistently square,
+     and cropping to fill meant the same album looked different from one place
+     to the next. Whole cover, neutral bars where the shape does not match. */
+  object-fit: contain;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: 0 8px 20px -8px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(255 255 255 / 0.14);
+}
+
+.mp-art-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  opacity: 0.55;
+}
+
+.mp-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  gap: 0.12rem;
+}
+
+.mp-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.mp-sub {
+  font-size: 0.78rem;
+  opacity: 0.55;
+  line-height: 1.3;
+  font-weight: 450;
+}
+
+.mp-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  margin-top: 0.22rem;
+  padding: 0.1rem 0.42rem 0.1rem 0.32rem;
+  width: fit-content;
+  border-radius: 999px;
+  font-size: 0.63rem;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--mp-primary, var(--widget-color, #3b82f6)) 26%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mp-primary, var(--widget-color, #3b82f6)) 40%, transparent);
+}
+
+.mp-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: none;
+}
+
+/* thin progress line along the bottom edge of the tile */
+.mp-tile-progress {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+  pointer-events: none;
+  background: color-mix(in srgb, currentColor 21%, transparent);
+}
+
+.mp-tile-progress > i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  box-shadow: 0 0 10px var(--mp-primary, var(--widget-color, #3b82f6));
+  transition: width 1s linear;
+}
+
+/* playing indicator */
+.mp-eq {
+  /* Animated equaliser marking a player that is currently playing. Height is
+     what animates: three elements, no library, and it reads at 14px. */
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.09rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: none;
+}
+
+.mp-eq > i {
+  width: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  animation: mp-eq 900ms ease-in-out infinite;
+}
+
+.mp-eq > i:nth-child(1) { height: 60%; animation-delay: -200ms; }
+.mp-eq > i:nth-child(2) { height: 100%; animation-delay: -450ms; }
+.mp-eq > i:nth-child(3) { height: 45%; animation-delay: -80ms; }
+
+@keyframes mp-eq {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-eq > i { animation: none; }
+  .mp-tile-progress > i { transition: none; }
+}
+
+/* ---------- buttons ---------- */
+
+.mp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 13%, transparent);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: background 0.16s ease, transform 0.12s cubic-bezier(0.2, 0, 0, 1), opacity 0.15s;
+}
+
+.mp-btn:hover { background: color-mix(in srgb, currentColor 26%, transparent); }
+.mp-btn:active { transform: scale(0.9); }
+.mp-btn:disabled { opacity: 0.28; cursor: default; transform: none; }
+
+.mp-btn--sm { width: 1.95rem; height: 1.95rem; }
+.mp-btn--lg { width: 3.6rem; height: 3.6rem; }
+
+.mp-btn--primary {
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  color: var(--mp-on-primary, #fff);
+  box-shadow: 0 10px 28px -8px var(--mp-primary, var(--widget-color, #3b82f6)),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+.mp-btn--primary:hover { background: var(--mp-primary, var(--widget-color, #3b82f6)); filter: brightness(1.14); }
+
+.mp-btn--active {
+  color: var(--mp-primary, var(--widget-color, #3b82f6));
+  background: color-mix(in srgb, var(--mp-primary, var(--widget-color, #3b82f6)) 22%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mp-primary, var(--widget-color, #3b82f6)) 45%, transparent);
+}
+
+/* Shortcut row: the popup's tabs, as icons along the bottom of a portrait
+   tile. margin-top:auto beats the column's justify-content:center and pins the
+   row to the bottom edge, so it stays put whatever the artwork above it does.
+   Icon-only — a label per tab would not fit the width of a portrait card. */
+.mp-tile-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  margin-top: auto;
+  padding-top: 0.15rem;
+}
+
+.mp-tile-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  opacity: 0.7;
+  transition: background 0.14s ease, opacity 0.14s ease;
+}
+
+.mp-tile-tab:active {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+/* ---------- dialog shell ---------- */
+
+.mp-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-width: 0;
+  /* Against the panel's own width: on mobile the dialog is a full-width
+     sheet, on desktop a much narrower box. */
+  container-type: inline-size;
+}
+
+.mp-nav {
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  /* Outlined rather than filled, matching the device button: the active tab
+     carries the only fill in the row, so it reads as the selection. */
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  background: transparent;
+}
+
+.mp-nav button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.52rem 0.75rem;
+  font-size: 0.79rem;
+  font-weight: 550;
+  font-family: inherit;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.62;
+  transition: background 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mp-nav button:hover { opacity: 0.9; }
+
+.mp-nav button[data-active="true"] {
+  opacity: 1;
+  font-weight: 640;
+  color: var(--mp-on-primary, #fff);
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  box-shadow: 0 6px 16px -8px var(--mp-primary, var(--widget-color, #3b82f6));
+}
+
+.mp-eq > span {
+  width: 0.16rem;
+  height: 30%;
+  border-radius: 1px;
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  animation: mp-eq 0.95s ease-in-out infinite;
+}
+
+/* Offset so the bars never line up — in step they read as one blinking block. */
+.mp-eq > span:nth-child(1) { animation-delay: -0.55s; }
+.mp-eq > span:nth-child(2) { animation-delay: -0.2s; }
+.mp-eq > span:nth-child(3) { animation-delay: -0.75s; }
+
+@keyframes mp-eq {
+  0%, 100% { height: 28%; }
+  50% { height: 100%; }
+}
+
+/* Still bars rather than none: the mark still has to say "playing". */
+@media (prefers-reduced-motion: reduce) {
+  .mp-eq > span { animation: none; height: 62%; }
+  .mp-eq > span:nth-child(2) { height: 100%; }
+}
+
+/* On a primary-filled chip the primary bars would disappear into it. */
+.mp-chip[data-active="true"] .mp-eq > span,
+.mp-pill[data-joined="true"] .mp-eq > span {
+  background: #fff;
+}
+
+/* ---------- remote ---------- */
+
+.mp-remote {
+  align-items: stretch;
+  gap: 0.75rem;
+  /* The pad and its buttons sit at the foot of the card, not straight under the
+     header. A remote is held one-handed and reached with a thumb, so the keys
+     belong at the bottom of the screen — and the header, the profile chips and
+     the pad each keep their place instead of the whole stack drifting as
+     sources, activities and the volume row come and go. */
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.mp-rem-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.6rem;
+  min-width: 0;
+}
+
+.mp-rem-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.mp-rem-name {
+  font-size: 0.95rem;
+  font-weight: 680;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp-rem-state {
+  font-size: 0.78rem;
+  opacity: 0.55;
+  text-transform: capitalize;
+}
+
+.mp-rem-icon,
+.mp-rem-apps {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  flex: none;
+  height: 2.3rem;
+  padding: 0 0.6rem;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.14s ease, box-shadow 0.14s ease;
+}
+
+.mp-rem-icon { width: 2.3rem; padding: 0; }
+
+.mp-rem-icon:active,
+.mp-rem-apps:active { background: color-mix(in srgb, currentColor 12%, transparent); }
+
+/* Ringed while its menu is open, so it reads as the thing that opened it.
+   Activities are ringed the same way: two dropdowns on one toolbar that mark
+   themselves differently read as two unrelated controls. */
+.mp-rem-apps[data-open="true"],
+.mp-rem-icon[data-open="true"] {
+  box-shadow: inset 0 0 0 1px var(--mp-primary, var(--widget-color, #3b82f6));
+}
+
+/* Says why the list is empty instead of leaving a blank card. */
+.mp-rem-menu-empty {
+  margin: 0;
+  padding: 0.55rem 0.6rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  opacity: 0.65;
+}
+
+.mp-rem-vol { flex: 1; min-width: 0; }
+
+.mp-rem-pct {
+  flex: none;
+  min-width: 3rem;
+  text-align: right;
+  font-size: 0.82rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Floated over the pad, anchored under the header it belongs to. In the flow
+   it pushed the touchpad down the panel — and on a phone, off the end of it.
+   The panel is the positioning context; see .mp-remote below. */
+.mp-rem-menu {
+  position: absolute;
+  top: 3.6rem;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  max-width: min(20rem, 82%);
+  padding: 0.35rem;
+  border-radius: 1rem;
+  /* Opaque, not a tint: it sits on the pad, and a translucent menu over a
+     textured surface is unreadable. */
+  background: var(--mp-menu-bg, #1b1f25);
+  box-shadow:
+    0 18px 40px -16px rgb(0 0 0 / 0.65),
+    inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent);
+  max-height: 16rem;
+  overflow-y: auto;
+  animation: mp-rem-menu-in 0.14s ease-out;
+}
+
+@keyframes mp-rem-menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Under the button that opened it. */
+.mp-rem-menu[data-side="left"] { left: 0; }
+.mp-rem-menu[data-side="right"] { right: 0; }
+
+.mp-rem-menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+  border-radius: 0.55rem;
+  color: var(--mp-look, currentColor);
+  background: color-mix(in srgb, var(--mp-look, currentColor) 18%, transparent);
+}
+
+.mp-rem-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.55rem 0.6rem;
+  border: 0;
+  border-radius: 0.7rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+}
+
+.mp-rem-menu-item:active { background: color-mix(in srgb, currentColor 12%, transparent); }
+
+/* The pad carries no arrows: swiping is the whole gesture, and a bare surface
+   invites it where painted arrows suggest four buttons to press. */
+.mp-pad {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 46dvh;
+  margin: 0 auto;
+  border-radius: 1.6rem;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 9%, transparent);
+  transition: background 0.14s ease;
+}
+
+/* A brief tint in the direction sent — the only feedback that a swipe landed,
+   since the TV itself takes a moment. */
+.mp-pad[data-flash="up"] { background: linear-gradient(to top, transparent 55%, color-mix(in srgb, var(--mp-primary, #3b82f6) 22%, transparent)); }
+.mp-pad[data-flash="down"] { background: linear-gradient(to bottom, transparent 55%, color-mix(in srgb, var(--mp-primary, #3b82f6) 22%, transparent)); }
+.mp-pad[data-flash="left"] { background: linear-gradient(to left, transparent 55%, color-mix(in srgb, var(--mp-primary, #3b82f6) 22%, transparent)); }
+.mp-pad[data-flash="right"] { background: linear-gradient(to right, transparent 55%, color-mix(in srgb, var(--mp-primary, #3b82f6) 22%, transparent)); }
+.mp-pad[data-flash="select"] {
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--mp-primary, #3b82f6) 28%, transparent), transparent 62%);
+}
+
+.mp-rem-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4rem;
+}
+
+.mp-rem-round {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+  transition: background 0.14s ease, transform 0.12s ease;
+}
+
+/* Home is the one you reach for without looking. */
+.mp-rem-round--lg { width: 4.6rem; height: 4.6rem; }
+
+.mp-rem-round:active { transform: scale(0.94); }
+
+.mp-rem-round[data-flash="true"],
+.mp-rem-round[data-open="true"] {
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  color: var(--mp-on-primary, #fff);
+}
+
+.mp-rem-type { display: flex; gap: 0.5rem; }
+
+.mp-rem-profiles {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 0.1rem;
+}
+
+.mp-rem-profiles::-webkit-scrollbar { display: none; }
+
+/* Everything-off sits with the activities but should not look like one. */
+.mp-rem-menu-item[data-danger="true"] {
+  margin-top: 0.2rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  border-radius: 0 0 0.7rem 0.7rem;
+  color: #f87171;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-pad, .mp-rem-round, .mp-rem-icon, .mp-rem-apps { transition: none; }
+}
+
+/* The classic remote's menus position against this, and the pad must not
+   paint over them. The board's is not positioned: its activity and source
+   sheets cover the whole popup, so they position against the sheet that
+   holds it. */
+.mp-remote:not([data-board="true"]) { position: relative; }
+
+.mp-remote:not([data-board="true"]) > .mp-pad { margin-top: auto; }
+
+/* ---------- the remote, redrawn ----------
+ *
+ * What is on at the top, as two chips; below them the pad on the left and a
+ * column of keys down the right, filling whatever height the panel has. */
+.mp-rem-status {
+  /* The same two columns as the pad and its keys, so the chips end where
+     the pad ends and the volume sits over the keys. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--mp-rem-side, 3.8rem);
+  gap: 0.75rem;
+  min-width: 0;
+  /* The volume: a card laid over the activity and source chips, exactly their
+     size, in the overlay's own colour — the pad stays clear, and the volume
+     chip beside it stays in reach to close it. The whole card is the slider;
+     the fill is the level. */
+  position: relative;
+}
+
+.mp-rem-chips { display: flex; gap: 0.5rem; min-width: 0; }
+.mp-rem-chips:empty { display: none; }
+.mp-rem-chips > .mp-rem-chip { flex: 1 1 0; }
+
+/* Beside the volume the arrows give their width to the names. */
+.mp-rem-status:has(> .mp-rem-vchip) .mp-rem-chip-caret { display: none; }
+.mp-rem-status:has(> .mp-rem-vchip) .mp-rem-chip { gap: 0.5rem; padding-right: 0.6rem; }
+
+/* No chips at all: the volume keeps its column. */
+.mp-rem-status:has(> .mp-rem-chips:empty) > .mp-rem-vchip { grid-column: 2; }
+
+/* The volume chip: narrow, the level under its icon. */
+.mp-rem-vchip {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  width: 100%;
+  border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  border-radius: 1rem;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.mp-rem-vchip[data-open="true"] {
+  color: var(--mp-on-primary, #fff);
+  border-color: transparent;
+  background: var(--mp-primary, #3b82f6);
+}
+
+.mp-rem-status:empty { display: none; }
+
+.mp-rem-chip {
+  --mp-look: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.5rem 0.5rem 0.5rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--mp-look) 26%, transparent);
+  border-radius: 1rem;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--mp-look) 16%, transparent),
+    color-mix(in srgb, var(--mp-look) 4%, transparent)
+  );
+  transition: transform 0.12s ease, background 0.2s ease;
+}
+
+.mp-rem-chip:active { transform: scale(0.98); }
+
+.mp-rem-chip[data-on="false"] {
+  border-color: color-mix(in srgb, currentColor 10%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.mp-rem-chip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0.75rem;
+  color: #fff;
+  background: var(--mp-look);
+  box-shadow: 0 6px 14px -8px var(--mp-look);
+}
+
+.mp-rem-chip[data-on="false"] .mp-rem-chip-icon {
+  color: inherit;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  box-shadow: none;
+}
+
+.mp-rem-chip-text { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; line-height: 1.2; }
+
+.mp-rem-chip-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.mp-rem-chip-value { font-size: 0.86rem; font-weight: 620; }
+.mp-rem-chip-caret { flex: none; opacity: 0.45; }
+
+.mp-rem-body {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--mp-rem-side, 3.8rem);
+  /* One row, exactly the height left: the pad and the keys share it, and
+     neither pushes the other off the bottom of a phone. */
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0.75rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: auto;
+}
+
+/* The pad: a lit slab rather than a grey square — a soft light from the top,
+   a fine dot grid to say it is a surface to drag on, four quiet chevrons for
+   the directions and the middle marked as OK. */
+.mp-remote[data-board="true"] .mp-pad {
+  width: 100%;
+  height: 100%;
+  min-height: 8rem;
+  max-height: none;
+  aspect-ratio: auto;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 1.6rem;
+  /* Longhands rather than the layered shorthand, which SonarQube's CSS
+     parser misreads (css:S9424). */
+  background-color: color-mix(in srgb, currentColor 5%, transparent);
+  background-image:
+    radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, currentColor 9%, transparent), transparent 70%),
+    radial-gradient(circle, color-mix(in srgb, currentColor 13%, transparent) 1px, transparent 1.4px);
+  background-position: 0 0, 0 0;
+  background-size: auto, 14px 14px;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, currentColor 9%, transparent),
+    0 18px 36px -24px rgb(0 0 0 / 0.7);
+}
+
+.mp-pad-hint {
+  position: absolute;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-top: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  border-radius: 2px;
+  opacity: 0.22;
+  pointer-events: none;
+  transition: opacity 0.14s ease;
+}
+
+.mp-pad-hint[data-dir="up"] { top: 1rem; left: calc(50% - 0.35rem); transform: rotate(45deg); }
+.mp-pad-hint[data-dir="down"] { bottom: 1rem; left: calc(50% - 0.35rem); transform: rotate(225deg); }
+.mp-pad-hint[data-dir="left"] { left: 1rem; top: calc(50% - 0.35rem); transform: rotate(-45deg); }
+.mp-pad-hint[data-dir="right"] { right: 1rem; top: calc(50% - 0.35rem); transform: rotate(135deg); }
+
+.mp-pad[data-flash="up"] .mp-pad-hint[data-dir="up"],
+.mp-pad[data-flash="down"] .mp-pad-hint[data-dir="down"],
+.mp-pad[data-flash="left"] .mp-pad-hint[data-dir="left"],
+.mp-pad[data-flash="right"] .mp-pad-hint[data-dir="right"] {
+  opacity: 1;
+  color: var(--mp-primary, #3b82f6);
+}
+
+.mp-pad-ok {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 4.2rem;
+  height: 4.2rem;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.4;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.mp-pad[data-flash="select"] .mp-pad-ok {
+  opacity: 1;
+  border-color: var(--mp-primary, #3b82f6);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--mp-primary, #3b82f6) 20%, transparent);
+}
+
+/* The keys: soft squircles, lit from the top, pressed in when touched. */
+.mp-rem-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Safe: if the keys ever outgrow the column they run off the foot, never up
+     over the chips above it. */
+  justify-content: safe center;
+  gap: clamp(0.3rem, 1.6vh, 0.55rem);
+  min-height: 0;
+}
+
+.mp-rem-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Full size where the column has the height, and shorter — never below a
+     thumb's width — where it has not. */
+  flex: 0 1 3.2rem;
+  width: 3.4rem;
+  height: 3.2rem;
+  min-height: 2.3rem;
+  border: 0;
+  border-radius: 1.1rem;
+  color: inherit;
+  cursor: pointer;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, currentColor 13%, transparent),
+    color-mix(in srgb, currentColor 6%, transparent)
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, currentColor 8%, transparent),
+    0 8px 18px -12px rgb(0 0 0 / 0.8);
+  transition: transform 0.1s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.mp-rem-key:active { transform: scale(0.94); }
+
+/* Home: bigger, and in the accent colour — the key reached for blind. */
+.mp-rem-key[data-lg="true"] {
+  flex-basis: 3.8rem;
+  width: 3.8rem;
+  height: 3.8rem;
+  min-height: 2.8rem;
+  border-radius: 1.3rem;
+  color: var(--mp-on-primary, #fff);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mp-primary, #3b82f6) 85%, #fff),
+    var(--mp-primary, #3b82f6)
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.25),
+    0 10px 22px -10px var(--mp-primary, #3b82f6);
+}
+
+.mp-rem-key[data-flash="true"],
+.mp-rem-key[data-open="true"] {
+  color: var(--mp-on-primary, #fff);
+  background: var(--mp-primary, #3b82f6);
+}
+
+.mp-rem-vcard {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: calc(var(--mp-rem-side, 3.8rem) + 0.75rem);
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3.2rem;
+  padding: 0 1.1rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 1rem;
+  color: inherit;
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  /* The overlay's own ground: the board's sheet colour where there is one. */
+  background-color: var(--rb-page, var(--mp-bg, #111827));
+  background-image: linear-gradient(var(--rb-card, transparent), var(--rb-card, transparent));
+  box-shadow: 0 22px 44px -20px rgb(0 0 0 / 0.9);
+  animation: mp-vcard-in 0.22s cubic-bezier(0.16, 0.84, 0.24, 1);
+}
+
+@keyframes mp-vcard-in {
+  from { opacity: 0; transform: translateX(0.6rem); }
+  to { opacity: 1; transform: none; }
+}
+
+.mp-rem-vcard-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--fill, 0%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--mp-primary, #3b82f6) 55%, transparent),
+    var(--mp-primary, #3b82f6)
+  );
+  box-shadow: 4px 0 18px -4px var(--mp-primary, #3b82f6);
+  transition: width 0.12s ease;
+  pointer-events: none;
+}
+
+.mp-rem-vcard[data-held="true"] .mp-rem-vcard-fill { transition: none; }
+
+.mp-rem-vcard-label,
+.mp-rem-vcard-value {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 620;
+  pointer-events: none;
+  text-shadow: 0 1px 6px rgb(0 0 0 / 0.4);
+}
+
+.mp-rem-vcard-value { font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Without a level to show: two halves, − and +, and a mute between. */
+.mp-rem-vcard[data-keys="true"] { padding: 0.35rem; gap: 0.35rem; cursor: default; }
+
+.mp-rem-vcard[data-keys="true"] > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  height: 100%;
+  border: 0;
+  border-radius: 1rem;
+  color: inherit;
+  cursor: pointer;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  transition: transform 0.1s ease, background 0.16s ease;
+}
+
+.mp-rem-vcard[data-keys="true"] > .mp-rem-vcard-mute { flex: 0 0 3.2rem; opacity: 0.7; }
+.mp-rem-vcard[data-keys="true"] > button:active { transform: scale(0.96); }
+.mp-rem-vcard[data-keys="true"] > button[data-flash="true"] { color: var(--mp-on-primary, #fff); background: var(--mp-primary, #3b82f6); }
+
+/* A very short sheet: power and menu stand down, so back, home, play and the
+   volume always fit. Power is also the activity chip's "everything off". */
+.mp-panel[data-tiny="true"] .mp-rem-key[data-minor="true"] { display: none; }
+
+/* A filter above a long list in a sheet. */
+.mp-subsheet-tools { flex: none; padding: 0 1rem 0.5rem; }
+
+/* A choice with a colour of its own: the tile in that colour. */
+.mp-speaker-icon[data-look="true"] {
+  color: #fff;
+  background: var(--mp-look);
+  opacity: 1;
+  box-shadow: 0 6px 14px -8px var(--mp-look);
+}
+
+.mp-speaker[data-danger="true"] .mp-speaker-name { color: #f87171; }
+
+/* Now Playing sits in the middle of the popup.
+ *
+ * The tab row is pinned to the top and the player button to the bottom, and
+ * the artwork, transport and volume between them were top-aligned — which left
+ * a growing well of empty space under the volume as the popup got taller, and
+ * the whole panel read as having fallen to one end. Centred, the three parts
+ * hold the middle whatever height the sheet is.
+ *
+ * The panel only has height to centre within because the ancestor-stretch rule
+ * above now covers .mp-now as well: the dialog wraps each tab in a
+ * tabs-content box that otherwise sizes to its content. */
+.mp-panel > .mp-now {
+  flex: 1 1 auto;
+  min-height: 0;
+  justify-content: center;
+}
+
+/* ---------- Music Assistant queue ---------- */
+
+/* Over the panel rather than pushed below it: the queue is a detour from the
+   hero, and inserting it in the flow moved the transport keys under the fold
+   on a phone — the same reason the remote's menus float. */
+.mp-now { position: relative; }
+
+.mp-queue {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1rem;
+  overflow: hidden;
+  /* Opaque: the hero art behind it would make every row unreadable. */
+  background: var(--mp-menu-bg, #1b1f25);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent);
+  animation: mp-rem-menu-in 0.14s ease-out;
+}
+
+.mp-queue-head {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.mp-queue-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+}
+
+/* The queue can report more items than it hands back, and the difference
+   matters when deciding whether to scroll. */
+.mp-queue-count {
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.mp-queue-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.35rem;
+}
+
+.mp-queue-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.4rem;
+  border-radius: 0.7rem;
+  min-width: 0;
+}
+
+.mp-queue-row[data-current="true"] {
+  background: color-mix(in srgb, var(--mp-primary, #3b82f6) 16%, transparent);
+}
+
+.mp-queue-art {
+  width: 2.2rem;
+  height: 2.2rem;
+  flex: none;
+  border-radius: 0.4rem;
+  object-fit: cover;
+}
+
+.mp-queue-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 0.85rem;
+  overflow: hidden;
+}
+
+.mp-queue-sub {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+/* Carries the empty queue, the loading line and whatever a failed favourite
+   came back with. */
+.mp-queue-note {
+  margin: 0;
+  padding: 0.6rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: center;
+  opacity: 0.7;
+}
+
+/* ---------- waveform seek ---------- */
+
+.mp-wave {
+  position: relative;
+  height: 2.6rem;
+  width: 100%;
+  cursor: pointer;
+  touch-action: none;
+}
+
+/* Two identical layers of bars. The played one is clipped by --played, so a
+   position tick changes one custom property rather than restyling 96 nodes,
+   and the two can never drift out of alignment. */
+.mp-wave-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+}
+
+.mp-wave-layer > span {
+  flex: 1;
+  min-width: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 26%, transparent);
+}
+
+.mp-wave-layer--played {
+  clip-path: inset(0 calc(100% - var(--played, 0%)) 0 0);
+}
+
+.mp-wave-layer--played > span {
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+}
+
+/* The real control, invisible over the bars: it keeps keyboard seeking, the
+   disabled state, and touch drag without reimplementing any of them. */
+.mp-wave-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+.mp-wave-input:disabled { cursor: default; }
+.mp-wave:has(.mp-wave-input:disabled) { cursor: default; }
+
+.mp-wave:has(.mp-wave-input:focus-visible) {
+  outline: 2px solid var(--mp-primary, var(--widget-color, #3b82f6));
+  outline-offset: 3px;
+  border-radius: 0.4rem;
+}
+
+/* A phone sheet cannot show 96 bars without them going sub-pixel. Every third
+   is dropped rather than the last third: thinning evenly keeps the shape of
+   the whole track, where truncating would cut its tail off. */
+@container (max-width: 26rem) {
+  .mp-wave { height: 2.1rem; }
+  .mp-wave-layer > span:nth-child(3n) { display: none; }
+}
+
+/* ---------- now playing ---------- */
+
+.mp-hero {
+  position: relative;
+  display: flex;
+  gap: 1.1rem;
+  align-items: center;
+  min-width: 0;
+  padding: 0.9rem;
+  border-radius: 1.2rem;
+  overflow: hidden;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 8%, transparent);
+  container-type: inline-size;
+  container-name: hero;
+}
+
+.mp-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3;
+  filter: blur(26px) saturate(1.6);
+  transform: scale(1.3);
+  pointer-events: none;
+}
+
+.mp-hero-art {
+  position: relative;
+  width: 6.8rem;
+  height: 6.8rem;
+  flex: none;
+  border-radius: 1rem;
+  object-fit: contain;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: 0 14px 32px -16px rgb(0 0 0 / 0.45), 0 0 0 1px color-mix(in srgb, currentColor 13%, transparent);
+}
+
+.mp-hero-meta {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.mp-hero-title { font-size: 1.15rem; font-weight: 680; letter-spacing: -0.025em; line-height: 1.2; }
+.mp-hero-artist { font-size: 0.88rem; opacity: 0.74; }
+.mp-hero-album { font-size: 0.75rem; opacity: 0.44; }
+
+.mp-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mp-primary, var(--widget-color, #3b82f6));
+}
+
+.mp-row { display: flex; align-items: center; gap: 0.65rem; }
+
+.mp-times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  font-size: 0.68rem;
+  opacity: 0.5;
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-pct {
+  width: 2.5rem;
+  flex: none;
+  text-align: right;
+  font-size: 0.7rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- range inputs (filled track via --fill) ---------- */
+
+.mp-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 0.6rem;
+  /* The drag is horizontal; without this the browser can claim the gesture
+     for scrolling partway through and the slider stops tracking. */
+  touch-action: none;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    var(--mp-primary, var(--widget-color, #3b82f6)) 0 var(--fill, 0%),
+    color-mix(in srgb, currentColor 18%, transparent) var(--fill, 0%) 100%
+  );
+  transition: height 0.15s ease, background 0.12s linear;
+}
+
+.mp-range:hover { height: 0.7rem; }
+
+.mp-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.6);
+  transition: transform 0.12s ease;
+}
+
+.mp-range:active::-webkit-slider-thumb { transform: scale(1.25); }
+
+.mp-range::-moz-range-thumb {
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.6);
+}
+
+.mp-range:disabled { opacity: 0.4; cursor: default; }
+
+/* ---------- search ---------- */
+
+.mp-search-row { display: flex; gap: 0.5rem; }
+
+.mp-input-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
+
+.mp-input-wrap > svg[data-icon] {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.mp-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 0.85rem;
+  padding: 0.7rem 0.9rem 0.7rem 2.35rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 9%, transparent);
+  outline: none;
+  transition: background 0.16s ease, box-shadow 0.16s ease;
+}
+
+.mp-input:focus {
+  background: color-mix(in srgb, currentColor 17%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mp-primary, var(--widget-color, #3b82f6)) 60%, transparent);
+}
+.mp-input::placeholder { opacity: 0.38; }
+
+/* Safari and Chrome on touch zoom the whole page when a focused field's text
+   is smaller than 16px, and the popup never zooms back out. The field keeps
+   its size; only the type grows, and only where the zoom would happen. */
+@media (pointer: coarse) {
+  .mp-input { font-size: 16px; }
+}
+
+.mp-go {
+  border: 0;
+  border-radius: 0.85rem;
+  padding: 0 1.2rem;
+  font-size: 0.85rem;
+  font-weight: 620;
+  font-family: inherit;
+  color: var(--mp-on-primary, #fff);
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  box-shadow: 0 8px 22px -10px var(--mp-primary, var(--widget-color, #3b82f6));
+  cursor: pointer;
+  transition: filter 0.15s ease, opacity 0.15s ease, transform 0.12s ease;
+}
+.mp-go:hover { filter: brightness(1.14); }
+.mp-go:active { transform: scale(0.96); }
+.mp-go:disabled { opacity: 0.28; cursor: default; transform: none; }
+
+.mp-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+
+.mp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.34rem 0.8rem;
+  font-size: 0.73rem;
+  font-weight: 520;
+  font-family: inherit;
+  text-transform: capitalize;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 8%, transparent);
+  cursor: pointer;
+  opacity: 0.75;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+.mp-chip:hover { background: color-mix(in srgb, currentColor 21%, transparent); opacity: 1; }
+
+.mp-chip[data-active="true"] {
+  opacity: 1;
+  color: var(--mp-on-primary, #fff);
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  box-shadow: 0 6px 16px -8px var(--mp-primary, var(--widget-color, #3b82f6));
+}
+
+.mp-select {
+  border: 0;
+  border-radius: 0.65rem;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.75rem;
+  font-family: inherit;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 8%, transparent);
+  outline: none;
+  cursor: pointer;
+}
+
+.mp-check {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  opacity: 0.78;
+  cursor: pointer;
+}
+.mp-check input { accent-color: var(--mp-primary, var(--widget-color, #3b82f6)); }
+
+.mp-label {
+  margin-bottom: 0.3rem;
+  font-size: 0.64rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.42;
+}
+
+.mp-recent {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  border: 0;
+  border-radius: 0.7rem;
+  padding: 0.55rem 0.6rem;
+  font-size: 0.82rem;
+  font-family: inherit;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.mp-recent:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+.mp-recent-type { margin-left: auto; font-size: 0.67rem; opacity: 0.38; text-transform: capitalize; }
+
+.mp-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.7rem;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.74rem;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.mp-status[data-error="true"] {
+  background: rgb(239 68 68 / 0.14);
+  box-shadow: inset 0 0 0 1px rgb(239 68 68 / 0.35);
+}
+
+/* ---------- rooms ---------- */
+
+.mp-room {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border-radius: 0.95rem;
+  padding: 0.7rem 0.8rem;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 8%, transparent);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mp-room[data-joined="true"] {
+  background: color-mix(in srgb, var(--mp-primary, var(--widget-color, #3b82f6)) 15%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mp-primary, var(--widget-color, #3b82f6)) 48%, transparent),
+    0 8px 24px -16px var(--mp-primary, var(--widget-color, #3b82f6));
+}
+
+.mp-room[data-available="false"] { opacity: 0.38; }
+
+.mp-room-name { font-size: 0.86rem; font-weight: 540; }
+.mp-room-state { font-size: 0.69rem; opacity: 0.48; }
+
+.mp-pill {
+  border: 0;
+  border-radius: 0.65rem;
+  padding: 0.42rem 0.85rem;
+  font-size: 0.73rem;
+  font-weight: 550;
+  font-family: inherit;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 13%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 9%, transparent);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+.mp-pill:hover { background: color-mix(in srgb, currentColor 25%, transparent); }
+.mp-pill:active { transform: scale(0.96); }
+.mp-pill:disabled { opacity: 0.28; cursor: default; transform: none; }
+.mp-pill[data-joined="true"] {
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  color: var(--mp-on-primary, #fff);
+  box-shadow: none;
+}
+
+.mp-empty {
+  border-radius: 0.95rem;
+  padding: 1.15rem 0.8rem;
+  text-align: center;
+  font-size: 0.76rem;
+  opacity: 0.55;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 6%, transparent);
+}
+
+/* Discover with nothing in it: an explanation of where the shelves come
+   from, rather than a silent stand-in that looks like a working setup. */
+.mp-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 1.6rem 1.2rem;
+  border-radius: 1.1rem;
+  text-align: center;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 7%, transparent);
+}
+
+.mp-setup > svg[data-icon] { opacity: 0.45; }
+
+.mp-setup > h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 640;
+  letter-spacing: -0.01em;
+}
+
+.mp-setup > p {
+  margin: 0;
+  max-width: 28rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  opacity: 0.6;
+}
+
+.mp-setup > p > b { font-weight: 640; opacity: 0.85; }
+
+/* What the integration actually said, for the case where it is installed and
+   still not answering. */
+.mp-setup-why {
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.6rem;
+  font-size: 0.72rem !important;
+  opacity: 0.45 !important;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.mp-setup > .mp-action { margin-top: 0.3rem; }
+
+.mp-spread { display: flex; align-items: center; gap: 0.5rem; }
+.mp-spread > .mp-right { margin-left: auto; display: flex; gap: 0.45rem; }
+.mp-flex1 { flex: 1; min-width: 0; }
+
+/* ---------- tile: stacked layout with volume row ---------- */
+
+.mp-tile--stack.mp-tile--stack {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.mp-tile-vol {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  flex: none;
+  opacity: 0.85;
+}
+
+.mp-tile-vol .mp-range { height: 0.28rem; flex: 1; min-width: 0; }
+
+.mp-tile-vol .mp-pct {
+  flex: none;
+  min-width: 2.2rem;
+  text-align: right;
+  font-size: 0.7rem;
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- the three-row landscape tile ---------- */
+
+/* The stack layout centres its column, which is right for two rows and wrong
+   for three: the card came out the same size it always was with a band of
+   nothing above and below it. Here the column distributes, so the cover sits
+   at the top, the transport in the middle and the times on the bottom edge —
+   and the height goes into the artwork rather than into the gaps. */
+.mp-tile--tall .mp-tile-col {
+  justify-content: space-between;
+  gap: 0.55rem;
+  min-height: 0;
+}
+
+.mp-tile--tall .mp-tile-head {
+  flex: none;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mp-tile--tall .mp-tile-head .mp-art {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 1.15rem;
+}
+
+.mp-tile--tall .mp-title { font-size: 1.12rem; }
+.mp-tile--tall .mp-sub { font-size: 0.88rem; }
+.mp-tile--tall .mp-eyebrow { font-size: 0.63rem; }
+
+.mp-tile--tall .mp-controls {
+  flex: none;
+  min-height: 3.5rem;
+  padding: 0;
+  /* The transport group is display: contents, so the spacing between the three
+     buttons is the controls row's own gap. */
+  gap: 1.5rem;
+}
+
+.mp-tile--tall .mp-btn--hero { width: 3.5rem; height: 3.5rem; }
+
+/* The shortcut row only appears on the tallest of these, so it is allowed to
+   sit where it falls rather than being pushed to the bottom by margin-top. */
+.mp-tile--tall .mp-tile-tabs { margin-top: 0; flex: none; }
+
+/* Shorter than in the dialog: the tile gives it one line, not a control row
+   of its own. The touch target is the whole strip either way. */
+.mp-tile--tall .mp-dial { height: 1.9rem; }
+.mp-tile--tall .mp-tile-vol { gap: 0.4rem; }
+
+/* Clear of the 4px bar along the bottom border. */
+.mp-tile--tall.mp-tile--tall { padding-bottom: 0.7rem; }
+.mp-tile--tall .mp-tile-vol .mp-pct { min-width: 1.8rem; }
+.mp-tile-vol .mp-range:hover { height: 0.38rem; }
+.mp-tile-vol .mp-btn { background: transparent; box-shadow: none; }
+.mp-tile-vol .mp-btn:hover { background: color-mix(in srgb, currentColor 16%, transparent); }
+
+/* ---------- search actions ---------- */
+
+.mp-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.mp-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 0;
+  border-radius: 0.8rem;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 560;
+  font-family: inherit;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 9%, transparent);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease, opacity 0.15s ease;
+}
+
+.mp-action:hover { background: color-mix(in srgb, currentColor 21%, transparent); }
+.mp-action:active { transform: scale(0.97); }
+.mp-action:disabled { opacity: 0.25; cursor: default; transform: none; }
+
+.mp-action--primary {
+  grid-column: span 2;
+  color: var(--mp-on-primary, #fff);
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  box-shadow: 0 8px 22px -10px var(--mp-primary, var(--widget-color, #3b82f6));
+}
+.mp-action--primary:hover { background: var(--mp-primary, var(--widget-color, #3b82f6)); filter: brightness(1.14); }
+
+.mp-hint {
+  font-size: 0.69rem;
+  opacity: 0.45;
+  line-height: 1.45;
+}
+
+/* ---------- library grid ---------- */
+
+.mp-lib-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 0.65rem;
+}
+
+.mp-lib-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mp-lib-item[data-open="true"] { position: relative; z-index: 20; }
+
+/* A tile's own tap: a button filling it. What lies over it lets a tap
+   through, but for its own buttons. */
+.mp-lib-item:has(> .mp-item-hit) { position: relative; }
+.mp-item-hit {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0.85rem;
+  background: none;
+  cursor: pointer;
+}
+.mp-item-hit:focus-visible { outline: 2px solid var(--mp-primary, #3b82f6); outline-offset: 2px; }
+.mp-lib-item:has(> .mp-item-hit) > :not(.mp-item-hit),
+.mp-list-row:has(> .mp-item-hit) > :not(.mp-item-hit) { pointer-events: none; }
+.mp-lib-item:has(> .mp-item-hit) button:not(.mp-item-hit),
+.mp-list-row:has(> .mp-item-hit) button:not(.mp-item-hit) { pointer-events: auto; }
+
+.mp-lib-cover {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+  box-shadow: 0 8px 20px -12px rgb(0 0 0 / 0.35), inset 0 0 0 1px color-mix(in srgb, currentColor 10%, transparent);
+  transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.18s ease;
+}
+
+.mp-lib-item:hover .mp-lib-cover { transform: translateY(-2px); }
+
+.mp-lib-item[data-open="true"] .mp-lib-cover {
+  box-shadow: 0 10px 26px -10px var(--mp-primary, var(--widget-color, #3b82f6)),
+    inset 0 0 0 2px var(--mp-primary, var(--widget-color, #3b82f6));
+}
+
+.mp-lib-cover img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+.mp-lib-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: inherit;
+}
+
+.mp-lib-check {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  color: var(--mp-on-primary, #fff);
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.8);
+}
+
+/* ---------- Discover shelves ---------- */
+
+/* One swipeable row of covers per shelf, titled in full-size type.
+ *
+ * A wrapping grid of small tiles answers "what is in my library"; a shelf
+ * answers "here is a pick", which is what a recommendation row is. Sizes are
+ * container units off .mp-panel, so the same shelf gives three covers on a
+ * phone and five in the desktop popup without a breakpoint either side. */
+.mp-shelf-row + .mp-shelf-row { margin-top: 0.35rem; }
+
+.mp-shelf-title {
+  margin: 0 0 0.7rem;
+  font-size: clamp(1rem, 4.2cqw, 1.3rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.mp-shelf {
+  display: flex;
+  gap: 0.9rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  /* The covers lift on hover and carry a drop shadow; without the padding the
+     scroller clips both. */
+  padding-bottom: 0.2rem;
+  scrollbar-width: none;
+}
+.mp-shelf::-webkit-scrollbar { display: none; }
+
+.mp-shelf > .mp-lib-item {
+  flex: 0 0 auto;
+  width: clamp(6.4rem, 26cqw, 9.5rem);
+  gap: 0.55rem;
+  scroll-snap-align: start;
+}
+
+/* Bigger type than the grid's: a shelf shows fewer covers, so the name is
+   read rather than glanced at, and the artist line earns its contrast. */
+.mp-shelf .mp-lib-name {
+  font-size: clamp(0.78rem, 2.6cqw, 0.95rem);
+  font-weight: 650;
+}
+
+/* The drill-down: the shelf's covers and type, wrapped instead of scrolled,
+   because here you want the whole container rather than a pick from it. */
+.mp-lib-grid--large {
+  grid-template-columns: repeat(auto-fill, minmax(clamp(6.4rem, 26cqw, 9.5rem), 1fr));
+  gap: 0.9rem;
+}
+
+.mp-lib-grid--large .mp-lib-name {
+  font-size: clamp(0.78rem, 2.6cqw, 0.95rem);
+  font-weight: 650;
+}
+
+.mp-lib-grid--large .mp-lib-type {
+  font-size: clamp(0.7rem, 2.3cqw, 0.85rem);
+  opacity: 0.55;
+  text-transform: none;
+}
+
+/* Inside the crumb the shelf heading loses its own margin: the row's own
+   padding places it, and the type label sits directly above. */
+.mp-crumb .mp-shelf-title { margin: 0; }
+
+.mp-shelf .mp-lib-type {
+  font-size: clamp(0.7rem, 2.3cqw, 0.85rem);
+  opacity: 0.55;
+  /* Artist and show names carry their own capitals — "Paul Ronzheimer", not
+     "Paul ronzheimer". Only the grid's media-type fallback needs the case. */
+  text-transform: none;
+}
+
+.mp-lib-name {
+  font-size: 0.75rem;
+  font-weight: 540;
+  line-height: 1.25;
+}
+
+.mp-lib-type { font-size: 0.66rem; opacity: 0.42; text-transform: capitalize; }
+
+/* ---------- favourites ---------- */
+
+/* The speaker's own list, on the library's grid. The tiles differ only in
+   what they carry: a badge saying what kind of thing it is, and a ring on
+   whichever one the speaker is playing. */
+.mp-favs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-height: 0;
+}
+
+.mp-fav-art { position: relative; display: block; }
+
+.mp-fav-badge {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  color: #fff;
+  background: rgb(0 0 0 / 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* What is on now, ringed rather than merely tinted: at grid size a tint is
+   lost against artwork that happens to be the same colour. */
+.mp-fav[data-playing="true"] .mp-lib-cover {
+  box-shadow: 0 10px 26px -10px var(--mp-primary, var(--widget-color, #3b82f6)),
+    inset 0 0 0 2px var(--mp-primary, var(--widget-color, #3b82f6));
+}
+
+.mp-fav[data-playing="true"] .mp-lib-name {
+  color: var(--mp-primary, var(--widget-color, #3b82f6));
+  font-weight: 640;
+}
+
+/* Switching source takes a beat on Sonos; the tile says so rather than
+   looking like a tap that missed. */
+.mp-fav[data-pending="true"] { opacity: 0.55; }
+.mp-fav[data-pending="true"] .mp-lib-cover { animation: mp-fav-wait 1s ease-in-out infinite; }
+
+@keyframes mp-fav-wait {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.965); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-fav[data-pending="true"] .mp-lib-cover { animation: none; }
+}
+
+.mp-divider {
+  height: 1px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+/* ---------- responsive tile ---------- */
+
+/* Portrait is set from the measured shell size, not a container query. */
+.mp-tile--portrait.mp-tile--portrait {
+  justify-content: center;
+  gap: 1rem;
+  /* Clear of the 4px bar along the bottom border. */
+  padding-bottom: 0.7rem;
+}
+
+.mp-tile--portrait .mp-tile-head {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.7rem;
+  min-height: 0;
+}
+
+.mp-tile--portrait .mp-art {
+  flex: none;
+  border-radius: 1.1rem;
+}
+
+.mp-tile--portrait .mp-meta {
+  width: 100%;
+  flex: none;
+  align-items: center;
+}
+
+.mp-tile--portrait .mp-badge { align-self: center; }
+.mp-tile--portrait .mp-title { font-size: 1.05rem; }
+
+/* Centre the transport as a group, with volume tucked to the right edge. */
+.mp-tile--portrait .mp-controls { min-height: 3.2rem; flex: none; padding: 0; gap: 1.2rem; }
+
+.mp-tile--portrait .mp-btn--hero {
+  width: 3.4rem;
+  height: 3.4rem;
+}
+
+/* ---------- responsive dialog ---------- */
+
+.mp-now-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+/* Desktop and tablet: the artwork becomes a pane rather than a thumbnail with
+   a field of empty space beside it. The hero takes a fixed column and stacks
+   its own text under the cover; everything else — progress, source, transport,
+   volume — fills the rest.
+   The panel is queried against its parent container, since an element cannot
+   respond to a container query it declares itself. */
+@container (min-width: 40rem) {
+  .mp-panel:has(> .mp-hero) {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 1.3rem;
+  }
+
+  .mp-panel:has(> .mp-hero) > .mp-hero {
+    flex: 0 0 clamp(13rem, 34%, 19rem);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.9rem;
+    padding: 1rem;
+  }
+
+  /* Square and as wide as the column will allow, but never at the expense of
+     the words under it. The panel's height comes from the dialog, so the
+     column cannot grow to fit a cover sized purely off its width — and the
+     hero clips, which is how the artist's name came to be sliced in half
+     along the bottom edge of the card. Sizing the cover off the height left
+     over instead, with the aspect ratio giving it its width, means the text
+     always has its rows and the picture takes the rest.
+
+     The hero's own narrow-container rule fires here too — the column really
+     is under 420px — so its cap and centring are undone explicitly rather
+     than left to specificity. */
+  .mp-panel:has(> .mp-hero) .mp-hero-art {
+    /* Shrink, never grow. Growing, it ate the height the words underneath
+       needed and the artist and album were clipped off the bottom of the
+       card — which is what happens in a short sheet, where there is spare
+       height for exactly one of the two. Its own width already makes it as
+       large as the column allows. */
+    flex: 0 1 auto;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    max-width: 100%;
+    align-self: center;
+    aspect-ratio: 1;
+    border-radius: 1.1rem;
+  }
+
+  .mp-panel:has(> .mp-hero) .mp-hero-meta {
+    flex: none;
+    width: 100%;
+    text-align: left;
+    align-items: flex-start;
+  }
+  .mp-panel:has(> .mp-hero) .mp-hero-title { font-size: 1.15rem; }
+
+  .mp-panel:has(> .mp-hero) > .mp-now-side {
+    flex: 1;
+    min-width: 0;
+    /* Centred against the tall artwork column rather than pinned to the top,
+       which left the transport row floating in the middle of nowhere. */
+    justify-content: center;
+    gap: 1.1rem;
+  }
+
+  /* With the width to spare, the controls can breathe. */
+  .mp-panel:has(> .mp-hero) .mp-btn--hero { width: 3.6rem; height: 3.6rem; }
+  .mp-panel:has(> .mp-hero) .mp-controls { gap: 1.1rem; }
+  .mp-panel:has(> .mp-hero) .mp-vol-bar { max-width: 26rem; }
+}
+
+/* ---------- a short panel ---------- */
+
+/*
+ * Set from a measured height rather than a container query, because there is
+ * no such thing as a container height query on an inline-size container —
+ * see panels.tsx for why the width alone was the wrong question.
+ *
+ * Now Playing goes back to a row: the cover beside its title rather than
+ * above it. A poster needs height this panel does not have, and every pixel
+ * the artwork gives up is one the transport gets, which is the control
+ * somebody actually opened this for.
+ */
+/* Tight, because the cover is claiming the rest. */
+.mp-panel[data-short="true"] { gap: 0.35rem; }
+.mp-panel[data-short="true"] .mp-now { gap: 0.35rem; }
+
+.mp-panel[data-short="true"] .mp-hero {
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  /* Nothing is clipped here. The disc grows until it meets this box, and its
+     ring and glow are drawn outside its border — so a hidden overflow took a
+     flat bite out of the bottom of the circle, which is the one shape on the
+     panel that has to be a shape. Anything that overruns now lies over the
+     transport instead, and the transport is already sitting on the disc. */
+  overflow: visible;
+  /* Takes the height the rows below do not want. */
+  flex: 1 1 auto;
+  min-height: 0;
+  /* The words go above the cover, where the reference puts them — under a disc
+     with buttons on it they had nowhere to sit. */
+  flex-direction: column-reverse;
+  /* Whatever is left over splits above and below, instead of piling up over the
+     title — the column is reversed, so free space at the main start is free
+     space at the top. */
+  justify-content: center;
+}
+
+/* No copy of the cover behind the rows — neither the blurred picture the
+   tall layout uses nor a wash sampled off it. On a sheet this small the disc
+   is already the biggest thing on screen, and anything behind it only takes
+   contrast off the title and the transport. */
+.mp-panel[data-short="true"] .mp-hero-bg { display: none; }
+
+/* Lifted off the panel, the way a sleeve sits on a table, with the thin
+   light rim the reference has around it. */
+.mp-panel[data-short="true"] .mp-hero-art {
+  /* The cover gets what is left, and no more — and it is round, so what it
+   * gets in one direction it must get in the other.
+   *
+   * Two caps, the same size. Height comes from the flex column: the disc grows
+   * into whatever the title above and the transport below have not claimed.
+   * Width would then follow from the aspect ratio, except that a tall sheet
+   * gives it more height than the panel is wide, and a max-width alone clamps
+   * only the width — which is how the disc came out as an egg. Capping both at
+   * min(74cqw, 100%) keeps it a circle at every height, and three quarters of
+   * the panel is as wide as a disc should ever be.
+   *
+   * There is no reservation for the words any more. It read max-height:
+   * calc(100% - 3.2rem) back when the title sat under the cover and the two
+   * shared a box; the column is reversed now, the title is a flex item of its
+   * own with its own height, and subtracting it a second time was costing the
+   * disc fifty pixels it had already paid for. */
+  flex: 1 1 auto;
+  width: auto;
+  height: auto;
+  /* A floor, because a zero minimum let it shrink to nothing: in a sheet
+     this short every other row is fixed and the leftover came to a few
+     pixels. */
+  min-height: 2.4rem;
+  /* The 0.8rem is the ring: two shadows at 0.34rem and the light past them,
+     all drawn outside the border box, and at a flush cap they would meet the
+     panel's own edges. */
+  max-width: min(74cqw, 100% - 0.8rem);
+  max-height: min(74cqw, 100% - 0.8rem);
+  aspect-ratio: 1;
+  /* Filled, not fitted. A circle has to be full of something: a cover that is
+     not square — and plenty are not, Sonos favourites and station logos least
+     of all — was letterboxed by "contain", and the bands it left showed up as
+     two straight edges cut across the top and bottom of the disc. Cropping the
+     long side loses a little of a picture; fitting it loses the shape. */
+  object-fit: cover;
+  /*
+   * The cover as a disc with the transport riding on its lower edge, and the
+   * progress under that — the shape of every phone music player, and a better
+   * use of a short sheet than a square with rows stacked beneath it. A circle
+   * has no corners to waste, and the play button overlapping it buys back a
+   * third of a row.
+   */
+  border-radius: 50%;
+  /* The ring, and the light it throws. Drawn on the cover itself rather than
+     as a wrapper: one element, and it cannot drift out of register with the
+     picture it surrounds. */
+  box-shadow:
+    0 0 0 0.3rem color-mix(in srgb, currentColor 8%, transparent),
+    0 0 0 0.34rem color-mix(in srgb, currentColor 14%, transparent),
+    0 14px 40px -12px color-mix(in srgb, var(--mp-primary, #3b82f6) 45%, transparent);
+}
+
+.mp-panel[data-short="true"] .mp-hero-meta {
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  min-width: 0;
+  flex: none;
+  gap: 0.05rem;
+  order: 0;
+}
+
+.mp-panel[data-short="true"] .mp-hero-title { font-size: 1rem; }
+.mp-panel[data-short="true"] .mp-hero-artist { font-size: 0.78rem; }
+.mp-panel[data-short="true"] .mp-hero-album,
+.mp-panel[data-short="true"] .mp-hero-tag { display: none; }
+
+/* The source picker is a whole row for something you set once a session. */
+.mp-panel[data-short="true"] .mp-source { display: none; }
+
+.mp-panel[data-short="true"] .mp-now-side { gap: 0.35rem; flex: none; }
+.mp-panel[data-short="true"] .mp-times { margin-top: 0.3rem; font-size: 0.66rem; }
+
+/* One row, as it should be: with the small buttons at 2rem it comes to about
+   fifteen rem, which fits the narrowest sheet the board opens. Splitting them
+   over two rows cost the cover a row of height and bought nothing. */
+.mp-panel[data-short="true"] .mp-controls {
+  flex-wrap: nowrap;
+  /* Spread across the row rather than huddled in the middle: at this width
+     the panel is the control surface, and the reach between them is what
+     makes them easy to hit. */
+  justify-content: space-between;
+  gap: 0.3rem;
+  padding: 0 0.35rem;
+  min-height: 0;
+  /* Up onto the disc. The negative pull is what makes the overlap, and the
+     z-index keeps the buttons above the picture they overlap. */
+  position: relative;
+  z-index: 1;
+  /* Well onto the disc rather than just touching it. Every millimetre of
+     overlap is a millimetre the cover gets back, and the play button sitting
+     on the sleeve's lower edge is the shape this layout is copying. */
+  margin-top: -2.1rem;
+}
+
+.mp-panel[data-short="true"] .mp-btn--sm { width: 2rem; height: 2rem; }
+
+/* The secondary buttons carry no disc of their own here — the tint behind
+   them is the surface, and seven filled circles on it looked like a keypad. */
+.mp-panel[data-short="true"] .mp-controls > .mp-btn {
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Play stays a disc, but a plain one. The accent belongs to the things that
+   report a level — the progress and the volume — and a blue circle in the
+   middle of a sepia sleeve was the loudest thing on the panel. */
+.mp-panel[data-short="true"] .mp-controls > .mp-btn--primary {
+  width: 3.4rem;
+  height: 3.4rem;
+  color: #fff;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.mp-panel[data-short="true"] .mp-controls > .mp-btn--primary:hover {
+  background: color-mix(in srgb, currentColor 28%, transparent);
+}
+
+/* The waveform, shorter. */
+.mp-panel[data-short="true"] .mp-wave { height: 1.9rem; }
+
+/* Speaker, track, number — the plain row the reference uses. */
+.mp-panel[data-short="true"] .mp-vol-bar {
+  max-width: none;
+  gap: 0.6rem;
+}
+
+.mp-panel[data-short="true"] .mp-dial[data-plain="true"] {
+  /* The volume bar, with something to hold. A four-pixel line under a disc this
+     size read as a hairline someone had forgotten to finish. */
+  height: 1.9rem;
+}
+
+.mp-panel[data-short="true"] .mp-pct {
+  flex: none;
+  min-width: 1.4rem;
+  text-align: right;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The remote, on a sheet that does not scroll.
+ *
+ * The pad is a square capped at 46dvh, which is a measure of the screen —
+ * and in a phone sheet with 255px to give it, that cap is most of a viewport
+ * the panel does not have. So here it takes the height left after the head
+ * and the button row instead, and its width follows from being square. The
+ * panel stops needing a scrollbar, which is the whole point: a d-pad you
+ * have to scroll to reach is not a d-pad. */
+.mp-panel[data-short="true"] .mp-remote {
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0.5rem;
+}
+
+.mp-panel[data-short="true"] .mp-rem-head {
+  justify-content: flex-end;
+  min-height: 0;
+  flex: none;
+}
+
+/* ---------- the round face ---------- */
+
+/* Transport first, then the progress, then the volume — the reference's
+   order, and the one that lets the buttons sit on the disc. */
+.mp-panel[data-short="true"] .mp-now-side > .mp-controls { order: 1; }
+.mp-panel[data-short="true"] .mp-now-side > div:has(> .mp-wave) { order: 2; }
+.mp-panel[data-short="true"] .mp-now-side > .mp-vol-bar { order: 3; }
+.mp-panel[data-short="true"] .mp-now-side > .mp-source { order: 4; }
+
+/* The disc, sized against the sheet rather than against what is left over.
+ *
+ * Growing into free space is three levels of flex deep here — the panel
+ * grows, the view grows, the hero grows, and only then does the cover — and
+ * anywhere that chain slackens the disc lands at its floor and sits in the
+ * middle of a half-empty sheet, which is what it was doing. A width in
+ * container units is a plain answer to "how big": three quarters of the
+ * panel, whatever the rows below it are doing.
+ *
+ * The max-height still rules. It is the reservation for the title and artist
+ * under the disc, and with the aspect ratio in play it comes back through as
+ * a width, so a short sheet gets a smaller circle rather than a clipped one. */
+
+.mp-panel[data-short="true"] .mp-dial[data-plain="true"] .mp-dial-track {
+  height: 0.55rem;
+}
+
+.mp-panel[data-short="true"] .mp-dial[data-plain="true"] .mp-dial-knob {
+  width: 1.25rem;
+  height: 1.25rem;
+  box-shadow:
+    0 2px 10px rgb(0 0 0 / 0.6),
+    0 0 0 1px rgb(0 0 0 / 0.08);
+}
+
+/* The head is three buttons on one line, hard right, and the pad has
+ * everything under it.
+ *
+ * The device's name comes off: the sheet's own header already says which
+ * player this is, and repeating it cost a line the pad wanted. What is left
+ * — power, apps, volume — sits up beside that header rather than below the
+ * pad, so the whole of the rest of the panel is one surface. */
+.mp-panel[data-short="true"] .mp-rem-title { display: none; }
+
+.mp-panel[data-short="true"] .mp-pad {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 3rem;
+  max-height: none;
+  max-width: none;
+  margin: 0;
+  /* Not square. A touchpad is a rectangle — a laptop's is — and insisting on
+     a square here threw away every pixel the panel was wider than it was
+     tall, which on a phone sheet is most of them. */
+  aspect-ratio: auto;
+  border-radius: 1.2rem;
+}
+
+/* ---------- a very short panel ---------- */
+
+/*
+ * The cover beside the words rather than above them.
+ *
+ * Stacked, its height is whatever the fixed rows below leave over, and in a
+ * 255px sheet that came to about forty pixels however the rules were written.
+ * Turned on its side it is sized by the two lines next to it instead — four
+ * and a half rem rather than two — and the rows it used to share the column
+ * with cost it nothing.
+ */
+/* The tab row, slimmed. It is a row of icons at this size and it was wearing
+   a tray built for icons and labels — the padding it gives back is a third of
+   a line of artwork. */
+.mp-panel[data-tiny="true"] .mp-nav { padding: 0.1rem; }
+
+.mp-panel[data-tiny="true"] .mp-nav button {
+  min-height: 2rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.mp-panel[data-tiny="true"] .mp-nav button[data-active="true"] { padding-inline: 0.6rem; }
+
+/* The round face holds at this size too — the disc simply comes out smaller.
+   An earlier version laid the cover beside the words here, which is a fine
+   shape on its own and a bad one under a transport row drawn to sit on a
+   circle. One layout, two sizes. */
+.mp-panel[data-tiny="true"] .mp-hero { gap: 0.3rem; }
+.mp-panel[data-tiny="true"] .mp-hero-title { font-size: 0.92rem; }
+.mp-panel[data-tiny="true"] .mp-hero-artist { font-size: 0.74rem; }
+
+/* Less of an overlap on a small disc, or the buttons cover the picture. */
+.mp-panel[data-tiny="true"] .mp-controls { margin-top: -1.9rem; }
+
+/* The bar already says where in the track it is; the numbers were the one
+   row here that nothing depends on. */
+.mp-panel[data-tiny="true"] .mp-times { display: none; }
+
+.mp-panel[data-tiny="true"] .mp-wave { height: 1.6rem; }
+.mp-panel[data-tiny="true"] .mp-controls > .mp-btn--primary { width: 3rem; height: 3rem; }
+
+/* The player's name as a line of text with its icon, not a bordered pill: it
+   says where the sound is going, it is not a control you press often. */
+.mp-panel[data-short="true"] .mp-devicebar { padding-top: 0; }
+
+.mp-panel[data-short="true"] .mp-device {
+  padding: 0.3rem 0.75rem;
+  opacity: 0.85;
+  font-size: 0.8rem;
+}
+
+.mp-panel[data-short="true"] .mp-device:hover { opacity: 1; }
+
+/* Half a screen: the room board opens this inside its own sheet, which is
+ * both narrower than a dialog and a good deal shorter. The two-column layout
+ * is still the right one — it is the stacked phone view that would waste this
+ * shape — but everything in it was drawn for a dialog with room to spare.
+ *
+ * So the column narrows, the controls close up, and the waveform stops being
+ * a ruler. Nothing moves; it all just stops sprawling.
+ */
+@container (min-width: 40rem) and (max-width: 56rem) {
+  .mp-panel:has(> .mp-hero) { gap: 1rem; }
+
+  .mp-panel:has(> .mp-hero) > .mp-hero {
+    flex: 0 0 clamp(9.5rem, 30%, 13.5rem);
+    gap: 0.7rem;
+    padding: 0.75rem;
+  }
+
+  .mp-panel:has(> .mp-hero) .mp-hero-title { font-size: 1rem; }
+  .mp-panel:has(> .mp-hero) .mp-hero-artist { font-size: 0.82rem; }
+
+  /* Three lines under the cover is one more than this column has room for,
+     and the third was coming out sliced along the bottom edge. Dropped
+     rather than clipped: the album is the line you miss least, and half a
+     line of text reads as a fault. */
+  .mp-panel:has(> .mp-hero) .mp-hero-album { display: none; }
+
+  .mp-panel:has(> .mp-hero) > .mp-now-side {
+    gap: 0.8rem;
+    /* The controls belong over the middle of the space they have, not spread
+       across all of it. */
+    max-width: 30rem;
+    margin-inline: auto;
+  }
+
+  .mp-panel:has(> .mp-hero) .mp-btn--hero { width: 3.1rem; height: 3.1rem; }
+  .mp-panel:has(> .mp-hero) .mp-controls { gap: 0.75rem; }
+  .mp-panel:has(> .mp-hero) .mp-wave { height: 2.2rem; }
+  .mp-panel:has(> .mp-hero) .mp-vol-bar { max-width: 22rem; }
+}
+
+/* ---------- the tab bar, on a phone ----------
+ *
+ * At the foot of the sheet, in the sheet's own colour: icons over their
+ * names, the way a phone app's tab bar sits. */
+/* On a phone the panel is exactly the height it is given: the tab's content
+   scrolls in its own body, and the dock is the row under it. */
+.mp-panel[data-phone="true"] {
+  flex: 1 1 0;
+  height: 100%;
+  min-height: 0;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.mp-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 0.9rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  /* Room for a hover shadow or a focus ring at the edges. */
+  padding: 0.1rem 0.1rem 0.4rem;
+  margin: -0.1rem -0.1rem 0;
+}
+
+.mp-body::-webkit-scrollbar { display: none; }
+
+/* Now fills the body and centres, as it did filling the panel. */
+.mp-body > .mp-now { flex: 1 1 auto; min-height: 0; justify-content: center; }
+
+.mp-dock {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  /* Part of the sheet, not a pane over it: no paint of its own — the popup's
+     colour and the room board's sheet are not the same colour, and a bar in
+     either showed as a band in the other — and a hairline to say where the
+     scrolling stops. */
+  margin: 0;
+  padding: 0.3rem 0 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  background: transparent;
+}
+
+/* The tabs: an icon over its name, the chosen one in the accent colour. */
+.mp-dock-tabs { display: flex; align-items: stretch; min-width: 0; }
+
+.mp-dock-tab {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.4rem 0.15rem 0.35rem;
+  border: 0;
+  border-radius: 0.9rem;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.64rem;
+  font-weight: 560;
+  background: none;
+  cursor: pointer;
+  opacity: 0.62;
+  transition: opacity 0.18s ease, color 0.18s ease;
+}
+
+.mp-dock-tab > span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.mp-dock-tab[data-active="true"] {
+  opacity: 1;
+  font-weight: 700;
+  color: var(--mp-primary, #3b82f6);
+}
+
+.mp-dock-tab[data-active="true"] > svg[data-icon] {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--mp-primary, #3b82f6) 55%, transparent));
+}
+
+/* ---------- the queue's rows: played, playing, to come ---------- */
+.mp-queue-meta > .mp-truncate { display: block; max-width: 100%; }
+.mp-queue-row[data-past="true"] { opacity: 0.5; }
+.mp-queue-row[data-editable="true"]:not([data-current="true"]) { cursor: pointer; }
+/* The track's own button: the row's layout, gap and type carried into it. */
+.mp-queue-pick {
+  display: flex;
+  align-items: center;
+  gap: inherit;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: inherit;
+}
+/* With its options open it is only the cover; they take the rest. */
+.mp-queue-pick[data-menu="true"] { flex: none; }
+.mp-queue-pick:focus-visible { outline: 2px solid var(--mp-primary, #3b82f6); outline-offset: 2px; border-radius: 0.5rem; }
+
+.mp-queue-row[data-editable="true"]:not([data-current="true"]):hover {
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+/* Dragging: the grip, the track lifted under the finger, and the others
+   sliding aside to make its place. */
+.mp-queue-grip {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.9rem;
+  height: 2.2rem;
+  margin-right: -0.2rem;
+  cursor: grab;
+  opacity: 0.45;
+  touch-action: none;
+}
+
+.mp-queue-grip:active { cursor: grabbing; }
+
+.mp-queue-row[data-settling="true"] { transition: transform 0.18s ease; }
+
+.mp-queue-row[data-dragging="true"] {
+  position: relative;
+  z-index: 3;
+  opacity: 1;
+  background: var(--mp-menu-bg, #1b1f25);
+  box-shadow:
+    0 14px 30px -12px rgb(0 0 0 / 0.6),
+    inset 0 0 0 1px color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.mp-queue-row[data-dragging="true"] .mp-queue-grip { opacity: 1; }
+
+.mp-queue-more { flex: none; opacity: 0.6; }
+.mp-queue-more[aria-expanded="true"] { opacity: 1; }
+
+/* The track's options, in the title's place: the row stays one line. */
+.mp-queue-actions {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 0.35rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  animation: mp-rem-menu-in 0.14s ease-out;
+}
+
+.mp-queue-actions::-webkit-scrollbar { display: none; }
+.mp-queue-actions > button {
+  flex: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 550;
+  letter-spacing: normal;
+  cursor: pointer;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.mp-queue-actions > button:active { transform: scale(0.96); }
+.mp-queue-actions > button[data-danger="true"] { color: #ff8a80; }
+
+/* ---------- an app's logo as the cover ----------
+ *
+ * When a player sends no artwork but says which app it is running, the
+ * placeholder becomes that app's tile: its logo in its own colour on its own
+ * ground, sized from the frame so it reads at every size. */
+.mp-art-placeholder[data-brand="true"] {
+  display: grid;
+  place-items: center;
+  container-type: size;
+  color: var(--brand-fg);
+  background: var(--brand-bg) !important;
+}
+
+.mp-art-placeholder[data-brand="true"] > svg[data-icon] { font-size: 52cqmin; }
+
+/* ---------- the widget's own popup (desktop) ----------
+ *
+ * Its own layout, not the room board's: one height for every tab — the
+ * popup no longer grows and shrinks as you move between Now, Discover and
+ * Search — with each tab scrolling inside it, the tabs along the top and the
+ * speaker picker at the foot. */
+.mp-panel[data-board="false"][data-phone="false"] {
+  height: min(80vh, 44rem);
+  min-height: 0;
+}
+
+.mp-panel[data-board="false"][data-phone="false"]
+  > :not(style, .mp-foot, .mp-nav, .mp-devicebar, .mp-subsheet) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.mp-panel[data-board="false"][data-phone="false"] > .mp-foot { display: contents; }
+.mp-panel[data-board="false"][data-phone="false"] .mp-nav { order: -1; flex: none; }
+.mp-panel[data-board="false"][data-phone="false"] .mp-nav button { flex: 1 1 0; }
+.mp-panel[data-board="false"][data-phone="false"] .mp-devicebar { flex: none; margin-top: 0; }
+
+/* ---------- the tabs at the foot (tablet, desktop) ----------
+ *
+ * A compact pill in the middle of the foot rather than a bar across the
+ * top, with the speaker picker beside it on Now. It stays in view at the
+ * bottom of a long tab, on the panel's own colour so a list scrolling under
+ * it does not show through. */
+.mp-foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding-top: 0.3rem;
+}
+
+.mp-foot .mp-nav {
+  /* The speaker list opens over the bar, from its speaker button. */
+  position: relative;
+  flex: 0 1 auto;
+  background: var(--mp-bg, #14161c);
+}
+
+.mp-foot .mp-nav button { flex: 0 0 auto; padding: 0.45rem 0.85rem; font-size: 0.75rem; }
+.mp-foot .mp-devicebar { margin-top: 0; padding-top: 0; }
+
+/* The speaker in the tab bar: after a hairline, as the bar's last item. */
+.mp-nav-sep {
+  flex: none;
+  width: 1px;
+  margin: 0.35rem 0.2rem;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.mp-foot .mp-nav .mp-nav-speaker { max-width: 15rem; }
+
+/* On a selected item the fill is the accent itself, so the playing bars take
+   the item's own text colour instead of vanishing into it. */
+.mp-nav button[data-active="true"] .mp-eq > span { background: currentColor; }
+.mp-nav-speaker > .mp-truncate { min-width: 0; }
+
+/* ---------- Now, on a tablet or a desktop ----------
+ *
+ * The cover large in the middle with the artist over it and, where there is
+ * a queue, the tracks either side of it faded back; the title under it, the
+ * transport in three groups, and the progress as a line with its times. The
+ * artwork glows faintly behind, fading into the overlay's own colour. */
+.mp-snow {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-height: 0;
+}
+
+/* ---------- lyrics beside the player (wide) ----------
+ *
+ * A column on the right, on the overlay itself: every line faded by its
+ * distance from the one being sung, which is bright and a little larger and
+ * held a third of the way down, the whole column fading out at the top and
+ * the bottom so it reads as words passing rather than a page. */
+.mp-snow[data-lyrics="true"] {
+  flex-direction: row;
+  gap: 2rem;
+}
+
+.mp-snow-lyrics {
+  flex: 0 0 clamp(16rem, 36%, 26rem);
+  min-height: 0;
+  display: flex;
+}
+
+.mp-lyrics {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  animation: mp-lyrics-in 0.6s ease both;
+  -webkit-mask-image: linear-gradient(transparent, #000 16%, #000 70%, transparent);
+  mask-image: linear-gradient(transparent, #000 16%, #000 70%, transparent);
+}
+
+.mp-lyrics-track {
+  padding: 30% 0 60%;
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.3, 1);
+  will-change: transform;
+}
+
+.mp-lyric {
+  /* A button where it seeks: a line of text all the same. */
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.32rem 0.2rem;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  color: inherit;
+  text-align: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  opacity: calc(0.62 - var(--far, 0) * 0.11);
+  transform-origin: left center;
+  cursor: pointer;
+  transition: opacity 0.25s ease, transform 0.25s ease, color 0.25s ease;
+}
+
+.mp-lyrics[data-synced="false"] .mp-lyric { opacity: 0.55; cursor: default; }
+.mp-lyric[data-past="true"] { opacity: calc(0.4 - var(--far, 0) * 0.07); }
+
+.mp-lyric[data-now="true"] {
+  opacity: 1;
+  transform: scale(1.06);
+  color: var(--mp-on-bg, inherit);
+  text-shadow: 0 0 22px color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.mp-lyric-pause { opacity: 0.6; }
+.mp-lyric:focus-visible { outline: 2px solid var(--mp-primary, #3b82f6); outline-offset: 2px; border-radius: 0.4rem; }
+
+@keyframes mp-lyrics-in {
+  from { opacity: 0; transform: translateY(0.6rem); }
+}
+
+/* None found: a quiet line in the middle of where they would be. */
+.mp-lyrics-none {
+  margin: auto;
+  animation: mp-lyrics-in 0.6s ease both;
+  font-size: 0.95rem;
+  font-weight: 500;
+  opacity: 0.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-lyrics-track, .mp-lyric { transition: none; }
+}
+
+/* The column of the player itself — covers, words, transport, progress. */
+.mp-snow-col {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Wide: the queue as a panel sliding in from the right over the player, the
+   overlay's own colour, a soft shadow along its open edge. */
+.mp-snow-queue {
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  width: clamp(18rem, 38%, 26rem);
+  min-height: 0;
+  padding: 0.85rem 0.5rem 0.6rem 1.1rem;
+  border-radius: 1.2rem 0 0 1.2rem;
+  background: var(--mp-bg, #14161c);
+  box-shadow:
+    -24px 0 48px -24px rgb(0 0 0 / 0.65),
+    inset 1px 0 0 color-mix(in srgb, currentColor 8%, transparent);
+  animation: mp-snow-drawer 0.28s cubic-bezier(0.16, 0.84, 0.24, 1);
+}
+
+@keyframes mp-snow-drawer {
+  from { opacity: 0; transform: translateX(12%); }
+}
+
+/* Discover, Search and the grouping in the same panel, given more room —
+   they are grids and lists of their own — and measuring themselves against
+   it, so their own layouts fit the panel rather than the popup. */
+.mp-snow-queue.mp-drawer { width: clamp(21rem, 50%, 36rem); }
+
+.mp-drawer-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  padding-right: 0.5rem;
+  container-type: inline-size;
+}
+
+.mp-drawer-body::-webkit-scrollbar { display: none; }
+.mp-drawer-body.mp-speaker-list { gap: 0.45rem; padding-top: 0.3rem; }
+
+/* With lyrics beside the player, the tabs and the speaker button sit under
+   the player's own column, centred there, not across the whole popup. The
+   lyrics column's width and gap are subtracted from the panel's. */
+.mp-panel:has(.mp-snow[data-lyrics="true"]) > .mp-foot {
+  align-self: flex-start;
+  width: calc(100cqw - clamp(16rem, 36cqw, 26rem) - 2rem);
+}
+
+.mp-snow-queue-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0 0.2rem 0.3rem 0;
+}
+
+.mp-snow-queue-head > h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+.mp-snow-queue .mp-queue[data-sheet="true"] {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mp-snow-queue .mp-queue[data-sheet="true"] .mp-queue-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  padding-right: 0.2rem;
+}
+
+.mp-snow-queue .mp-queue-body::-webkit-scrollbar { display: none; }
+.mp-snow-queue .mp-queue[data-sheet="true"] .mp-queue-art { width: 2.6rem; height: 2.6rem; }
+.mp-snow-queue .mp-queue[data-sheet="true"] .mp-queue-meta { font-size: 0.86rem; }
+
+.mp-snow-bg {
+  position: absolute;
+  /* Centred on the cover, wider than the column and fading out softly on
+     every side, so it reads as light from the picture rather than a patch. */
+  inset: -14% -22% 22%;
+  z-index: -1;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+  filter: blur(90px) saturate(1.05);
+  opacity: 0.2;
+  -webkit-mask-image: radial-gradient(closest-side, #000 15%, transparent 95%);
+  mask-image: radial-gradient(closest-side, #000 15%, transparent 95%);
+  transition: opacity 0.6s ease;
+}
+
+.mp-snow-stage {
+  flex: 1 1 0;
+  min-height: 11rem;
+  container-type: size;
+}
+
+.mp-snow-row {
+  --c: min(100cqh - 1.8rem, 40cqw, 22rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Each cover moves on its own in the carousel, and eases when let go. */
+.mp-snow-row > .mp-snow-main,
+.mp-snow-row > .mp-snow-side {
+  transition:
+    transform 0.32s cubic-bezier(0.2, 0.8, 0.3, 1),
+    opacity 0.32s ease,
+    filter 0.32s ease;
+  will-change: transform;
+}
+
+/* A neighbour the queue has only just named fades in rather than popping. */
+.mp-snow-side:not([data-empty]) { animation: mp-snow-in 0.35s ease backwards; }
+
+@keyframes mp-snow-in {
+  from { opacity: 0; }
+}
+
+/* An image dragged with a mouse starts the browser's own drag, which ends
+   the swipe before it begins. */
+.mp-snow-row img,
+.mp-pnow-frame img { -webkit-user-drag: none; user-select: none; }
+
+/* Under the finger the covers follow it exactly. */
+.mp-snow-row[data-held="true"] > .mp-snow-main,
+.mp-snow-row[data-held="true"] > .mp-snow-side,
+.mp-pnow-frame[data-held="true"] { transition: none; }
+
+.mp-pnow-frame {
+  transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.24s ease;
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 16px 40px -16px rgb(0 0 0 / 0.7);
+}
+
+/* The lower half — the title, the transport, the progress — is one column
+   the width of the covers, centred, rather than running to the overlay's
+   edges where the progress reached into the room's picture. */
+.mp-snow-meta,
+.mp-snow-transport,
+.mp-snow-seek,
+.mp-snow-col > .mp-source {
+  width: 100%;
+  max-width: 40rem;
+  align-self: center;
+}
+
+.mp-snow-main {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  width: var(--c);
+}
+
+.mp-snow-by {
+  max-width: 100%;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.mp-snow-frame {
+  position: relative;
+  width: var(--c);
+  height: var(--c);
+  border-radius: 0.55rem;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 24px 50px -22px rgb(0 0 0 / 0.75);
+}
+
+.mp-snow-art {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Behind a poster drawn whole: the same picture, blurred and dimmed, filling
+   the frame either side of it. */
+.mp-art-frame:has(> img[data-shape="tall"])::before {
+  content: "";
+  position: absolute;
+  inset: -12%;
+  z-index: -1;
+  background: var(--art) center / cover no-repeat;
+  filter: blur(18px) brightness(0.7) saturate(1.2);
+}
+
+.mp-art-frame > img[data-shape="tall"] {
+  object-fit: contain;
+  background: transparent;
+  filter: drop-shadow(0 6px 16px rgb(0 0 0 / 0.45));
+}
+
+/* The neighbours: smaller, faded, tucked a little behind the cover. */
+.mp-snow-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  flex: none;
+  width: calc(var(--c) * 0.8);
+  padding: 0;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  background: none;
+  opacity: 0.38;
+  filter: saturate(0.7);
+  transition: opacity 0.2s ease;
+}
+
+.mp-snow-side:hover { opacity: 0.6; }
+
+/* Tucked behind the cover whether or not they show anything: an empty slot
+   that kept its full width pushed the row past the overlay's edges. */
+.mp-snow-row > .mp-snow-side:first-child { margin-right: calc(var(--c) * -0.12); }
+.mp-snow-row > .mp-snow-side:last-child { margin-left: calc(var(--c) * -0.12); }
+.mp-snow-side[data-empty="true"] { visibility: hidden; cursor: default; }
+
+.mp-snow-side-by,
+.mp-snow-side-name {
+  max-width: 80%;
+  font-size: 0.68rem;
+  opacity: 0.8;
+}
+
+.mp-snow-side-art {
+  display: grid;
+  place-items: center;
+  width: calc(var(--c) * 0.8);
+  height: calc(var(--c) * 0.8);
+  overflow: hidden;
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.mp-snow-side-art > img { width: 100%; height: 100%; object-fit: cover; }
+
+/* A narrow panel has no room beside the cover. */
+@container (max-width: 34rem) {
+  .mp-snow-side { display: none; }
+}
+
+.mp-snow-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 0;
+  text-align: center;
+}
+
+.mp-snow-title { max-width: 100%; font-size: 1.05rem; font-weight: 550; }
+.mp-snow-sub { max-width: 100%; font-size: 0.8rem; opacity: 0.6; }
+
+.mp-snow-transport {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mp-snow-group { display: flex; align-items: center; gap: 0.2rem; }
+.mp-snow-group--mid { gap: 0.9rem; }
+.mp-snow-group--end { justify-content: flex-end; }
+.mp-snow-play.mp-pnow-play { width: 3.1rem; height: 3.1rem; }
+
+/* The progress: a hairline with a small knob, the times under its ends. */
+.mp-snow-seek { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.mp-snow-range {
+  width: 100%;
+  height: 1.1rem;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.mp-snow-range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--mp-primary, #3b82f6) var(--p, 0%),
+    color-mix(in srgb, currentColor 22%, transparent) 0
+  );
+}
+
+.mp-snow-range::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.mp-snow-range::-moz-range-progress { height: 3px; border-radius: 999px; background: var(--mp-primary, #3b82f6); }
+
+.mp-snow-range::-webkit-slider-thumb {
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-top: calc(-0.4rem + 1.5px);
+  border: 0;
+  border-radius: 50%;
+  background: var(--mp-primary, #3b82f6);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mp-primary, #3b82f6) 25%, transparent);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.mp-snow-range::-moz-range-thumb {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--mp-primary, #3b82f6);
+}
+
+.mp-snow-range:disabled { cursor: default; opacity: 0.5; }
+
+.mp-snow-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.65;
+}
+
+/* ---------- Now, on a phone ----------
+ *
+ * The title large at the top with the heart beside it, the cover as a disc
+ * inside a ring that is the track's progress — the time written in the gap at
+ * its foot — and the transport along the bottom around a solid play button,
+ * with the volume under it. The artwork's own colour glows faintly behind. */
+.mp-body > .mp-pnow { flex: 1 1 auto; min-height: 0; height: 100%; }
+
+.mp-pnow {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-height: 100%;
+  padding: 0.35rem 0.3rem 0.2rem;
+}
+
+.mp-pnow-bg {
+  position: absolute;
+  inset: 5% -25% 25%;
+  z-index: -1;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+  filter: blur(60px) saturate(1.4);
+  opacity: 0.3;
+  -webkit-mask-image: radial-gradient(closest-side, #000, transparent);
+  mask-image: radial-gradient(closest-side, #000, transparent);
+}
+
+.mp-pnow-head { display: flex; align-items: flex-start; gap: 0.8rem; }
+
+.mp-pnow-titles {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.mp-pnow-title {
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.mp-pnow-artist { font-size: 0.8rem; opacity: 0.68; }
+
+.mp-pnow-heart {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.3rem;
+  height: 2.3rem;
+  margin-top: 0.05rem;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.mp-pnow-heart:active { transform: scale(0.9); }
+.mp-pnow-heart[data-on="true"] { color: var(--mp-primary, #3b82f6); }
+
+/* The disc. */
+/* The disc takes whatever height is left between the title and the
+   transport, and no more: sized against the stage itself, so a short
+   overlay gets a smaller disc rather than one running into the buttons. */
+.mp-pnow-stage {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-height: 7rem;
+  margin: -0.2rem 0 -0.1rem;
+  container-type: size;
+}
+
+.mp-pnow-disc {
+  position: relative;
+  width: min(17rem, 100cqh - 0.4rem, 84cqw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, currentColor 4%, transparent) 62%,
+    color-mix(in srgb, currentColor 9%, transparent)
+  );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, currentColor 8%, transparent),
+    0 30px 60px -30px rgb(0 0 0 / 0.8);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mp-pnow-disc[data-seek="true"] { touch-action: none; cursor: pointer; }
+
+.mp-pnow-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.mp-pnow-ring > circle { fill: none; }
+
+.mp-pnow-ring-track {
+  stroke: color-mix(in srgb, currentColor 16%, transparent);
+  stroke-width: 0.9;
+}
+
+.mp-pnow-ring-played {
+  stroke: var(--mp-primary, #3b82f6);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--mp-primary, #3b82f6) 70%, transparent));
+}
+
+.mp-pnow-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mp-pnow-art.mp-art-placeholder { display: grid; place-items: center; }
+
+.mp-pnow-time {
+  position: absolute;
+  left: 50%;
+  bottom: 7%;
+  transform: translate(-50%, 50%);
+  font-size: 0.74rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* The transport. */
+.mp-pnow-transport {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+}
+
+.mp-pnow-btn {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  transition: color 0.2s ease, opacity 0.2s ease, transform 0.15s ease;
+}
+
+.mp-pnow-btn:active { transform: scale(0.9); }
+.mp-pnow-btn:disabled { opacity: 0.3; cursor: default; }
+.mp-pnow-btn[data-on="true"] { color: var(--mp-primary, #3b82f6); }
+.mp-pnow-btn--sm { width: 2rem; height: 2rem; flex: none; opacity: 0.8; }
+
+.mp-pnow-play {
+  display: grid;
+  place-items: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  color: inherit;
+  background: currentColor;
+  box-shadow: 0 14px 30px -14px color-mix(in srgb, currentColor 60%, transparent);
+  transition: transform 0.15s ease;
+}
+
+.mp-pnow-play > svg[data-icon] { color: var(--mp-bg, #111); }
+.mp-pnow-play:active { transform: scale(0.93); }
+
+.mp-pnow-vol { display: flex; align-items: center; gap: 0.55rem; padding: 0 0.2rem; }
+
+/* The volume pill, rising out of its button. */
+.mp-pnow-volwrap { position: relative; display: grid; place-items: center; }
+
+.mp-pnow-volpop {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.35rem);
+  z-index: 10;
+  padding: 0.45rem 0.4rem 0.35rem;
+  border-radius: 1.5rem;
+  /* The overlay's own colour, so the pill reads as part of it. */
+  background: var(--mp-bg, #14161c);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent),
+    0 16px 36px -14px rgb(0 0 0 / 0.6);
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  animation: mp-pnow-pop 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes mp-pnow-pop {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.92); }
+  to { opacity: 1; transform: translateX(-50%); }
+}
+
+.mp-pnow-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.mp-pnow-pill-pct {
+  font-size: 0.74rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.mp-pnow-pill-track {
+  position: relative;
+  width: 2.4rem;
+  /* Short enough to open above the transport on a short phone sheet
+     without its top running off the panel. */
+  height: min(7.5rem, 22vh);
+  border-radius: 1rem;
+  overflow: hidden;
+  cursor: ns-resize;
+  touch-action: none;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mp-pnow-pill-track:focus-visible { outline: 2px solid var(--mp-primary, #3b82f6); outline-offset: 2px; }
+
+.mp-pnow-pill-fill {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: var(--v, 0%);
+  background: linear-gradient(
+    0deg,
+    var(--mp-primary, #3b82f6),
+    color-mix(in srgb, var(--mp-primary, #3b82f6) 80%, #fff)
+  );
+  box-shadow: 0 -2px 12px color-mix(in srgb, var(--mp-primary, #3b82f6) 45%, transparent);
+  transition: height 0.2s ease;
+}
+
+.mp-pnow-pill[data-held="true"] .mp-pnow-pill-fill { transition: none; }
+
+.mp-pnow-pill-mute {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.8;
+  background: none;
+}
+
+.mp-pnow-pill-mute[data-on="true"] { color: var(--mp-primary, #3b82f6); opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-pnow-volpop { animation: none; }
+}
+
+/* ---------- the queue, as a nested sheet ---------- */
+.mp-queue[data-sheet="true"] {
+  position: static;
+  flex: 1 1 auto;
+  border-radius: 0;
+  overflow: visible;
+  background: none;
+  box-shadow: none;
+  animation: none;
+}
+
+.mp-queue[data-sheet="true"] .mp-queue-head {
+  padding: 0 0 0.4rem;
+  border-bottom: 0;
+  font-size: 0.85rem;
+  letter-spacing: normal;
+}
+
+.mp-queue[data-sheet="true"] .mp-queue-title { font-weight: 600; opacity: 0.6; }
+.mp-queue[data-sheet="true"] .mp-queue-body { overflow: visible; padding: 0; }
+
+.mp-queue[data-sheet="true"] .mp-queue-row {
+  gap: 0.8rem;
+  padding: 0.5rem 0.55rem;
+  border-radius: 1rem;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
+.mp-queue[data-sheet="true"] .mp-queue-row + .mp-queue-row { margin-top: 0.2rem; }
+
+.mp-queue[data-sheet="true"] .mp-queue-row[data-current="true"] {
+  background: color-mix(in srgb, var(--mp-primary, #3b82f6) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mp-primary, #3b82f6) 30%, transparent);
+}
+
+.mp-queue[data-sheet="true"] .mp-queue-art {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.65rem;
+}
+
+.mp-queue[data-sheet="true"] .mp-queue-meta { font-size: 0.95rem; gap: 0.1rem; }
+.mp-queue[data-sheet="true"] .mp-queue-sub { font-size: 0.8rem; }
+
+/* ---------- the speakers, as a nested sheet ----------
+ *
+ * Over the whole popup — positioned against the sheet that holds it, not the
+ * panel, so it covers the popup's own title as well — sliding in from the
+ * right the way the room board's overlays do, with their back arrow and their
+ * thin large title. Painted in the board's sheet colour where there is one. */
+.mp-subsheet {
+  position: absolute;
+  inset: 0;
+  /* Over the panel, in place: none of its own margin, frame or size. */
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: inherit;
+  background-color: var(--rb-page, var(--mp-bg, #111827));
+  background-image: linear-gradient(var(--rb-card, transparent), var(--rb-card, transparent));
+  box-shadow: -24px 0 48px -28px rgb(0 0 0 / 0.8);
+  animation: mp-sheet-in 0.32s cubic-bezier(0.16, 0.84, 0.24, 1);
+}
+
+@keyframes mp-sheet-in {
+  from { opacity: 0.4; transform: translateX(12%); }
+  to { opacity: 1; transform: none; }
+}
+
+.mp-subsheet-head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex: none;
+  padding: 0.85rem 1rem 0.7rem;
+}
+
+.mp-subsheet-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: 999px;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mp-subsheet-title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 1.5rem;
+  font-weight: 250;
+  letter-spacing: -0.025em;
+}
+
+/* In the widget's own popup the sheets take the popup's look, not the room
+   board's: its colour edge to edge, no shadow, and a header like the
+   popup's own — its title's size and weight, a plain back button. */
+.mp-panel[data-board="false"] .mp-subsheet { box-shadow: none; }
+
+/* On a phone the sheets cover the panel down to its tab bar and no further:
+   the tabs stay in view, and a tap on one leaves the sheet for that tab. */
+.mp-panel[data-board="false"][data-phone="true"] { position: relative; }
+
+.mp-panel[data-board="false"][data-phone="true"] .mp-subsheet {
+  bottom: var(--mp-dock-h, 4rem);
+}
+
+.mp-panel[data-board="false"] .mp-subsheet-head { gap: 0.55rem; padding: 0.4rem 0.2rem 0.6rem; }
+
+.mp-panel[data-board="false"] .mp-subsheet-back {
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+}
+
+.mp-panel[data-board="false"] .mp-subsheet-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.mp-panel[data-board="false"] .mp-subsheet-body { padding: 0.2rem 0.2rem 1rem; }
+
+.mp-subsheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0.2rem 1rem 1.2rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.mp-speaker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid color-mix(in srgb, currentColor 9%, transparent);
+  border-radius: 1rem;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.mp-speaker:hover { background: color-mix(in srgb, currentColor 9%, transparent); }
+
+.mp-speaker[data-active="true"] {
+  border-color: color-mix(in srgb, var(--mp-primary, #3b82f6) 60%, transparent);
+  background: color-mix(in srgb, var(--mp-primary, #3b82f6) 12%, transparent);
+}
+
+.mp-speaker-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.8rem;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+  opacity: 0.85;
+}
+
+.mp-speaker[data-playing="true"] .mp-speaker-icon {
+  color: var(--mp-primary, #3b82f6);
+  background: color-mix(in srgb, var(--mp-primary, #3b82f6) 16%, transparent);
+  opacity: 1;
+}
+
+.mp-speaker-text { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; gap: 0.1rem; }
+.mp-speaker-name { font-size: 0.92rem; font-weight: 620; }
+.mp-speaker-sub { font-size: 0.76rem; opacity: 0.6; }
+.mp-speaker-check { flex: none; color: var(--mp-primary, #3b82f6); }
+
+/* The speaker that is playing, readable at a glance in either theme. Its
+   sub-line ("what is on") was a 60% grey on a blue tint — the faintest text
+   on the busiest row — and its bars a primary on a primary wash. The row's
+   words go to the full ink, the sub-line up to most of it, and the icon
+   becomes a solid accent chip with the bars in the colour that sits on it. */
+.mp-speaker[data-playing="true"] .mp-speaker-sub { opacity: 0.82; font-weight: 560; }
+.mp-speaker[data-active="true"] .mp-speaker-name { font-weight: 700; }
+.mp-speaker[data-active="true"] .mp-speaker-sub { opacity: 0.86; }
+.mp-speaker[data-active="true"] .mp-speaker-icon {
+  color: var(--mp-on-primary, #fff);
+  background: var(--mp-primary, #3b82f6);
+  box-shadow: 0 6px 14px -8px var(--mp-primary, #3b82f6);
+  opacity: 1;
+}
+.mp-speaker[data-active="true"] .mp-speaker-icon .mp-eq > span { background: currentColor; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-subsheet { animation: none; }
+}
+
+/* A desktop dialog, which is far wider than anything here wants to be.
+ *
+ * Left to stretch, the tab row spreads five labels across a metre of glass,
+ * the waveform becomes a ruler, and the transport sits marooned in the middle
+ * of it. Everything is capped and centred instead: the same layout, held at
+ * the width it was drawn for, with the surplus as margin. */
+@container (min-width: 62rem) {
+  .mp-nav {
+    width: 100%;
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+
+  .mp-panel:has(> .mp-hero) {
+    width: 100%;
+    max-width: 66rem;
+    margin-inline: auto;
+  }
+
+  .mp-panel:has(> .mp-hero) > .mp-hero { flex: 0 0 clamp(16rem, 32%, 21rem); }
+
+  /* The side has a natural width — a waveform long enough to seek in and a
+     transport wide enough to hit — and nothing to gain past it. */
+  .mp-panel:has(> .mp-hero) > .mp-now-side {
+    max-width: 40rem;
+    margin-inline: auto;
+  }
+}
+
+/* Narrow panel (a phone sheet).
+ *
+ * The tab row was what broke this layout: four buttons at flex: 1 still keep
+ * min-width: auto, so they refuse to shrink below their icon + label and push
+ * the whole panel wider than the sheet. Everything else then looked clipped,
+ * and .mp-hero's own container query never fired because its container had
+ * been stretched past 420px. Letting the buttons shrink fixes the row and the
+ * cascade behind it. */
+@container (max-width: 30rem) {
+  .mp-nav button {
+    gap: 0.3rem;
+    font-size: 0.73rem;
+    flex: 0 0 auto;
+    min-width: 2.4rem;
+    min-height: 2.4rem;
+    padding: 0.5rem 0.6rem;
+  }
+
+  /* The other way round from before: the icon identifies the tab and the
+     label is what makes five of them overflow. Keeping the labels meant
+     "Discov…" and "Group…", which name nothing — an icon at least reads.
+     The selected tab keeps its word, so the row always says where you are. */
+  /* Spread rather than stretched: an icon button wants to be a square, and
+     five of them sharing the row equally made the selected one a lozenge
+     with its word swimming in it.
+     Spread only once there are enough to spread, though. A player with two
+     or three tabs — a television has Now and its remote and little else —
+     had them flung into opposite corners of an empty rail. Below five they
+     sit together at the start, the way the wide layout puts them. */
+  .mp-nav { padding: 0.2rem; justify-content: flex-start; gap: 0.25rem; }
+
+  .mp-nav:has(> button:nth-child(5)) { justify-content: space-between; gap: 0.3rem; }
+
+  /* Three or fewer and they can all keep their names: the reason the labels
+     came off was five of them overflowing, and a player with a Now and a
+     Remote has the width to say so. A row of anonymous circles is only worth
+     it when there is no room for words. */
+  /* Two or three share the rail equally, the way the wide layout does it —
+     a pair of pills sitting at one end of an empty strip reads as a row that
+     failed to fill. */
+  .mp-nav:not(:has(> button:nth-child(4))) { justify-content: stretch; }
+
+  .mp-nav:not(:has(> button:nth-child(4))) button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: 0.8rem;
+  }
+
+  .mp-nav:not(:has(> button:nth-child(4))) button > span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mp-nav button > svg[data-icon] { display: inline-flex; flex: none; }
+
+  .mp-nav button > span { display: none; }
+
+  /* The selected one takes what its word needs and no more, and gives it up
+     first if the row runs short. */
+  .mp-nav button[data-active="true"] {
+    flex: 0 1 auto;
+    min-width: 0;
+    padding-inline: 0.75rem;
+  }
+
+  .mp-nav button[data-active="true"] > span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Now playing as a full-screen view: the artwork leads, the text centres
+     under it, and the rows below span the sheet. The card chrome that suits
+     a narrow desktop dialog just boxes it in at this size. */
+  .mp-hero {
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+    overflow: visible;
+
+    /* Capped against the viewport, not the sheet width: full-width art on a
+       tall phone pushes the transport and volume below the fold, and the whole
+       point of this view is that everything is reachable without scrolling. */
+    min-height: 0;
+    gap: 0.6rem;
+  }
+
+  .mp-hero-bg { display: none; }
+
+  .mp-hero-art {
+    /* Against the viewport, not the sheet width: full-width art on a tall
+       phone pushes the transport and the volume below the fold, and the
+       point of this view is that everything is reachable without scrolling.
+       Thirty rather than thirty-four, because the tab row and the device bar
+       both want a finger's worth of height of their own.
+       The max-height is the guard: dvh measures the screen, and this panel is
+       sometimes only a part of it. */
+    width: min(100%, 30dvh);
+    height: auto;
+    min-height: 0;
+    max-width: none;
+    max-height: 100%;
+    flex: 0 1 auto;
+    aspect-ratio: 1;
+    border-radius: 1rem;
+    object-fit: contain;
+  }
+
+  .mp-hero-meta {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+    gap: 0.15rem;
+  }
+
+  .mp-hero-title { font-size: 1.45rem; font-weight: 700; }
+  .mp-hero-artist { font-size: 1rem; opacity: 0.6; order: 3; }
+  .mp-hero-album {
+    font-size: 1rem;
+    opacity: 0.6;
+    /* The reference reads title, album, artist — the markup order is
+       title, artist, album. */
+    order: 2;
+  }
+
+  .mp-hero-tag { order: 4; }
+
+  .mp-controls { justify-content: center; gap: 1rem; }
+  .mp-btn--lg { width: 3.8rem; height: 3.8rem; }
+  .mp-vol-bar { gap: 0.75rem; }
+
+  /* Tighter rhythm so the stack clears the fold. */
+  .mp-panel { gap: 0.75rem; }
+
+  /* A long player list should scroll on its own rather than widen the panel. */
+  .mp-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mp-chips::-webkit-scrollbar { display: none; }
+  .mp-chip { flex: none; }
+}
+
+@container hero (width < 420px) {
+  .mp-hero { flex-direction: column; align-items: flex-start; }
+  .mp-hero-art { width: 100%; height: auto; aspect-ratio: 1; max-width: 15rem; align-self: center; }
+  .mp-hero-meta { width: 100%; text-align: center; align-items: center; }
+}
+
+/* ---------- tile: head + transport ---------- */
+
+.mp-tile-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.mp-eyebrow {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.6rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: 0.1rem;
+}
+
+/* Three columns: empty, centred transport, volume. Keeps the hero button on
+   the card's centre line whatever sits beside it. */
+.mp-controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.15rem;
+  width: 100%;
+  min-height: 3.1rem;
+  /* symmetric gutters: keeps the group centred while leaving the right one
+     free for the absolutely positioned volume button */
+  padding: 0 2.5rem;
+}
+
+/* display:contents keeps centring correct whether or not the wrapper is there */
+.mp-transport-group { display: contents; }
+
+/* Centred under the transport rather than spanning the panel: volume is the
+   control you reach for second, and a full-width bar made it the widest thing
+   on a tablet. */
+.mp-vol-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 22rem;
+  margin: 0 auto;
+}
+
+.mp-vol-bar .mp-range { flex: 1; min-width: 0; }
+.mp-vol-bar .mp-pct {
+  flex: none;
+  min-width: 2rem;
+  text-align: right;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- the ruled dial ---------- */
+
+/* Ticks rather than a track: the row swells under the handle and tapers at
+   both ends, so the level has a shape as well as a position. The handle is
+   drawn — a ring with a glow cannot be expressed through a native thumb — and
+   the real input sits transparent on top, keeping keyboard and drag. */
+.mp-dial {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 2.6rem;
+  cursor: pointer;
+  /* The whole point of the fix: without this the browser is free to decide a
+     horizontal drag belongs to the page, and it cancels the pointer stream
+     mid-gesture — which is why the swipe only worked sometimes. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  --mp-dial-tone: var(--mp-primary, var(--widget-color, #3b82f6));
+}
+
+.mp-dial:focus-visible {
+  outline: 2px solid var(--mp-dial-tone);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+
+.mp-dial[data-muted="true"] { --mp-dial-tone: currentColor; opacity: 0.6; }
+
+.mp-dial-ticks {
+  position: absolute;
+  inset: 0 0.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.mp-dial-ticks > i {
+  width: 1.5px;
+  height: var(--t);
+  border-radius: 999px;
+  background: currentColor;
+  transition: height 0.12s ease-out, width 0.12s ease-out, opacity 0.12s ease-out;
+}
+
+/* ---------- the dial, as a plain track ---------- */
+
+/* The look of a range input with this file's pointer handling behind it. */
+.mp-dial[data-plain="true"] .mp-dial-ticks { display: none; }
+.mp-dial[data-plain="true"] .mp-dial-glow { display: none; }
+
+.mp-dial-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 0.4rem;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  overflow: hidden;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.mp-dial-track > i {
+  display: block;
+  width: var(--fill, 0%);
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mp-dial-tone);
+}
+
+.mp-dial[data-plain="true"] .mp-dial-knob {
+  width: 1.05rem;
+  height: 1.05rem;
+  border: 0;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.6);
+}
+
+.mp-dial[data-plain="true"] .mp-dial-knob > svg[data-icon] { display: none; }
+
+.mp-dial[data-plain="true"][data-held="true"] .mp-dial-knob {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* ---------- the dial, upright ---------- */
+
+/* The same ruler turned on its end: the ticks stack bottom to top and swell
+   sideways instead of upward, and the knob and its glow travel up the column
+   rather than along the row. */
+.mp-dial[data-vertical="true"] {
+  flex: none;
+  width: 2.6rem;
+  height: 100%;
+  min-height: 7rem;
+}
+
+.mp-dial[data-vertical="true"] .mp-dial-ticks {
+  inset: 0.15rem 0;
+  flex-direction: column-reverse;
+}
+
+.mp-dial[data-vertical="true"] .mp-dial-ticks > i {
+  width: var(--t);
+  height: 1.5px;
+}
+
+.mp-dial[data-vertical="true"] .mp-dial-glow {
+  top: auto;
+  left: 50%;
+  bottom: var(--fill, 0%);
+  width: 2.6rem;
+  height: 8rem;
+  transform: translate(-50%, 50%);
+}
+
+.mp-dial[data-vertical="true"] .mp-dial-knob {
+  top: auto;
+  left: 50%;
+  bottom: var(--fill, 0%);
+  transform: translate(-50%, 50%);
+}
+
+.mp-dial[data-vertical="true"][data-held="true"] .mp-dial-knob {
+  transform: translate(-50%, 50%) scale(1.12);
+}
+
+/* The handle's arrows point the way the ruler runs. */
+.mp-dial[data-vertical="true"] .mp-dial-knob > svg[data-icon] { transform: rotate(90deg); }
+
+.mp-dial-ticks > i[data-passed="true"] { background: var(--mp-dial-tone); }
+
+.mp-dial-glow {
+  position: absolute;
+  top: 50%;
+  left: var(--fill, 0%);
+  width: 8rem;
+  height: 2.6rem;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--mp-dial-tone) 30%, transparent),
+    transparent 72%
+  );
+}
+
+.mp-dial-knob {
+  position: absolute;
+  top: 50%;
+  left: var(--fill, 0%);
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1.5px solid var(--mp-dial-tone);
+  color: var(--mp-dial-tone);
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--mp-bg, #14161c) 88%, transparent) 60%,
+    transparent 74%
+  );
+  box-shadow:
+    0 0 22px -6px var(--mp-dial-tone),
+    inset 0 0 12px -6px var(--mp-dial-tone);
+  transition: transform 0.12s ease;
+}
+
+/* Something to see while the finger is down, so a drag that the speaker has
+   not answered yet still feels like it landed. */
+.mp-dial[data-held="true"] .mp-dial-knob { transform: translate(-50%, -50%) scale(1.12); }
+.mp-dial[data-held="true"] .mp-dial-glow { opacity: 1; }
+/* Under the finger the ticks follow at once: easing them behind a drag made
+   the ruler trail the hand. */
+.mp-dial[data-held="true"] .mp-dial-ticks > i { transition: none; }
+
+.mp-btn--ghost {
+  width: 2.6rem;
+  height: 2.6rem;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  opacity: 0.72;
+}
+.mp-btn--ghost:hover { background: color-mix(in srgb, currentColor 13%, transparent); opacity: 1; }
+.mp-btn--ghost.mp-btn--sm { width: 2.2rem; height: 2.2rem; }
+
+.mp-btn--hero {
+  width: 3.1rem;
+  height: 3.1rem;
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  color: var(--mp-on-primary, #fff);
+  box-shadow: 0 8px 20px -10px rgb(0 0 0 / 0.35), inset 0 -1px 0 rgb(0 0 0 / 0.08);
+}
+.mp-btn--hero:hover { filter: brightness(1.08); }
+
+/* the progress row hugs the card's bottom edge. Every stacked tile is an
+   .mp-tile, so this is the same weight as .mp-tile--stack.mp-tile--stack and
+   still wins over the tall and portrait paddings above it. */
+.mp-tile.mp-tile--stack { padding-bottom: 0.55rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-dial-ticks > i { transition: none; }
+  .mp-range { transition: none; }
+}
+
+/* Standard layout: the head row would otherwise sit against the top edge once
+   the progress block reserves space at the bottom. */
+.mp-tile--stack:not(.mp-tile--tiny):not(.mp-tile--portrait):not(.mp-tile--wide) {
+  padding-top: 1.35rem;
+  justify-content: space-between;
+}
+
+/* ---------- cover play button + action menu ---------- */
+
+.mp-cover-wrap { position: relative; }
+
+.mp-play-fab {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 0;
+  border-radius: 999px;
+  color: var(--mp-on-primary, #fff);
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  box-shadow: 0 6px 16px -6px rgb(0 0 0 / 0.9);
+  cursor: pointer;
+  opacity: 0.92;
+  transition: transform 0.14s cubic-bezier(0.2, 0, 0, 1), opacity 0.14s ease;
+}
+
+.mp-lib-item:hover .mp-play-fab { opacity: 1; transform: scale(1.08); }
+.mp-play-fab:active { transform: scale(0.92); }
+
+.mp-menu {
+  position: fixed;
+  z-index: 3000;
+  padding: 0.3rem;
+  border-radius: 0.85rem;
+  background: var(--mp-menu-bg, rgb(18 18 22 / 0.97));
+  color: var(--mp-menu-fg, inherit);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 36px -18px rgb(0 0 0 / 0.5), inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.mp-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 0;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+
+.mp-menu-item:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
+.mp-menu-item:disabled { opacity: 0.3; cursor: default; background: transparent; }
+
+.mp-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2999;
+  /* A button only for the tap; nothing of one shows. */
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: default;
+}
+
+/* ---------- marquee ---------- */
+
+.mp-marquee {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mp-marquee-inner {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.mp-marquee-inner[data-run="true"] {
+  max-width: none;
+  overflow: visible;
+  animation: mp-marquee var(--mq-duration, 10s) ease-in-out infinite alternate;
+}
+
+@keyframes mp-marquee {
+  0%, 10% { transform: translateX(0); }
+  90%, 100% { transform: translateX(var(--mq-shift, 0)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-marquee-inner[data-run="true"] {
+    max-width: 100%;
+    overflow: hidden;
+    animation: none;
+  }
+}
+
+/* ---------- browser breadcrumb ---------- */
+
+.mp-crumb {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.85rem;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.mp-crumb-title {
+  font-size: 0.92rem;
+  font-weight: 620;
+  letter-spacing: -0.015em;
+}
+
+.mp-crumb .mp-label { margin-bottom: 0.1rem; }
+
+/* ---------- list layout ---------- */
+
+.mp-list { display: flex; flex-direction: column; gap: 0.2rem; }
+
+.mp-list-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.mp-list-row:hover { background: color-mix(in srgb, currentColor 9%, transparent); }
+.mp-list-row[data-open="true"] { background: color-mix(in srgb, currentColor 12%, transparent); z-index: 20; }
+
+.mp-list-cover { width: 3rem; flex: none; }
+.mp-list-cover .mp-lib-cover { border-radius: 0.6rem; }
+.mp-list-cover .mp-lib-fallback svg[data-icon] { font-size: 1.1rem; }
+
+.mp-list-name { font-size: 0.88rem; font-weight: 560; }
+
+/* ---------- player switcher on the tile ---------- */
+
+.mp-eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  margin-bottom: 0.1rem;
+  color: var(--mp-primary, var(--widget-color, #3b82f6));
+}
+
+/* The player's name over the title: the accent near full strength. Mixed
+   down to 65% and then left at the eyebrow's 45% opacity it was a third of
+   a colour — a pale smudge on a light tile. */
+.mp-eyebrow-row .mp-eyebrow { color: inherit; opacity: 0.92; }
+
+.mp-eq--tiny { height: 0.5rem; flex: none; }
+.mp-eq--tiny > i { width: 2px; }
+
+.mp-player-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.mp-player-btn:hover { color: inherit; }
+
+/* ---------- device selector (popup, bottom) ---------- */
+
+.mp-devicebar {
+  position: relative;
+  /* The bar spans the popup so the list can centre against it, but the button
+     inside only takes the width it needs. */
+  display: flex;
+  justify-content: center;
+  /* With the panel filling the dialog (below), this is what puts the button at
+     the true bottom — not merely after the content. A Sky box shows only Now
+     and Remote, so its panel is short and the button used to sit halfway up. */
+  margin-top: auto;
+  padding-top: 0.5rem;
+  background: transparent;
+}
+
+/* Everything between the dialog's scrolling body and the device bar has to
+   stretch, or margin-top:auto has no spare space to push into and the button
+   lands directly under the volume row instead of at the foot of the card.
+   The dialog wraps each tab in a tabs-content panel that sizes to its
+   content, and there may be further wrappers inside it — so rather than
+   naming them, this selects every ancestor of the bar within that panel.
+   Nothing else matches: an element only qualifies if it contains the bar. */
+[data-slot="tabs-content"]:has(.mp-devicebar),
+[data-slot="tabs-content"]:has(.mp-devicebar) *:has(.mp-devicebar),
+[data-slot="tabs-content"]:has(.mp-remote),
+[data-slot="tabs-content"]:has(.mp-remote) *:has(.mp-remote),
+[data-slot="tabs-content"]:has(.mp-now),
+[data-slot="tabs-content"]:has(.mp-now) *:has(.mp-now),
+[data-slot="tabs-content"]:has(.mp-nav),
+[data-slot="tabs-content"]:has(.mp-dock),
+[data-slot="tabs-content"]:has(.mp-dock) *:has(> .mp-panel),
+[data-slot="tabs-content"]:has(.mp-nav) *:has(> .mp-panel) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.mp-device {
+  display: flex;
+  align-items: center;
+  /* Centred rather than spread: an outlined button reads as one object, and a
+     name pinned left with a caret pinned right looks like a form field. */
+  justify-content: center;
+  gap: 0.5rem;
+  width: auto;
+  max-width: 100%;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+  border-radius: 0.9rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.mp-device:hover { border-color: color-mix(in srgb, currentColor 40%, transparent); }
+
+.mp-device[data-open="true"] {
+  border-color: var(--mp-primary, var(--widget-color, #3b82f6));
+  background: color-mix(in srgb, var(--mp-primary, var(--widget-color, #3b82f6)) 10%, transparent);
+}
+
+.mp-device-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  text-align: center;
+  font-weight: 620;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp-device-caret { flex: none; opacity: 0.5; transition: transform 0.18s ease; }
+.mp-device[data-open="true"] .mp-device-caret { transform: rotate(180deg); }
+
+.mp-device-list {
+  position: absolute;
+  bottom: calc(100% + 0.4rem);
+  /* Centred over the button rather than stretched across the popup, and sized
+     to its longest name within the space available. */
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  min-width: 12rem;
+  max-width: 100%;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  max-height: 14rem;
+  overflow-y: auto;
+  padding: 0.3rem;
+  border-radius: 0.9rem;
+  /* The dashboard's own popover surface, read from the theme — the dialog
+     portals outside the theme wrapper, so it arrives as a variable rather
+     than cascading. */
+  background: var(--mp-menu-bg, rgb(18 18 22 / 0.97));
+  color: var(--mp-menu-fg, inherit);
+  box-shadow: 0 16px 36px -18px rgb(0 0 0 / 0.5),
+    inset 0 0 0 1px color-mix(in srgb, currentColor 14%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-device, .mp-device-caret { transition: none; }
+}
+
+.mp-picker {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  top: 1rem;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  max-height: calc(100% - 2rem);
+  overflow-y: auto;
+  padding: 0.3rem;
+  border-radius: 0.9rem;
+  /* The theme's menu surface, as the popup's speaker list: a fixed near-black
+     here stayed black on a light dashboard, with the tile's dark words on it. */
+  background: var(--mp-menu-bg, rgb(18 18 22 / 0.97));
+  color: var(--mp-menu-fg, inherit);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 36px -18px rgb(0 0 0 / 0.5), inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.mp-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border: 0;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+
+.mp-picker-item:hover { background: color-mix(in srgb, currentColor 13%, transparent); }
+.mp-picker-item[data-active="true"] {
+  background: color-mix(in srgb, var(--mp-primary, var(--widget-color, #3b82f6)) 22%, transparent);
+}
+
+.mp-chip--player {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-transform: none;
+}
+
+.mp-chip--player[data-active="true"] .mp-eq > i { background: #fff; }
+
+/* ---------- source / input selection ---------- */
+
+.mp-source {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.mp-source-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.mp-source .mp-select {
+  padding: 0.5rem 0.6rem;
+  font-size: 0.8rem;
+  min-width: 0;
+}
+
+/* ---------- wide tile: now playing ---------- */
+
+.mp-tile--wide.mp-tile--wide {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 1.1rem;
+}
+
+/* Wide tiles have room for larger artwork and left-aligned controls. The
+   column distributes rather than centres, so the progress row always has a
+   place at the bottom instead of overflowing the clipped tile. */
+.mp-tile--wide .mp-tile-col {
+  justify-content: space-between;
+  padding-top: 0.9rem;
+  gap: 0.5rem;
+  min-height: 0;
+  padding-bottom: 0.15rem;
+}
+
+.mp-tile--wide .mp-tile-head { flex: none; }
+.mp-tile--wide .mp-controls { flex: none; justify-content: flex-start; padding-left: 0.25rem; padding-right: 0; }
+.mp-tile--wide .mp-tile-head .mp-art { width: 4.4rem; height: 4.4rem; }
+.mp-tile--wide .mp-title { font-size: 1.1rem; }
+.mp-tile--wide .mp-sub { font-size: 0.85rem; }
+
+.mp-tile .mp-tile-nav {
+  flex: none;
+  gap: 0.1rem;
+  padding: 0.2rem;
+  position: relative;
+}
+.mp-tile .mp-tile-nav button {
+  min-width: 0;
+  gap: 0.3rem;
+  padding-block: 0.42rem;
+  font-size: 0.7rem;
+  opacity: 0.75;
+  flex: 0 1 auto;
+  padding-inline: 0.7rem;
+}
+.mp-tile .mp-tile-nav button:not([data-active="true"]):hover {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+.mp-tile .mp-tile-nav button > svg[data-icon] { flex: none; }
+.mp-tile .mp-tile-nav button[data-active="true"] { opacity: 1; }
+/* Four tabs and more, or a narrow tile: icons alone, names in the tooltips. */
+.mp-tile .mp-tile-nav[data-icons="true"] button:not(.mp-tile-nav-player) > span:not(.mp-tile-nav-pct) { display: none; }
+
+/* The bar on the floor of the left column, as wide as its items want: the
+   tabs, a hairline, then the volume. */
+.mp-tile--wide .mp-tile-col > .mp-tile-nav { width: auto; max-width: 100%; align-self: flex-start; margin-top: 0; }
+.mp-tile--wide .mp-controls > .mp-tile-nav { margin-left: auto; }
+.mp-tile .mp-tile-nav .mp-nav-sep { margin: 0.35rem 0.1rem; }
+.mp-tile .mp-tile-nav[data-icons="true"] button { padding-inline: 0.6rem; }
+.mp-tile .mp-tile-nav-pct { font-variant-numeric: tabular-nums; min-width: 1.2em; text-align: left; }
+.mp-tile .mp-tile-nav[data-icons="true"] button > .mp-tile-nav-pct { display: inline; }
+
+/* The volume, opened: a slider over the whole bar, unrolled from the volume
+   item on the right. Its number on the right closes it again, as does a
+   press anywhere else. */
+.mp-tile .mp-tile-volbar {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  /* The bar's own ground, not a sheet over it: the slider has no fill of its
+     own, and the items it replaces step out of sight underneath. */
+  background: transparent;
+  transform-origin: 100% 50%;
+  animation: mp-volbar-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.mp-tile .mp-tile-nav:has(> .mp-tile-volbar) > :not(.mp-tile-volbar) { visibility: hidden; }
+@keyframes mp-volbar-in {
+  from { clip-path: inset(0 0 0 75% round 999px); opacity: 0.4; }
+  to { clip-path: inset(0 0 0 0 round 999px); opacity: 1; }
+}
+.mp-tile .mp-tile-volbar .mp-dial { flex: 1 1 auto; min-width: 0; height: 100%; }
+.mp-tile .mp-tile-volbar .mp-dial-track { height: 0.32rem; }
+.mp-tile .mp-tile-volbar .mp-dial[data-plain="true"] .mp-dial-knob {
+  width: 0.95rem;
+  height: 0.95rem;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.32), 0 0 0 1px rgb(0 0 0 / 0.06);
+}
+.mp-tile .mp-tile-nav .mp-tile-volbar > button {
+  flex: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 0.35rem 0.45rem;
+  opacity: 1;
+}
+.mp-tile .mp-tile-nav .mp-tile-volbar-mute[data-on="true"] { color: var(--mp-primary, #3b82f6); }
+.mp-tile .mp-tile-nav .mp-tile-volbar-pct {
+  min-width: 2.2rem !important;
+  font-size: 0.72rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-on-primary, #fff) !important;
+  background: var(--mp-primary, #3b82f6) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mp-tile .mp-tile-volbar { animation: none; }
+}
+
+/* ---------- wide tile: a panel from the right ----------
+ *
+ * Discover, Search or Favourites, opened from the bar: over the right of the
+ * tile rather than as the popup, sliding in from
+ * the edge, in the tile's own colour. */
+.mp-mini {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  width: min(24rem, 52%);
+  min-width: 0;
+  padding: 0.7rem 0.75rem 0.6rem;
+  border-left: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  /* The bar's ground, as the volume has it: a faint tint of the ink over the
+     card itself, not a sheet of another colour. What it covers steps out of
+     sight underneath instead (below). */
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  animation: mp-mini-in 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.mp-tile[data-mini="true"] .mp-banner-body,
+.mp-tile[data-mini="true"] .mp-tile-col { visibility: hidden; }
+@keyframes mp-mini-in {
+  from { transform: translateX(40%); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.mp-mini-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex: none;
+  margin-bottom: 0.4rem;
+}
+.mp-mini-head h3 { margin: 0; font-size: 0.9rem; font-weight: 680; }
+.mp-mini-head .mp-pnow-btn { width: 1.9rem; height: 1.9rem; }
+/* Everything in it at the panel's size: covers about half the popup's, so a
+   shelf shows three or four rather than one and a half, and the words with
+   them. */
+.mp-mini .mp-shelf {
+  gap: 0.5rem;
+  /* Sideways by finger as well as down the panel: the tile's own gestures
+     would otherwise take the swipe. The mouse drags it (index.tsx). */
+  touch-action: pan-x pan-y;
+  cursor: grab;
+  scroll-snap-type: none;
+}
+.mp-mini .mp-chips {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+}
+.mp-mini .mp-chips > * { flex: none; }
+.mp-mini .mp-chips[data-dragging="true"] > * { pointer-events: none; }
+.mp-mini .mp-shelf[data-dragging="true"] { cursor: grabbing; }
+.mp-mini .mp-shelf[data-dragging="true"] > * { pointer-events: none; }
+.mp-mini .mp-shelf > .mp-lib-item { width: 3.7rem; gap: 0.25rem; }
+.mp-mini .mp-lib-grid,
+.mp-mini .mp-lib-grid--large {
+  grid-template-columns: repeat(auto-fill, minmax(3.6rem, 1fr));
+  gap: 0.5rem;
+}
+.mp-mini .mp-lib-item { gap: 0.3rem; }
+.mp-mini .mp-lib-name,
+.mp-mini .mp-shelf .mp-lib-name,
+.mp-mini .mp-lib-grid--large .mp-lib-name { font-size: 0.66rem; font-weight: 600; }
+.mp-mini .mp-lib-type,
+.mp-mini .mp-shelf .mp-lib-type,
+.mp-mini .mp-lib-grid--large .mp-lib-type { font-size: 0.58rem; }
+.mp-mini .mp-shelf-title { margin-bottom: 0.45rem; font-size: 0.8rem; }
+.mp-mini .mp-list-cover { width: 2rem; }
+.mp-mini .mp-play-fab { width: 1.3rem; height: 1.3rem; }
+.mp-mini .mp-play-fab svg[data-icon] { font-size: 0.9rem; }
+
+/* The ⋮ menu (Play now, Play next…) on a panel this small: a slim column
+   beside the cover it was opened from (grid.tsx places it), inside the
+   panel — not over the cover, and not cut off by the tile's edge. Until it
+   is placed it is kept out of sight, so it never flashes where it is not. */
+.mp-mini .mp-menu {
+  position: absolute;
+  z-index: 6;
+  width: 8.6rem;
+  padding: 0.2rem;
+  background: var(--mp-menu-bg, var(--mp-bg, #14161c));
+  box-shadow: 0 12px 28px -12px rgb(0 0 0 / 0.5), inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent);
+  animation: mp-mini-menu-in 0.14s ease-out;
+}
+.mp-mini .mp-menu[data-beside="false"] { visibility: hidden; }
+@keyframes mp-mini-menu-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+.mp-mini .mp-menu .mp-menu-item {
+  min-width: 0;
+  gap: 0.45rem;
+  padding: 0.34rem 0.45rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+.mp-mini .mp-menu .mp-menu-item > span { overflow: hidden; text-overflow: ellipsis; }
+
+.mp-mini-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  font-size: 0.85rem;
+  container-type: inline-size;
+  touch-action: pan-x pan-y;
+}
+
+/* ---------- the panels, in the dashboard's dialog ----------
+ *
+ * Tapping or holding the tile opens the dashboard's dialog (WidgetDialog's
+ * `controlsContent`), centred on the screen, from the bottom on a phone. In
+ * the sealed engine this stylesheet reaches it, but the custom properties set
+ * on the tile do not, so its root (.mp-sheet) carries its own (themeVars, in
+ * index.tsx). The panels lay themselves out by their own measured size, so
+ * it gives them a height to measure against. */
+.mp-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* The window's height less the dialog's own header and margins, so the
+     dialog never has to scroll itself: when it did, on a laptop, the tabs
+     at the panel's foot sat below the screen's edge. */
+  height: min(46rem, calc(100dvh - 12rem));
+  min-height: 18rem;
+  color: var(--mp-menu-fg, inherit);
+  text-align: left;
+}
+.mp-sheet-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+}
+.mp-sheet-body::-webkit-scrollbar { display: none; }
+.mp-sheet-body > .mp-panel { flex: 1 1 auto; height: 100%; min-height: 0; }
+/* The tabs always in view, on every screen: the panel is the dialog's
+   height, the open tab scrolls inside it, and the tab row is its last row,
+   pinned by the layout rather than by position: sticky (which holds only
+   while the right ancestor is the one scrolling). The phone layout does the
+   same with its dock (.mp-body). The drawers and sub-sheets over it are
+   positioned and keep out of this. */
+.mp-sheet .mp-panel[data-phone="false"] > :not(.mp-foot, .mp-snow-queue, .mp-subsheet, .mp-queue) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.mp-sheet .mp-panel[data-phone="false"] > :not(.mp-foot)::-webkit-scrollbar { display: none; }
+.mp-sheet .mp-panel[data-phone="false"] > .mp-foot {
+  position: static;
+  flex: none;
+  margin-top: 0;
+}
+/* A tile is short: at its largest (4×4) the panel has about 270px. The
+   cover's stage gives up its floor rather than push the transport under the
+   dock, and the rows sit closer; the header takes less too. */
+.mp-sheet .mp-panel[data-tiny="true"] .mp-pnow { gap: 0.45rem; padding-top: 0; }
+.mp-sheet .mp-panel[data-tiny="true"] .mp-pnow-stage { min-height: 3.5rem; margin: 0; }
+/* What floats over the panel takes the sheet's colour, as in room-board. */
+.mp-sheet .mp-snow-queue,
+.mp-sheet .mp-pnow-volpop { background: var(--mp-bg, #14161c); }
+
+/* The plain track on a tile: a lighter knob than the popup's, which sits on
+   artwork — on a card the heavy shadow read as a smudge. */
+.mp-tile-vol .mp-dial[data-plain="true"] { height: 1.8rem; }
+.mp-tile-vol .mp-dial[data-plain="true"] .mp-dial-track { height: 0.32rem; }
+.mp-tile-vol .mp-dial[data-plain="true"] .mp-dial-knob {
+  width: 0.95rem;
+  height: 0.95rem;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.32), 0 0 0 1px rgb(0 0 0 / 0.06);
+}
+
+.mp-tile-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+/* the rail replaces the tile's own bottom padding for the progress bar */
+
+/* ---------- tiny tile: artwork, title, play ---------- */
+
+.mp-tile--tiny.mp-tile--tiny {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.mp-tile--tiny .mp-tile-col {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.mp-tile--tiny .mp-tile-head { gap: 0.55rem; flex: 1; min-width: 0; }
+
+.mp-tile--tiny .mp-art {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.6rem;
+}
+
+.mp-tile--tiny .mp-title { font-size: 0.82rem; font-weight: 580; }
+
+.mp-tile--tiny .mp-controls {
+  width: auto;
+  flex: none;
+  min-height: 0;
+  padding: 0;
+  gap: 0;
+}
+
+.mp-tile--tiny .mp-btn--hero {
+  width: 2.3rem;
+  height: 2.3rem;
+  box-shadow: 0 6px 14px -6px rgb(0 0 0 / 0.7);
+}
+
+.mp-tile--tiny .mp-badge,
+.mp-tile--tiny .mp-times { display: none; }
+
+/* ---------- round artist covers ---------- */
+
+.mp-lib-cover[data-round="true"],
+.mp-lib-cover[data-round="true"] img,
+.mp-lib-cover[data-round="true"] .mp-lib-fallback {
+  border-radius: 999px;
+}
+
+.mp-lib-item .mp-lib-cover[data-round="true"] { box-shadow: 0 8px 20px -12px rgb(0 0 0 / 0.35); }
+
+/* the play button would clip on a circle, so tuck it inside the edge */
+.mp-lib-cover[data-round="true"] + .mp-play-fab { right: 0.7rem; bottom: 0.7rem; }
+
+/* ---------- provider badge ---------- */
+
+/* Flat mark on the artwork rather than a chip — the shadow carries it over
+   light and dark covers alike, the way provider logos are printed on them. */
+.mp-source-badge {
+  position: absolute;
+  left: 0.45rem;
+  top: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.85)) drop-shadow(0 0 1px rgb(0 0 0 / 0.6));
+  pointer-events: none;
+}
+
+/* On a circular cover the corner is empty space. 14.6% in on both axes puts
+   the badge fully inside the circle rather than half off its edge. */
+.mp-lib-cover[data-round="true"] .mp-source-badge {
+  left: 16%;
+  top: 16%;
+}
+
+/* Track rows carry a small cover, so the badge sits tighter to the corner. */
+.mp-list-cover .mp-source-badge {
+  left: 0.25rem;
+  top: 0.2rem;
+}
+
+/* ---------- edge progress line ---------- */
+
+.mp-edge-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: color-mix(in srgb, currentColor 13%, transparent);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.mp-edge-progress[data-ready="true"] { opacity: 1; }
+
+.mp-edge-progress > i {
+  display: block;
+  height: 100%;
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  transition: width 0.9s linear;
+}
+
+/* ---------- artwork that is not a sleeve ----------
+ *
+ * A set-top box sends its channel's logo as the artwork — a Vu+ picon is 5:3
+ * — and a TV app can send a poster. Cropped to fill a square or a circle like
+ * an album cover, a logo came out as the middle of its lettering, blown up.
+ * cover.tsx marks each image with its shape once it loads; a wide one is drawn
+ * whole, with room round it, on the dark a picon is designed to sit on, and
+ * a tall one is drawn whole. A square sleeve still fills its frame. */
+.mp-art[data-shape="wide"],
+.mp-hero-art[data-shape="wide"],
+.mp-panel[data-short="true"] .mp-hero-art[data-shape="wide"] {
+  object-fit: contain;
+  background: #141a21;
+}
+
+/* The room round it in rem, per frame: a percentage padding is taken from
+   the parent's width, which on the round face was the whole panel and left
+   the logo a speck in the middle of the disc. */
+.mp-art[data-shape="wide"] { padding: 0.55rem; }
+.mp-hero-art[data-shape="wide"] { padding: 1rem; }
+
+/* In the round face a logo is a rounded square, not a disc: a picture is
+   clipped to the circle inset by its padding, and a 5:3 logo filling that
+   width always pokes out of it, whatever the padding — the corners of the
+   channel's name were cut off. A channel as a tile reads as a channel. */
+.mp-panel[data-short="true"] .mp-hero-art[data-shape="wide"] {
+  padding: 1.3rem;
+  border-radius: 1.6rem;
+}
+
+/* The new frames: the tablet's cover shows a logo whole on its dark tile,
+   and the phone's disc holds it inside the circle — the padding is taken
+   from the disc's width, which keeps a 5:3 picon clear of the round edge. */
+.mp-snow-art[data-shape="wide"] {
+  object-fit: contain;
+  padding: 12%;
+  background: #141a21;
+}
+
+/* The disc's frame is itself the circle inside the ring, so the padding is
+   taken from it: enough to keep a 5:3 picon clear of the round edge. */
+.mp-pnow-art[data-shape="wide"] {
+  object-fit: contain;
+  padding: 16%;
+  background: #141a21;
+}
+
+/* A poster (Plex sends a film's or a show's) is drawn whole, and the room
+   either side of it is filled with a soft blur of the same picture — no bars,
+   and nothing cut off. The blur is the frame's ::before (see the frames). */
+.mp-art[data-shape="tall"],
+.mp-hero-art[data-shape="tall"],
+.mp-panel[data-short="true"] .mp-hero-art[data-shape="tall"] {
+  object-fit: contain;
+  background: #0f141a;
+}
+
+/* ---------- the library (Plex) ----------
+ *
+ * The library grid is the Browse tab's; what is its own is the small play
+ * button on a tile that is both a folder and playable — a season, an album —
+ * where a tap opens it and the button plays the lot. */
+.mp-lib-entry .mp-lib-cover { position: relative; }
+
+/* The tile: the entry, and the play key laid over its cover. The box is
+   the cover's square, so the key sits in the cover's corner. */
+.mp-lib-tile { position: relative; display: flex; flex-direction: column; min-width: 0; }
+.mp-lib-tile > .mp-lib-item { width: 100%; }
+.mp-lib-play-box { position: absolute; top: 0; left: 0; width: 100%; aspect-ratio: 1; pointer-events: none; }
+.mp-lib-play {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.35rem;
+  display: grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  border-radius: 999px;
+  color: var(--mp-on-primary, #fff);
+  background: var(--mp-primary, #3b82f6);
+  box-shadow: 0 6px 14px -6px rgb(0 0 0 / 0.8);
+}
+
+.mp-lib-entry[data-pending="true"] { opacity: 0.55; }
+.mp-lib-play:focus-visible { outline: 2px solid var(--mp-primary, #3b82f6); outline-offset: 2px; }
+
+/* A source at the top of the browser — Plex, the media folders, the radio —
+   drawn as its own mark in its own colour, at full strength: it is a place
+   to go into, not a missing picture. */
+.mp-lib-mark[data-source="true"] {
+  opacity: 1;
+  color: var(--mp-mark);
+  background: color-mix(in srgb, var(--mp-mark) 16%, transparent);
+}
+
+/* ---------- big square tile: the room board's big media card ----------
+ *
+ * The cover over the whole tile, a dark rise from its foot, the speaker as a
+ * frosted chip at the top; on the rise the title in a lighter weight with the
+ * artist in small spaced capitals, the time as a white hairline, and one row
+ * of frosted keys, a white play disc and the volume as a slim white line.
+ * White words in either theme: they stand on the picture, on the dark. */
+.mp-tile.mp-tile.mp-tile--poster { padding: 0; display: block; }
+
+.mp-poster {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  color: #fff;
+}
+
+.mp-poster-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* A channel logo or a poster whole, on the dark rather than cropped. */
+.mp-poster-art[data-shape="wide"],
+.mp-poster-art[data-shape="tall"] {
+  object-fit: contain;
+  padding: 1.6rem 1.4rem 8rem;
+  background: #0d1016;
+}
+
+.mp-poster-art--empty {
+  display: grid;
+  place-items: center;
+  padding-bottom: 5rem;
+  color: color-mix(in srgb, currentColor 80%, transparent);
+  background:
+    radial-gradient(120% 90% at 30% 10%, color-mix(in srgb, var(--mp-primary, #3b82f6) 35%, #2a2f3a) 0%, #12141a 75%);
+}
+.mp-poster-art--empty > svg[data-icon] { font-size: 3.2rem; opacity: 0.55; }
+.mp-poster-art--empty[data-brand="true"] {
+  container-type: size;
+  color: var(--brand-fg);
+  background: var(--brand-bg);
+}
+.mp-poster-art--empty[data-brand="true"] > svg[data-icon] { font-size: 34cqmin; opacity: 1; }
+
+.mp-poster-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 40%, transparent 55%, rgb(0 0 0 / 0.35) 100%),
+    linear-gradient(180deg, rgb(0 0 0 / 0.3) 0%, transparent 20%),
+    linear-gradient(0deg, rgb(0 0 0 / 0.92) 0%, rgb(0 0 0 / 0.7) 30%, rgb(0 0 0 / 0.28) 56%, transparent 74%);
+}
+
+.mp-poster-meta {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem 0.9rem;
+}
+
+.mp-poster-chip {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+  padding: 0.25rem 0.6rem 0.25rem 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 650;
+  background: rgb(0 0 0 / 0.45);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  cursor: pointer;
+}
+.mp-poster-chip:disabled { cursor: inherit; }
+.mp-poster-chip > svg[data-icon] { flex: none; opacity: 0.85; }
+.mp-poster-chip .mp-eq { height: 0.7rem; }
+
+.mp-poster-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  margin-top: auto;
+}
+
+.mp-poster-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  text-shadow: 0 1px 14px rgb(0 0 0 / 0.55);
+}
+
+.mp-poster-sub {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.mp-poster-time { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.35rem; }
+
+.mp-poster-bar {
+  position: relative;
+  display: block;
+  height: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.18);
+}
+.mp-poster-bar > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: #fff;
+  box-shadow: 0 0 10px rgb(255 255 255 / 0.55);
+  transition: width 0.9s linear;
+}
+
+.mp-poster-clock {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
+
+.mp-poster-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.15rem;
+}
+
+.mp-poster-keys { display: flex; align-items: center; gap: 0.55rem; flex: none; }
+
+.mp-poster-key,
+.mp-poster-play,
+.mp-poster-mute {
+  display: grid;
+  place-items: center;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.14s ease, background 0.14s ease;
+}
+
+.mp-poster-key {
+  width: 2.4rem;
+  height: 2.4rem;
+  color: #fff;
+  background: rgb(255 255 255 / 0.12);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+}
+.mp-poster-key:hover { background: rgb(255 255 255 / 0.2); }
+
+.mp-poster-play {
+  width: 3.1rem;
+  height: 3.1rem;
+  color: #0b0d12;
+  background: #fff;
+  box-shadow: 0 10px 26px -10px rgb(0 0 0 / 0.8), 0 0 0 6px rgb(255 255 255 / 0.08);
+}
+.mp-poster-key:active,
+.mp-poster-play:active { transform: scale(0.92); }
+
+.mp-poster-vol {
+  display: flex;
+  flex: 1 1 auto;
+  max-width: 16rem;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 0.64rem;
+  font-variant-numeric: tabular-nums;
+}
+.mp-poster-mute {
+  width: 1.7rem;
+  height: 1.7rem;
+  color: #fff;
+  background: transparent;
+  opacity: 0.75;
+}
+.mp-poster-vol .mp-dial {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 2.4rem;
+  --mp-dial-tone: rgb(255 255 255 / 0.92);
+}
+.mp-poster-vol .mp-dial-track { height: 3px; background: rgb(255 255 255 / 0.2); }
+.mp-poster-vol .mp-dial[data-plain="true"] .mp-dial-knob {
+  width: 0.95rem;
+  height: 0.95rem;
+  background: #fff;
+  box-shadow: 0 1px 8px rgb(0 0 0 / 0.55);
+}
+.mp-poster-pct { flex: none; min-width: 1.3rem; text-align: right; opacity: 0.6; }
+
+/* The picker from the chip, under it, over the cover. */
+.mp-poster .mp-picker { top: 2.7rem; color: var(--mp-menu-fg, #fff); }
+
+/* Too narrow for the volume beside the keys: it goes first. */
+@container (max-width: 15rem) {
+  .mp-poster-vol { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-poster-bar > i { transition: none; }
+}
+
+/* ---------- two rows, wide: the banner ----------
+ *
+ * The cover large down the left, the full height of the tile, dissolving into
+ * the card's own colour by the middle — the card behind it, not a blurred
+ * copy of it. The words and keys on the right, in the theme's own ink. */
+.mp-tile.mp-tile.mp-tile--banner { display: block; padding: 0; }
+
+/* Where the words start: the middle, or earlier on a narrow banner so the
+   right side keeps room for the speaker's name in the bar. */
+.mp-banner {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  --mp-split: min(47%, 100% - 16rem);
+}
+/* On a phone the bar is the speaker and the volume alone, so the words need
+   less of the width and the cover can have more of it. */
+.mp-tile[data-phone="true"] .mp-banner { --mp-split: min(47%, 100% - 13.5rem); }
+
+.mp-banner-art {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--mp-split) + 5%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 38%, rgb(0 0 0 / 0.45) 72%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 38%, rgb(0 0 0 / 0.45) 72%, transparent 100%);
+  pointer-events: none;
+}
+
+.mp-banner-art > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+}
+
+/* A logo or a poster whole, not cropped to a strip of it. */
+.mp-banner-art > img[data-shape="wide"],
+.mp-banner-art > img[data-shape="tall"] { object-fit: contain; object-position: left center; padding: 0.8rem; }
+
+.mp-banner-empty {
+  display: grid;
+  place-items: center start;
+  width: 100%;
+  height: 100%;
+  padding-left: 12%;
+  container-type: size;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--mp-primary, #3b82f6) 30%, transparent),
+    color-mix(in srgb, var(--mp-primary, #3b82f6) 8%, transparent));
+}
+.mp-banner-empty > svg[data-icon] { font-size: 34cqh; opacity: 0.45; }
+.mp-banner-empty[data-brand="true"] { color: var(--brand-fg); background: var(--brand-bg); }
+.mp-banner-empty[data-brand="true"] > svg[data-icon] { font-size: 46cqh; opacity: 1; }
+
+.mp-banner-body {
+  position: absolute;
+  inset: 0 0 0 var(--mp-split);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.75rem 0.9rem 0.85rem 0.6rem;
+}
+
+/* The bar across the top of the right side: the speaker by name, then the
+   shortcuts and the volume as icons — and the volume, opened, the bar's
+   whole length. */
+.mp-banner-top { display: flex; min-width: 0; }
+.mp-tile--banner .mp-tile-nav {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0.15rem;
+  border-color: color-mix(in srgb, currentColor 14%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+.mp-tile.mp-tile--banner .mp-tile-nav button { padding: 0.32rem 0.5rem; font-size: 0.68rem; }
+
+.mp-banner-titles { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.mp-tile--banner .mp-title { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.015em; }
+.mp-tile--banner .mp-sub { font-size: 0.82rem; opacity: 0.62; }
+
+.mp-banner-keys { display: flex; align-items: center; gap: 0.6rem; }
+
+.mp-banner-key,
+.mp-banner-play {
+  display: grid;
+  place-items: center;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.14s ease, background 0.14s ease, opacity 0.14s ease;
+}
+
+.mp-banner-key {
+  width: 2.3rem;
+  height: 2.3rem;
+  color: inherit;
+  background: transparent;
+  opacity: 0.75;
+}
+.mp-banner-key:hover { opacity: 1; background: color-mix(in srgb, currentColor 9%, transparent); }
+
+.mp-banner-play {
+  width: 2.75rem;
+  height: 2.75rem;
+  color: var(--mp-on-primary, #fff);
+  background: var(--mp-primary, var(--widget-color, #3b82f6));
+  box-shadow: 0 8px 20px -10px var(--mp-primary, var(--widget-color, #3b82f6));
+}
+.mp-banner-key:active,
+.mp-banner-play:active { transform: scale(0.92); }
+
+.mp-tile .mp-tile-nav .mp-tile-nav-player {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  min-width: 0;
+  gap: 0.4rem;
+  padding-inline: 0.55rem 0.5rem;
+  font-weight: 650;
+  opacity: 1;
+}
+.mp-tile .mp-tile-nav .mp-tile-nav-player > .mp-truncate { display: block; flex: 0 1 auto; min-width: 0; }
+.mp-tile .mp-tile-nav .mp-tile-nav-player > .mp-eq { display: inline-flex; }
+/* The volume keeps its number whole; the speaker's name gives way first. */
+.mp-tile .mp-tile-nav .mp-tile-nav-vol { flex: none; }
+.mp-tile .mp-tile-nav button > .mp-tile-nav-pct { display: inline; }
+.mp-tile .mp-tile-nav .mp-tile-nav-player > svg[data-icon]:last-child { opacity: 0.55; }
+.mp-tile .mp-tile-nav .mp-tile-nav-player:disabled { cursor: inherit; }
+.mp-tile .mp-tile-nav .mp-tile-nav-player[data-active="true"] {
+  color: inherit;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: none;
+}
+.mp-tile .mp-tile-nav .mp-tile-nav-player .mp-eq { width: 0.8rem; height: 0.7rem; }
+
+/* The speaker list from its name, over the right of the banner. */
+.mp-banner .mp-picker { left: calc(var(--mp-split) + 0.6rem); right: 0.9rem; top: 2.75rem; color: var(--mp-menu-fg, inherit); }
+
+/* Short banners: the words a size down so the keys keep their row. */
+.mp-tile[data-banner="short"] .mp-title { font-size: 1rem; }
+.mp-tile[data-banner="short"] .mp-sub { font-size: 0.74rem; }
+
+/* Four rows deep (5×4, 6×4): the same banner, scaled to the room — the
+   cover the whole height, the words larger and set lower, the keys bigger. */
+.mp-tile[data-banner="large"] .mp-banner-body { padding: 1.1rem 1.3rem 1.3rem 0.8rem; }
+.mp-tile[data-banner="large"] .mp-banner-titles { margin-top: auto; margin-bottom: 0.9rem; gap: 0.3rem; }
+.mp-tile[data-banner="large"] .mp-title { font-size: 1.75rem; letter-spacing: -0.025em; }
+.mp-tile[data-banner="large"] .mp-sub { font-size: 1rem; }
+.mp-tile[data-banner="large"] .mp-banner-keys { gap: 1rem; }
+.mp-tile[data-banner="large"] .mp-banner-key { width: 2.9rem; height: 2.9rem; }
+.mp-tile[data-banner="large"] .mp-banner-play { width: 3.6rem; height: 3.6rem; }
+.mp-tile[data-banner="large"] .mp-tile-nav { max-width: 28rem; margin-left: auto; }
+
+/* Two and three rows deep (4×2, 5×2, 6×2, 4×3): the bar and the keys a size
+   smaller, and the title with the keys centred in the room under the bar —
+   pushed apart to the edges, the keys sat crowded on the card's foot. */
+.mp-tile:is([data-banner="mid"], [data-banner="short"]) .mp-banner-body { justify-content: flex-start; gap: 0.45rem; padding: 0.7rem 0.9rem 0.8rem 0.6rem; }
+.mp-tile:is([data-banner="mid"], [data-banner="short"]) .mp-banner-titles { margin-top: auto; }
+.mp-tile:is([data-banner="mid"], [data-banner="short"]) .mp-banner-keys { margin-bottom: auto; gap: 0.45rem; }
+.mp-tile:is([data-banner="mid"], [data-banner="short"]) .mp-tile-nav { padding: 0.1rem; }
+.mp-tile.mp-tile--banner:is([data-banner="mid"], [data-banner="short"]) .mp-tile-nav button { min-height: 1.85rem; padding: 0.2rem 0.45rem; font-size: 0.66rem; }
+.mp-tile:is([data-banner="mid"], [data-banner="short"]) .mp-tile-nav .mp-nav-sep { margin-block: 0.3rem; }
+.mp-tile:is([data-banner="mid"], [data-banner="short"]) .mp-banner-key { width: 2rem; height: 2rem; }
+.mp-tile:is([data-banner="mid"], [data-banner="short"]) .mp-banner-play { width: 2.35rem; height: 2.35rem; }
+.mp-tile[data-banner="large"] .mp-tile-nav button { padding-block: 0.42rem; font-size: 0.74rem; }
+
+/* ---------- portrait: the banner upright ----------
+ *
+ * The cover from the top, the full width, dissolving into the card's colour
+ * by the middle; the speaker, the words and the keys centred under it, and
+ * the bar along the foot. */
+.mp-tile.mp-tile.mp-tile--vbanner { display: block; padding: 0; }
+
+/* A column: the cover takes whatever height the words and keys leave, so
+   on a short tile it shrinks rather than running under the title. */
+.mp-vbanner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.mp-vbanner-art {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* Runs a little under the speaker's name, where it has faded out. */
+  margin-bottom: -1.2rem;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 45%, rgb(0 0 0 / 0.45) 75%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 45%, rgb(0 0 0 / 0.45) 75%, transparent 100%);
+  pointer-events: none;
+}
+.mp-vbanner-art > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+.mp-vbanner-art > img[data-shape="wide"],
+.mp-vbanner-art > img[data-shape="tall"] { object-fit: contain; object-position: center top; padding: 0.8rem; }
+.mp-vbanner-art > .mp-banner-empty { position: absolute; inset: 0; place-items: center; padding: 0 0 12%; }
+
+.mp-vbanner-body {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  padding: 0 0.75rem 0.7rem;
+  text-align: center;
+}
+
+.mp-vbanner-titles { display: flex; flex-direction: column; gap: 0.1rem; width: 100%; min-width: 0; }
+.mp-tile--vbanner .mp-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.015em; }
+.mp-tile--vbanner .mp-sub { font-size: 0.8rem; opacity: 0.62; }
+
+.mp-vbanner-keys { justify-content: center; margin-bottom: 0.15rem; }
+
+/* The bar along the foot, as wide as the tile, its items shared out. */
+.mp-tile--vbanner .mp-tile-nav {
+  flex: none;
+  width: 100%;
+  margin: 0;
+  padding: 0.15rem;
+  justify-content: flex-start;
+  border-color: color-mix(in srgb, currentColor 14%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+.mp-tile.mp-tile--vbanner .mp-tile-nav button { flex: none; justify-content: center; min-height: 0; min-width: 0; padding: 0.38rem 0.55rem; font-size: 0.68rem; }
+.mp-tile.mp-tile--vbanner .mp-tile-nav .mp-tile-nav-player { flex: 1 1 auto; justify-content: flex-start; }
+.mp-tile.mp-tile--vbanner .mp-tile-nav .mp-nav-sep { margin-inline: 0; }
+
+/* The speaker list from its name, over the cover. */
+.mp-vbanner .mp-picker { left: 0.6rem; right: 0.6rem; top: auto; bottom: 3.2rem; color: var(--mp-menu-fg, inherit); }
+
+/* ---------- one row: the banner as a strip ----------
+ *
+ * The cover at the left the strip's full height, dissolving into the card;
+ * the title and artist beside it; the keys and the volume at the right. The
+ * volume, opened, takes the whole strip — its slider the width of the tile —
+ * on the card's own ground, what it covers stepping out of sight. */
+.mp-tile.mp-tile.mp-tile--strip { display: block; padding: 0; }
+
+.mp-strip { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
+
+.mp-strip-art {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(42%, 9.5rem);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 40%, rgb(0 0 0 / 0.4) 75%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 40%, rgb(0 0 0 / 0.4) 75%, transparent 100%);
+  pointer-events: none;
+}
+.mp-strip-art > img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
+.mp-strip-art > img[data-shape="wide"],
+.mp-strip-art > img[data-shape="tall"] { object-fit: contain; object-position: left center; padding: 0.4rem; }
+.mp-strip-art > .mp-banner-empty { padding-left: 0.9rem; }
+.mp-strip-art > .mp-banner-empty > svg[data-icon] { font-size: 44cqh; }
+
+.mp-strip-body {
+  position: absolute;
+  inset: 0 0 0 min(30%, 6.5rem);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0 0.6rem 0 0.5rem;
+}
+
+.mp-strip-titles { display: flex; flex: 1 1 auto; flex-direction: column; gap: 0.05rem; min-width: 0; }
+.mp-tile--strip .mp-title { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; }
+.mp-tile--strip .mp-sub { font-size: 0.74rem; opacity: 0.62; }
+
+.mp-strip-keys { display: flex; flex: none; align-items: center; gap: 0.15rem; }
+.mp-tile--strip .mp-banner-key { width: 2.1rem; height: 2.1rem; }
+.mp-tile--strip .mp-banner-play { width: 2.4rem; height: 2.4rem; margin-inline: 0.15rem; }
+.mp-tile--strip .mp-strip-volkey { margin-left: 0.1rem; }
+
+/* A 2×1: the cover a sliver, the keys a size down, the words the rest. */
+.mp-tile[data-strip="narrow"] .mp-strip-art { width: 34%; }
+.mp-tile[data-strip="narrow"] .mp-strip-body { left: 18%; gap: 0.3rem; padding: 0 0.4rem 0 0.35rem; }
+.mp-tile[data-strip="narrow"] .mp-title { font-size: 0.85rem; }
+.mp-tile[data-strip="narrow"] .mp-sub { font-size: 0.68rem; }
+.mp-tile[data-strip="narrow"] .mp-strip-keys { gap: 0; }
+.mp-tile[data-strip="narrow"] .mp-banner-play { width: 2.05rem; height: 2.05rem; margin-inline: 0.05rem; }
+.mp-tile[data-strip="narrow"] .mp-banner-key { width: 1.8rem; height: 1.8rem; }
+
+/* The volume, opened: the whole strip. */
+.mp-strip-vol {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.6rem;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  animation: mp-volbar-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.mp-tile[data-vol="true"] .mp-strip-art,
+.mp-tile[data-vol="true"] .mp-strip-body { visibility: hidden; }
+.mp-strip-vol .mp-banner-key[data-on="true"] { color: var(--mp-primary, #3b82f6); }
+.mp-strip-vol .mp-dial { flex: 1 1 auto; min-width: 0; height: 100%; }
+.mp-strip-vol .mp-dial-track { height: 0.36rem; }
+.mp-strip-vol .mp-dial[data-plain="true"] .mp-dial-knob {
+  width: 1.05rem;
+  height: 1.05rem;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.32), 0 0 0 1px rgb(0 0 0 / 0.06);
+}
+.mp-strip-vol-pct {
+  flex: none;
+  min-width: 2.4rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  color: var(--mp-on-primary, #fff);
+  background: var(--mp-primary, #3b82f6);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+/* Reduced motion: no movement for anyone who asked their system for less
+   (WCAG 2.3.3). Colours and fades still change, just without moving. */
+@media (prefers-reduced-motion: reduce) {
+  .mp-btn { transition: background 0.16s ease, opacity 0.15s; }
+  .mp-rem-menu { animation: none; }
+  .mp-rem-chip { transition: background 0.2s ease; }
+  .mp-rem-key { transition: background 0.16s ease, color 0.16s ease; }
+  .mp-rem-vcard { animation: none; }
+  .mp-rem-vcard[data-keys="true"] > button { transition: background 0.16s ease; }
+  .mp-queue { animation: none; }
+  .mp-range::-webkit-slider-thumb { transition: none; }
+  .mp-go { transition: filter 0.15s ease, opacity 0.15s ease; }
+  .mp-pill { transition: background 0.15s ease; }
+  .mp-action { transition: background 0.15s ease, opacity 0.15s ease; }
+  .mp-queue-actions { animation: none; }
+  .mp-pnow-heart { transition: color 0.2s ease; }
+  .mp-pnow-btn { transition: color 0.2s ease, opacity 0.2s ease; }
+  .mp-pnow-play { transition: none; }
+  .mp-play-fab { transition: opacity 0.14s ease; }
+  .mp-mini { animation: none; }
+  .mp-mini .mp-menu { animation: none; }
+  .mp-poster-key, .mp-poster-play, .mp-poster-mute { transition: background 0.14s ease; }
+  .mp-banner-key, .mp-banner-play { transition: background 0.14s ease, opacity 0.14s ease; }
+}

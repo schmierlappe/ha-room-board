@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Stamp version from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed -i "s/^const CARD_VERSION = \".*\";/const CARD_VERSION = \"${VERSION}\";/" src/card.tsx
+
+      - name: Build
+        run: |
+          bun install --frozen-lockfile
+          bun run build
+
+      - name: Attach card to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/room-board-card.js
