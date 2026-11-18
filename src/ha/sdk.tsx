@@ -19,6 +19,7 @@ import {
   createRoot,
   createSignal,
   onCleanup,
+  Show,
   splitProps,
   untrack,
   useContext,
@@ -703,27 +704,81 @@ export const Widget = Object.assign(WidgetFrame, { Content: WidgetContent });
 /* Icons                                                               */
 /* ------------------------------------------------------------------ */
 
-/** An icon by its name ("mdi:lightbulb"), drawn by Home Assistant's own <ha-icon>. */
-export function Icon(props: { icon: string; width?: string | number; height?: string | number; class?: string; style?: JSX.CSSProperties | string }): JSX.Element {
-  const [own, rest] = splitProps(props, ["icon", "width", "height", "style"]);
-  const size = () => {
-    const w = own.width ?? own.height;
-    if (w === undefined) return undefined;
-    return typeof w === "number" || /^\d+(\.\d+)?$/.test(String(w)) ? `${w}px` : String(w);
+/* An icon is drawn as GlassHome draws it — an inline <svg data-icon> filled
+   with currentColor, 1em unless sized — because the widgets' stylesheets
+   size, colour and hide icons by that element. Its shape comes from Home
+   Assistant itself: a hidden <ha-icon> loads it from Home Assistant's own
+   icon store (Material Design Icons, and any custom icon set installed), and
+   the path it draws is read off it and kept. */
+type Shape = { path: string; viewBox: string } | null;
+const shapes = new Map<string, Accessor<Shape | undefined>>();
+const ICON_WAIT_MS = 4000;
+
+function loadShape(name: string, set: (shape: Shape) => void): void {
+  const probe = document.createElement("ha-icon") as HTMLElement & { icon?: string };
+  probe.setAttribute("icon", name);
+  probe.icon = name;
+  probe.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none";
+  document.body.append(probe);
+  const started = performance.now();
+  const look = () => {
+    const svg = probe.shadowRoot?.querySelector("ha-svg-icon") as (HTMLElement & { path?: string; viewBox?: string }) | null;
+    if (svg?.path) {
+      probe.remove();
+      set({ path: svg.path, viewBox: svg.viewBox || "0 0 24 24" });
+      return;
+    }
+    if (performance.now() - started > ICON_WAIT_MS) {
+      probe.remove();
+      set(null);
+      return;
+    }
+    setTimeout(look, 40);
   };
-  const style = (): JSX.CSSProperties => ({
-    ...(typeof own.style === "object" ? own.style : {}),
-    ...(size() ? { "--mdc-icon-size": size(), width: size(), height: size() } : {}),
-  });
-  return <ha-icon {...rest} icon={own.icon} style={style()} />;
+  look();
 }
 
-declare module "solid-js" {
-  namespace JSX {
-    interface IntrinsicElements {
-      "ha-icon": { icon?: string; class?: string; style?: JSX.CSSProperties | string };
-    }
+function shapeOf(name: string): Shape | undefined {
+  if (!name) return null;
+  let found = shapes.get(name);
+  if (!found) {
+    const [get, set] = createSignal<Shape | undefined>(undefined);
+    shapes.set(name, get);
+    found = get;
+    if (typeof document !== "undefined") loadShape(name, (shape) => set(() => shape));
   }
+  return found();
+}
+
+const length = (value: string | number | undefined) => (value === undefined || value === null ? undefined : String(value));
+
+/** An icon by its name ("mdi:lightbulb"). */
+export function Icon(props: {
+  icon: string;
+  width?: string | number;
+  height?: string | number;
+  class?: string;
+  style?: JSX.CSSProperties | string;
+}): JSX.Element {
+  const [own, rest] = splitProps(props, ["icon", "width", "height"]);
+  const shape = createMemo(() => shapeOf(own.icon));
+  const width = () => length(own.width) ?? length(own.height) ?? "1em";
+  const height = () => length(own.height) ?? length(own.width) ?? "1em";
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      data-slot="icon"
+      aria-hidden="true"
+      fill="currentColor"
+      data-icon={own.icon}
+      viewBox={shape()?.viewBox ?? "0 0 24 24"}
+      width={width()}
+      height={height()}
+      {...rest}
+    >
+      <Show when={shape()}>{(found) => <path d={found().path} />}</Show>
+    </svg>
+  );
 }
 
 /** Whether Home Assistant is connected: the card has been given `hass`. */
