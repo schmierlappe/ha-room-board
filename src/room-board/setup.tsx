@@ -2,14 +2,29 @@ import { Show, createMemo, createSignal } from "solid-js";
 import { Icon } from "@glasshome/widget-sdk";
 import type { EntityView } from "@glasshome/widget-sdk";
 import { kindOf } from "./openings";
+import { isPollenSensor, isWarningSensor } from "./dwd";
+import { looksLikePlex } from "./plex";
 import { looksLikeTeamTracker } from "./sport";
+import { looksLikeWaste } from "./waste";
 import { numeric, safeIcon } from "./util";
 
 /** Why the board draws no card for a sensor, or nothing when it does. */
-function skipReason(entity: EntityView): string {
+function skipReason(entity: EntityView, onCards: ReadonlySet<string>): string {
   if (entity.domain !== "sensor") return "";
   if (entity.entityCategory) return `Not on the board: marked ${entity.entityCategory} in Home Assistant`;
   if (entity.isHidden) return "Not on the board: hidden in Home Assistant";
+  /* Drawn on a card of its own — Plex, a match, the bins, the weather
+     service's warnings and pollen, a washer: there a text state is what is
+     shown, not a reading without a number. */
+  if (
+    onCards.has(entity.id) ||
+    looksLikePlex(entity) ||
+    looksLikeTeamTracker(entity) ||
+    looksLikeWaste(entity) ||
+    isWarningSensor(entity) ||
+    isPollenSensor(entity)
+  )
+    return "";
   if (numeric(entity) === undefined)
     return `Not on the board: no number right now (${entity.state || "empty"})`;
   return "";
@@ -101,10 +116,13 @@ function groupOf(entity: EntityView): { id: string; label: string; icon: string 
  */
 export function SetupPanel(props: {
   entities: EntityView[];
+  /** Sensors the board draws on cards of their own (a washer's state). */
+  onCards?: ReadonlySet<string>;
   hidden: string[];
   onSet: (hidden: string[]) => void;
 }) {
   const [filter, setFilter] = createSignal("");
+  const onCards = () => props.onCards ?? new Set<string>();
 
   const isShown = (id: string) => !props.hidden.includes(id);
 
@@ -256,8 +274,8 @@ export function SetupPanel(props: {
                             a number, and leaves out what Home Assistant
                             itself marks diagnostic or hidden. Said here, so
                             "on" never quietly means "not shown". */}
-                        <Show when={isShown(entity.id) && skipReason(entity)}>
-                          <span class="rb-setup-why rb-truncate">{skipReason(entity)}</span>
+                        <Show when={isShown(entity.id) && skipReason(entity, onCards())}>
+                          <span class="rb-setup-why rb-truncate">{skipReason(entity, onCards())}</span>
                         </Show>
                       </span>
 
