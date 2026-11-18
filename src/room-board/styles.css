@@ -12903,3 +12903,38 @@
   .rb-ltm-tile { transition: background 0.2s ease; }
   .rb-ltm-colour { animation: none; }
 }
+
+/* ---------- a phone, as iOS lays one out ----------
+ *
+ * The foot: the dock (or the activity bar) floats over the end of the
+ * tiles in its frosted glass, and the tiles scroll on under it, rather than
+ * stopping in a hard line above it. The tiles keep room at their end to
+ * scroll clear of it, and the whole sits above the home indicator.
+ *
+ * The top: without a photo, the band is as tall as what is in it — the
+ * clock, the room and the picker — rather than a fixed share of the screen
+ * with nothing in the middle. With a photo it keeps its share. */
+.rb-board[data-narrow="true"] .rb-panel {
+  padding-bottom: max(var(--rb-pad), env(safe-area-inset-bottom, 0px));
+}
+.rb-board[data-narrow="true"] .rb-panel-body {
+  position: relative;
+}
+.rb-board[data-narrow="true"] .rb-panel-body > :is(.rb-act-bar, .rb-dock) {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+}
+.rb-board[data-narrow="true"] .rb-panel-body:has(> .rb-dock) > .rb-grid {
+  padding-bottom: 6.6rem;
+  scroll-padding-bottom: 6.6rem;
+}
+.rb-board[data-narrow="true"] .rb-panel-body:has(> .rb-act-bar) > .rb-grid {
+  padding-bottom: 3.2rem;
+  scroll-padding-bottom: 3.2rem;
+}
+.rb-board[data-narrow="true"]:not(:has(.rb-scene-photo)) {
+  grid-template-rows: auto 1fr;
+}
