@@ -10,6 +10,9 @@
  * follows you from the desktop to the tablet and the phone. Everything else
  * is the card's YAML.
  */
+/* First: the base styles the widgets were drawn with (Tailwind's preflight). */
+import "./ha/preflight.css";
+import geist from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?inline";
 import { createSignal, ErrorBoundary, type JSX } from "solid-js";
 import { render } from "solid-js/web";
 import widget from "./room-board/index";
@@ -23,11 +26,22 @@ const CARD_VERSION = "0.1.0";
 /** The board's own changes to its config, kept per user. */
 const USER_KEYS = ["hidden", "layout"] as const;
 
+/* The widgets' typeface, Geist (SIL Open Font License 1.1). A font face has
+   to be declared on the page: one in a shadow root is not used. */
+function addFont(): void {
+  if (document.getElementById("ha-room-board-font")) return;
+  const style = document.createElement("style");
+  style.id = "ha-room-board-font";
+  style.textContent = `@font-face{font-family:"Geist Variable";font-style:normal;font-display:swap;font-weight:100 900;src:url(${geist}) format("woff2-variations");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}`;
+  document.head.append(style);
+}
+
 /* Home Assistant's theme, in the tokens the widgets read (src/theme.ts). The
    card is the theme root, so getComputedStyle on it resolves these. */
 const HOST_CSS = `
 :host {
   display: block;
+  --default-font-family: "Geist Variable", var(--paper-font-body1_-_font-family, Roboto), system-ui, sans-serif;
   height: var(--room-board-height, calc(100vh - var(--header-height, 56px) - 16px));
   min-height: 420px;
   --background: var(--card-background-color, var(--primary-background-color, #1c1c1c));
@@ -42,7 +56,6 @@ const HOST_CSS = `
   border-radius: var(--ha-card-border-radius, 12px);
   overflow: hidden;
   color: var(--primary-text-color);
-  font-family: var(--paper-font-body1_-_font-family, inherit);
 }
 .ha-rb-empty {
   height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
@@ -125,6 +138,7 @@ class RoomBoardCard extends HTMLElement {
 
   private mount(): void {
     if (this.dispose || !this.isConnected) return;
+    addFont();
     const root = this.shadowRoot ?? this.attachShadow({ mode: "open" });
     root.replaceChildren();
     const style = document.createElement("style");

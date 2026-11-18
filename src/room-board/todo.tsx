@@ -18,24 +18,19 @@ export const openCount = (entity: EntityView | undefined) => {
   return Number.isFinite(value) ? value : 0;
 };
 
-/** The chip on the agenda card: a basket and how much is on the list. */
+/** The chip on the agenda card: a basket and how much is still open, all
+    lists added up — one chip, however many lists there are. */
 export function TodoChips(props: { ids: string[] }) {
   const lists = useEntities(() => props.ids);
-  /* By position: the lists are handed over afresh on every update, and a
-     loop keyed on those new objects rebuilt the chips. */
+  const open = () => lists().reduce((sum, list) => sum + openCount(list), 0);
+  const names = () => lists().map((list) => `${list.friendlyName ?? list.id}: ${openCount(list)}`).join("\n");
   return (
-    <Index each={lists()}>
-      {(list) => (
-        <span
-          class="rb-todo-chip"
-          data-empty={openCount(list()) === 0}
-          title={list().friendlyName ?? list().id}
-        >
-          <Icon icon="mdi:cart-outline" width="14" />
-          <b>{openCount(list())}</b>
-        </span>
-      )}
-    </Index>
+    <Show when={lists().length}>
+      <span class="rb-todo-chip" data-empty={open() === 0} title={names()}>
+        <Icon icon="mdi:cart-outline" width="14" />
+        <b>{open()}</b>
+      </span>
+    </Show>
   );
 }
 
