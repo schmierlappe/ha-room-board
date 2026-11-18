@@ -42,6 +42,80 @@ function addFont(): void {
   document.head.append(style);
 }
 
+/* Aurora: the board's own theme, dark and light following Home Assistant's
+   setting. Soft glows of colour drift slowly behind frosted glass: the page
+   colour stays opaque (the popups are painted with it), the card colour is
+   see-through, so the panel and the tiles show the glow through a blur. The
+   tokens are the ones the widgets read (src/theme.ts); `theme:
+   home_assistant` leaves Home Assistant's own in charge. */
+const AURORA_CSS = `
+:host([data-theme="aurora"]) {
+  --background: #0b0e1a;
+  --foreground: #edf0fa;
+  --card: rgba(22, 26, 44, 0.46);
+  --popover: #151a2c;
+  --popover-foreground: #edf0fa;
+  --border: rgba(255, 255, 255, 0.1);
+  --primary: #8b7bff;
+  --primary-foreground: #ffffff;
+  --rb-glow-1: rgba(124, 92, 255, 0.7);
+  --rb-glow-2: rgba(28, 196, 186, 0.5);
+  --rb-glow-3: rgba(255, 92, 170, 0.34);
+}
+:host([data-theme="aurora"][data-mode="light"]) {
+  --background: #eef0f8;
+  --foreground: #161a2b;
+  --card: rgba(255, 255, 255, 0.52);
+  --popover: #ffffff;
+  --popover-foreground: #161a2b;
+  --border: rgba(22, 26, 43, 0.1);
+  --primary: #5b4dff;
+  --primary-foreground: #ffffff;
+  --rb-glow-1: rgba(150, 128, 255, 0.6);
+  --rb-glow-2: rgba(86, 186, 255, 0.5);
+  --rb-glow-3: rgba(255, 168, 136, 0.48);
+}
+:host([data-theme="aurora"]) .ha-rb-widget {
+  isolation: isolate;
+  background: var(--background);
+}
+:host([data-theme="aurora"]) .ha-rb-widget::before {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 42% at 18% 16%, var(--rb-glow-1), transparent 70%),
+    radial-gradient(42% 46% at 84% 82%, var(--rb-glow-2), transparent 72%),
+    radial-gradient(30% 34% at 72% 12%, var(--rb-glow-3), transparent 70%),
+    radial-gradient(34% 30% at 30% 88%, var(--rb-glow-3), transparent 72%);
+  filter: blur(18px);
+  animation: rb-aurora 46s ease-in-out infinite alternate;
+}
+@keyframes rb-aurora {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(4%, -3%, 0) rotate(8deg) scale(1.06); }
+  100% { transform: translate3d(-3%, 4%, 0) rotate(-6deg) scale(1.02); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :host([data-theme="aurora"]) .ha-rb-widget::before { animation: none; }
+}
+:host([data-theme="aurora"]) .rb-panel {
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  backdrop-filter: blur(28px) saturate(150%);
+}
+/* The bars at the foot float over the tiles in the page colour itself:
+   inside the panel's own glass a second blur does not take, and any
+   see-through let the tiles passing under them read through. */
+:host([data-theme="aurora"]) :is(.rb-dock, .rb-act-bar) {
+  background: var(--background);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+:host([data-theme="aurora"]) .rb-dock > .rb-act-bar { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+`;
+
 /* Home Assistant's theme, in the tokens the widgets read (src/theme.ts). The
    card is the theme root, so getComputedStyle on it resolves these. */
 const HOST_CSS = `
@@ -70,6 +144,7 @@ const HOST_CSS = `
   color: var(--secondary-text-color); text-align: center;
 }
 .ha-rb-error { padding: 16px; color: var(--error-color, #db4437); }
+${AURORA_CSS}
 /* Reads the safe-area insets for the card (--rb-safe-* stand in for them in
    a test page). */
 .ha-rb-safe {
@@ -89,7 +164,7 @@ const HOST_CSS = `
 :host([data-bleed]) .rb-board:not([data-narrow="true"]) .rb-panel { padding-top: calc(var(--rb-pad) + var(--rb-bleed-top, 0px)); }
 `;
 
-type Config = Record<string, unknown> & { type?: string; storage_key?: string; height?: string };
+type Config = Record<string, unknown> & { type?: string; storage_key?: string; height?: string; theme?: string };
 
 class RoomBoardCard extends HTMLElement {
   private readonly configSignal = createSignal<Config>({});
@@ -108,9 +183,15 @@ class RoomBoardCard extends HTMLElement {
     this.configSignal[1]({ ...config });
     if (typeof config.height === "string") this.style.setProperty("--room-board-height", config.height);
     else this.style.removeProperty("--room-board-height");
+    /* Aurora unless Home Assistant's own theme is asked for. */
+    const theme = config.theme === "home_assistant" || config.theme === "home-assistant" ? "home_assistant" : "aurora";
+    this.setAttribute("data-theme", theme);
   }
 
   set hass(next: Hass) {
+    /* Before the state: the board reads the theme's colours when the mode
+       changes, and they must be the new mode's by then. */
+    this.setAttribute("data-mode", next.themes?.darkMode === false ? "light" : "dark");
     applyHass(next);
     if (!this.overridesLoaded) {
       this.overridesLoaded = true;

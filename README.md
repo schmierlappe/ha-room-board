@@ -94,6 +94,7 @@ They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/inte
 | `vacuumMapImage` / `vacuumMapCamera` | | The vacuum's map, where it is not found by itself. |
 | `vacuumRooms` | `[]` | The vacuum's rooms, for cleaning one. |
 | `vacuumSensors` | `[]` | Consumable sensors (filter, brushes) for the vacuum card. |
+| `theme` | `aurora` | `aurora`: the board's own look — soft glows of colour drifting behind frosted glass, in dark and light following Home Assistant's dark-mode setting. `home_assistant`: the colours of your Home Assistant theme. |
 | `height` | full screen | The board's height, e.g. `800px`. On a panel view it fills the screen. |
 | `storage_key` | | Name for this board's saved layout; set it when you have more than one board. |
 
