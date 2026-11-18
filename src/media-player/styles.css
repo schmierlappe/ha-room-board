@@ -2646,6 +2646,11 @@
   /* The speaker list opens over the bar, from its speaker button. */
   position: relative;
   flex: 0 1 auto;
+  /* As wide as its tabs, also where the panel is wide enough for the desktop
+     rule below (width: 100%) to take hold: stretched, the pill became a bar
+     across the panel with its tabs bunched at one end. */
+  width: auto;
+  margin-inline: 0;
   background: var(--mp-bg, #14161c);
 }
 
@@ -2666,6 +2671,8 @@
    the item's own text colour instead of vanishing into it. */
 .mp-nav button[data-active="true"] .mp-eq > span { background: currentColor; }
 .mp-nav-speaker > .mp-truncate { min-width: 0; }
+/* The picker's mark: it opens a list, it is not one more tab. */
+.mp-nav-speaker > .mp-nav-speaker-more { flex: none; opacity: 0.6; }
 
 /* ---------- Now, on a tablet or a desktop ----------
  *
