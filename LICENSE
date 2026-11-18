@@ -22,6 +22,5 @@ SOFTWARE.
 
 ---
 
-Parts of src/ha/sdk.tsx (the config schema helpers and the monotone cubic
-spline) follow @glasshome/widget-sdk, Copyright (c) 2026 GlassHome Labs,
-also under the MIT License.
+The card also contains third-party software and a font under their own
+licences (MIT, SIL Open Font License 1.1): see THIRD_PARTY_NOTICES.md.

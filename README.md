@@ -86,4 +86,6 @@ The board is SolidJS. It imports the GlassHome widget SDK's API, which `vite.con
 
 ## License
 
-MIT. Parts of `src/ha/sdk.tsx` follow [@glasshome/widget-sdk](https://github.com/glasshome/widget-sdk), also MIT.
+MIT, see [LICENSE](LICENSE). The card contains SolidJS, zod, Tailwind CSS's base styles and parts of @glasshome/widget-sdk (all MIT), and the Geist font (SIL Open Font License 1.1): see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Room Board is an independent project, not affiliated with or endorsed by GlassHome, Home Assistant, ESPN, Plex or any other service it shows. The football card's details come from ESPN's public website data, for personal use.

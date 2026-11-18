@@ -35,9 +35,19 @@ function minifyCard(): Plugin {
   return {
     name: "minify-card",
     apply: "build",
-    async renderChunk(code) {
-      const out = await transform(code, { minify: true, format: "esm", target: "es2022" });
-      return { code: out.code, map: null };
+    /* After Vite's own passes, which reprint the code. */
+    async generateBundle(_options, bundle) {
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type !== "chunk") continue;
+        const out = await transform(chunk.code, { minify: true, format: "esm", target: "es2022", legalComments: "none" });
+        /* The notices of what the card contains travel with it. */
+        const banner =
+          "/*! Room Board card — MIT, https://github.com/schmierlappe/ha-room-board . Contains SolidJS (MIT, (c) Ryan Carniato), " +
+          "zod (MIT, (c) Colin McDonnell), Tailwind CSS preflight (MIT, (c) Tailwind Labs, Inc.), parts of @glasshome/widget-sdk " +
+          "(MIT, (c) GlassHome Labs) and the Geist font (SIL Open Font License 1.1, (c) The Geist Project Authors); " +
+          "full texts in THIRD_PARTY_NOTICES.md. */\n";
+        chunk.code = banner + out.code;
+      }
     },
   };
 }
