@@ -434,6 +434,14 @@ function mapOfVacuum(vacuumId: string | undefined, images: readonly string[], se
   return pool.find((id) => id.endsWith("_custom")) ?? pool[0];
 }
 
+/* Home Assistant keeps an uploaded area picture as a link to its 512×512
+   copy, too small for the photo side of a board; its image server also has
+   the upload as it was, under "original". */
+function fullSize(picture: string | null | undefined): string | undefined {
+  if (!picture) return undefined;
+  return picture.replace(/^(\/api\/image\/serve\/[^/]+)\/\d+x\d+$/, "$1/original");
+}
+
 function RoomBoard(props: { config: Config }) {
   const domains = useDomains();
   const ctx = useWidgetContext();
@@ -920,7 +928,7 @@ function RoomBoard(props: { config: Config }) {
   const name = () => current()?.label || area()?.name || props.config.title || "Room";
   /* The room's own photo from the settings, else the picture Home Assistant
      keeps for the area (Settings → Areas → the area → its picture). */
-  const photo = () => imageUrl(current()?.image) ?? imageUrl(area()?.picture);
+  const photo = () => imageUrl(current()?.image) ?? imageUrl(fullSize(area()?.picture));
 
   const gestures = useWidgetGestures(() => ({
     /* A tap on the board's own background does nothing: every card on it is

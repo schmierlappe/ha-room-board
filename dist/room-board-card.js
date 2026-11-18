@@ -159,7 +159,7 @@ function _u(e, r) {
     Pe = t, Ke = n;
   }
 }
-const [dS, cS] = N(!1);
+const [cS, mS] = N(!1);
 function _c(e, r) {
   const t = /* @__PURE__ */ Symbol("context");
   return { id: t, Provider: Au(t), defaultValue: e };
@@ -11768,7 +11768,7 @@ function eS(e) {
     } });
   }, get children() {
     return d(rS, { get children() {
-      return d(nS, { get config() {
+      return d(aS, { get config() {
         return e.config;
       } });
     } });
@@ -11788,6 +11788,9 @@ function tS(e, r, t) {
   return s.find((c) => c.endsWith("_custom")) ?? s[0];
 }
 function nS(e) {
+  if (e) return e.replace(/^(\/api\/image\/serve\/[^/]+)\/\d+x\d+$/, "$1/original");
+}
+function aS(e) {
   const r = St(), t = xv(), n = kv(), a = () => e.config.rooms ?? [], i = () => a().map((j) => j.area ?? j.label ?? "").join("|"), [o, s] = N(fc.get(i()) ?? 0), [c, m] = N(!1);
   De(() => fc.set(i(), o()));
   const p = () => a()[Math.min(o(), Math.max(0, a().length - 1))], u = wm(() => p()?.area ?? ""), g = se(() => u()?.entities ?? []), [b, f] = N(), w = () => b() ?? e.config.hidden ?? [], _ = se(() => {
@@ -11869,7 +11872,7 @@ function nS(e) {
   }), Rn = (j) => ov.entityRegistry?.[j]?.platform, Bi = (j) => Rn(j) === "unifi", Ri = (j) => Rn(j) === "proxmoxve", Un = se(() => wk(_().filter((j) => !vt().has(j.id) && !qi().has(j.id) && !Bi(j.id) && !Ri(j.id)))), cn = () => Un().filter((j) => !vr().has(`metric:${j.id}`)), qt = () => er().length ? void 0 : cn()[0], Fn = () => {
     const j = qt() ? 1 : 0;
     return w().some((ae) => ae.startsWith("sensor.")) ? cn().slice(j) : cn().slice(j, j + Math.max(1, e.config.maxCards ?? 5));
-  }, Jt = () => p()?.label || u()?.name || e.config.title || "Room", Pa = () => Al(p()?.image) ?? Al(u()?.picture), Oa = Tv(() => ({ hold: { action: () => n.openDialog() } }));
+  }, Jt = () => p()?.label || u()?.name || e.config.title || "Room", Pa = () => Al(p()?.image) ?? Al(nS(u()?.picture)), Oa = Tv(() => ({ hold: { action: () => n.openDialog() } }));
   ze(Oa.dispose);
   const mt = (j) => j.stopPropagation(), mn = (j) => {
     const ae = un?.getBoundingClientRect(), ce = j.parentElement?.getBoundingClientRect();
@@ -12459,8 +12462,8 @@ function nS(e) {
   } }))];
 }
 const vc = { manifest: { name: "Room Board", description: "A tablet board: the room on the left, everything it measures on the right", icon: "mdi:view-dashboard-outline", minSize: { w: 4, h: 3 }, maxSize: { w: 24, h: 16 }, defaultSize: { w: 8, h: 4 }, examples: [{ label: "Lounge", size: { w: 12, h: 6 }, config: { title: "", subtitle: "My Home", clock: "24h", clockStyle: "bold", rooms: [{ kind: "room", label: "Living Room", icon: "mdi:sofa", area: "living_room" }, { kind: "room", label: "Bedroom", icon: "mdi:bed", area: "bedroom" }, { kind: "room", label: "Kitchen", icon: "mdi:silverware-fork-knife", area: "kitchen" }], musicAssistant: !0, remoteProfiles: [], remoteHoldRepeats: !0, hidden: [], layout: [], people: [], vacuumMapImage: [], vacuumMapCamera: [], vacuumRooms: [], vacuumSensors: [], historyHours: 6, maxCards: 5 } }], configVersion: 19, sdkVersion: "^1.14.3" }, configSchema: bu, migrate: (e) => e, component: eS };
-var aS = h("<div class=ha-rb-error>Room Board: ");
-const iS = "0.1.0", oS = ["hidden", "layout"], sS = `
+var iS = h("<div class=ha-rb-error>Room Board: ");
+const oS = "0.1.0", sS = ["hidden", "layout"], lS = `
 :host {
   display: block;
   height: var(--room-board-height, calc(100vh - var(--header-height, 56px) - 16px));
@@ -12485,7 +12488,7 @@ const iS = "0.1.0", oS = ["hidden", "layout"], sS = `
 }
 .ha-rb-error { padding: 16px; color: var(--error-color, #db4437); }
 `;
-class lS extends HTMLElement {
+class dS extends HTMLElement {
   configSignal = N({});
   overridesSignal = N({});
   dispose;
@@ -12526,7 +12529,7 @@ class lS extends HTMLElement {
   }
   saveOverrides(r) {
     const t = {};
-    for (const n of oS) n in r && (t[n] = r[n]);
+    for (const n of sS) n in r && (t[n] = r[n]);
     this.overridesSignal[1](t), Ln().connection.sendMessagePromise({ type: "frontend/set_user_data", key: this.storageKey, value: t }).catch((n) => console.warn("room-board-card: could not save the layout", n));
   }
   mount() {
@@ -12534,7 +12537,7 @@ class lS extends HTMLElement {
     const r = this.shadowRoot ?? this.attachShadow({ mode: "open" });
     r.replaceChildren();
     const t = document.createElement("style");
-    t.textContent = sS + S7();
+    t.textContent = lS + S7();
     const n = document.createElement("div");
     n.style.height = "100%", r.append(t, n), bb(this);
     const [a] = this.configSignal, [i] = this.overridesSignal, o = () => {
@@ -12545,7 +12548,7 @@ class lS extends HTMLElement {
     } }, m = () => this.storageKey;
     this.dispose = Vu(() => d(hs.Provider, { value: c, get children() {
       return d(ns, { fallback: (p) => (() => {
-        var u = aS();
+        var u = iS();
         return u.firstChild, l(u, () => String(p), null), u;
       })(), get children() {
         return d(s, { get config() {
@@ -12555,4 +12558,4 @@ class lS extends HTMLElement {
     } }), n);
   }
 }
-customElements.get("room-board-card") || customElements.define("room-board-card", lS), window.customCards ??= [], window.customCards.push({ type: "room-board-card", name: "Room Board", description: "A room at a glance: its photo and clock, and everything it measures and controls, for desktop, tablet and phone.", preview: !1, documentationURL: "https://github.com/schmierlappe/ha-room-board" }), console.info(`%c ROOM-BOARD-CARD %c ${iS} `, "color:#fff;background:#3a7bd5;font-weight:700;border-radius:3px 0 0 3px", "color:#3a7bd5;background:#fff;font-weight:700;border-radius:0 3px 3px 0");
+customElements.get("room-board-card") || customElements.define("room-board-card", dS), window.customCards ??= [], window.customCards.push({ type: "room-board-card", name: "Room Board", description: "A room at a glance: its photo and clock, and everything it measures and controls, for desktop, tablet and phone.", preview: !1, documentationURL: "https://github.com/schmierlappe/ha-room-board" }), console.info(`%c ROOM-BOARD-CARD %c ${oS} `, "color:#fff;background:#3a7bd5;font-weight:700;border-radius:3px 0 0 3px", "color:#3a7bd5;background:#fff;font-weight:700;border-radius:0 3px 3px 0");
