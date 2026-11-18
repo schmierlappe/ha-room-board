@@ -1,0 +1,521 @@
+.sc-tile-root,
+.sc-tile-root *,
+.sc-panel,
+.sc-panel * {
+  box-sizing: border-box;
+}
+
+.sc-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- tile ---------- */
+
+.sc-tile-root.sc-tile-root {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  min-width: 0;
+}
+
+.sc-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 0.9rem 1rem;
+  overflow: hidden;
+  min-width: 0;
+  gap: 0.5rem;
+}
+
+/* Decorative club badges behind the content. Clipped by the tile, kept well
+   below the text contrast-wise, and inert to pointers so the tap gesture
+   still belongs to the tile. */
+.sc-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sc-bg-logo {
+  position: absolute;
+  top: -6%;
+  height: 82%;
+  width: auto;
+  opacity: 0.07;
+  /* A trace of club colour, as in the reference — at this opacity it
+     tints rather than clashes. */
+  filter: saturate(0.7);
+}
+
+/* Bled off each edge so the badges read as entering from the sides rather
+   than floating in the middle of the card. */
+.sc-bg-logo--home { left: -7%; }
+.sc-bg-logo--away { right: -7%; }
+
+/* Content sits above the watermark. */
+.sc-head,
+.sc-body,
+.sc-venue {
+  position: relative;
+  z-index: 1;
+}
+
+.sc-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.sc-league {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.78rem;
+  opacity: 0.55;
+}
+
+.sc-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: none;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 650;
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  opacity: 0.85;
+}
+
+/* Live gets the accent treatment; a finished or upcoming match stays quiet. */
+.sc-status[data-state="in"] {
+  color: var(--sc-live, #4ade80);
+  background: rgb(74 222 128 / 0.12);
+  box-shadow: inset 0 0 0 1px rgb(74 222 128 / 0.45);
+  opacity: 1;
+}
+
+.sc-live-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: currentColor;
+  animation: sc-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes sc-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.sc-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.sc-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.sc-crest {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  flex: none;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  overflow: hidden;
+}
+
+.sc-crest > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sc-team-name {
+  font-size: 0.78rem;
+  font-weight: 650;
+  max-width: 100%;
+  line-height: 1.15;
+  /* Two lines beat an ellipsis here: "Karlsruher S…" loses the club. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sc-team-rank {
+  font-size: 0.7rem;
+  opacity: 0.45;
+}
+
+.sc-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  flex: none;
+  padding: 0 0.4rem;
+}
+
+.sc-score-line {
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.sc-score-line[data-state="in"] { color: var(--sc-live, #4ade80); }
+
+.sc-score-sub {
+  font-size: 0.72rem;
+  opacity: 0.5;
+}
+
+.sc-score-sub[data-state="in"] { color: var(--sc-live, #4ade80); opacity: 0.9; }
+
+.sc-kickoff {
+  font-size: 0.95rem;
+  font-weight: 650;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.sc-venue {
+  font-size: 0.72rem;
+  opacity: 0.42;
+  text-align: center;
+}
+
+.sc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.9rem;
+  text-align: center;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+/* one row: crest, teams, score */
+.sc-tile--tiny { padding: 0.5rem 0.7rem; gap: 0.3rem; }
+.sc-tile--tiny .sc-head { display: none; }
+.sc-tile--tiny .sc-body { gap: 0.45rem; }
+.sc-tile--tiny .sc-crest { width: 1.8rem; height: 1.8rem; font-size: 0.62rem; }
+/* Abbreviation only: the full club name has nowhere to go on one row, and
+   with logos loading the crest alone doesn't spell out who is playing. */
+.sc-tile--tiny .sc-team-name {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  -webkit-line-clamp: 1;
+}
+.sc-tile--tiny .sc-team-rank { display: none; }
+.sc-tile--tiny .sc-score-line { font-size: 1.15rem; }
+.sc-tile--tiny .sc-score-sub { font-size: 0.62rem; }
+.sc-tile--tiny .sc-venue { display: none; }
+.sc-tile--tiny .sc-kickoff { font-size: 0.75rem; }
+
+/* ---------- popup ---------- */
+
+.sc-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-width: 0;
+  /* Lay out against the panel's own width, not the viewport: on mobile the
+     dialog is a full-width sheet, on desktop it is a much narrower box. */
+  container-type: inline-size;
+}
+
+.sc-nav {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+}
+
+.sc-nav > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex: 1;
+  padding: 0.45rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.sc-nav > button[data-active="true"] {
+  font-weight: 600;
+  opacity: 1;
+  color: #fff;
+  background: var(--sc-primary, var(--widget-color, #2563eb));
+  box-shadow: 0 6px 16px -8px var(--sc-primary, var(--widget-color, #2563eb));
+}
+
+.sc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* ---------- matchday ---------- */
+
+.sc-fixture {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.8rem;
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  min-width: 0;
+}
+
+.sc-fixture[data-fav="true"] {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
+  background: rgb(255 255 255 / 0.09);
+}
+
+.sc-fixture-side {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.sc-fixture-side[data-align="right"] { justify-content: flex-end; }
+
+.sc-crest--sm {
+  width: 1.6rem;
+  height: 1.6rem;
+  font-size: 0.58rem;
+}
+
+.sc-fixture-name {
+  font-size: 0.8rem;
+  min-width: 0;
+}
+
+.sc-fixture-score {
+  flex: none;
+  min-width: 3.4rem;
+  text-align: center;
+  font-size: 0.86rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sc-fixture-score[data-state="in"] { color: var(--sc-live, #4ade80); }
+.sc-fixture-score[data-state="pre"] { font-weight: 550; opacity: 0.6; }
+
+.sc-fixture-time {
+  flex: none;
+  width: 3.6rem;
+  text-align: right;
+  font-size: 0.68rem;
+  opacity: 0.5;
+}
+
+/* ---------- table ---------- */
+
+.sc-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  overflow-x: auto;
+}
+
+.sc-row {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(6rem, 1fr) 2rem 2rem 2rem 2rem 2.6rem 2.4rem;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.55rem;
+  font-size: 0.76rem;
+  min-width: 26rem;
+}
+
+.sc-row--head {
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+
+.sc-row[data-fav="true"] {
+  background: rgb(255 255 255 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18);
+  font-weight: 620;
+}
+
+.sc-row-team {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.sc-num { text-align: center; font-variant-numeric: tabular-nums; }
+.sc-num--pts { font-weight: 700; }
+.sc-dim { opacity: 0.55; }
+
+/* Promotion / relegation bands, as the league actually splits: top two up,
+   third into the play-off, bottom two down, 16th into the play-off. */
+.sc-rank {
+  position: relative;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-rank[data-band="up"]::before,
+.sc-rank[data-band="playoff"]::before,
+.sc-rank[data-band="down"]::before {
+  content: "";
+  position: absolute;
+  left: -0.15rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 1.1rem;
+  border-radius: 999px;
+}
+
+.sc-rank[data-band="up"]::before { background: var(--sc-live, #4ade80); }
+.sc-rank[data-band="playoff"]::before { background: #eab308; }
+.sc-rank[data-band="down"]::before { background: #ef4444; }
+
+/* ---------- news ---------- */
+
+.sc-news {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sc-news-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.8rem;
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.sc-news-item:hover { background: rgb(255 255 255 / 0.1); }
+
+.sc-news-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sc-news-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  opacity: 0.5;
+}
+
+.sc-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.7rem;
+  background: rgb(255 255 255 / 0.05);
+  font-size: 0.75rem;
+  opacity: 0.7;
+  line-height: 1.35;
+}
+
+.sc-note[data-error="true"] {
+  background: rgb(220 60 60 / 0.14);
+  box-shadow: inset 0 0 0 1px rgb(240 90 90 / 0.28);
+  opacity: 1;
+}
+
+.sc-loading {
+  padding: 1.6rem;
+  text-align: center;
+  font-size: 0.8rem;
+  opacity: 0.55;
+}
+
+/* Narrow panel (a phone sheet): drop W/D/L so the table fits without
+   sideways scrolling. Played, goal difference and points are what the table
+   is actually read for. */
+@container (max-width: 30rem) {
+  .sc-row {
+    grid-template-columns: 1.5rem minmax(4rem, 1fr) 2rem 2.6rem 2.4rem;
+    min-width: 0;
+    gap: 0.25rem;
+    font-size: 0.74rem;
+  }
+
+  .sc-col-opt { display: none; }
+
+  /* Fixtures: the crest plus two names is the priority; the trailing day
+     label duplicates what the matchday heading already says. */
+  .sc-fixture { gap: 0.45rem; padding: 0.5rem 0.6rem; }
+  .sc-fixture-time { display: none; }
+  .sc-fixture-name { font-size: 0.76rem; }
+  .sc-fixture-score { min-width: 2.9rem; font-size: 0.8rem; }
+
+  /* Comfortable tap targets on a touch screen. */
+  .sc-nav > button { padding: 0.6rem 0.5rem; }
+  .sc-news-item { padding: 0.7rem 0.8rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-live-dot { animation: none; }
+  .sc-nav > button, .sc-news-item { transition: none; }
+}
+

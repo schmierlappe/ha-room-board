@@ -1,0 +1,1656 @@
+/* The container lives on the shell, not on .wx-tile: an element can't respond
+   to a container query it declares itself. */
+.wx-root {
+  container-type: inline-size;
+}
+
+/* The shell's own padding held the tile away from the card edges, so the
+   backdrop stopped short of them and the card had a plain border of dead
+   space around the sky. The tile carries the padding instead and fills the
+   card, which is what lets the atmosphere run edge to edge. */
+.wx-root.wx-root {
+  padding: 0;
+}
+
+.wx-root,
+.wx-root *,
+.wx-panel,
+.wx-panel * {
+  box-sizing: border-box;
+}
+
+.wx-tile {
+  --wx-primary: var(--widget-color, #3b82f6);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0.85rem 0.95rem;
+  border-radius: inherit;
+}
+
+.wx-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1;
+  /* Explicit, because Widget.Content is a flex column with items-center:
+     without a width the block shrinks to its longest line and gets centred,
+     which reads as a stray indent rather than as centring. */
+  width: 100%;
+  text-align: left;
+}
+
+.wx-temp {
+  font-size: 2.9rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-condition {
+  font-size: 0.92rem;
+  font-weight: 600;
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wx-place {
+  font-size: 0.76rem;
+  /* Over a painted sky in either theme: half strength washed out on the
+     daylight blue, so a little more. */
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The card's warning badge. Tinted with the warning's own colour, and it
+   pulses — a severe weather warning should catch the eye from across a room,
+   which a static chip on a busy sky does not. */
+.wx-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  align-self: flex-start;
+  max-width: 100%;
+  margin-bottom: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 680;
+  line-height: 1.35;
+  /* White or ink, whichever reads on the warning's colour (inkOn): white was
+     1.9:1 on a minor warning's yellow and 2.8 on orange. */
+  color: var(--wx-on-tone, #1c1917);
+  background: var(--wx-tone, #ef4444);
+  box-shadow: 0 4px 14px -6px var(--wx-tone, #ef4444);
+  animation: wx-alert-pulse 2.4s ease-in-out infinite;
+}
+
+.wx-alert-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wx-alert-count {
+  flex: none;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  background: rgb(255 255 255 / 0.28);
+}
+
+@keyframes wx-alert-pulse {
+  0%, 100% { box-shadow: 0 4px 14px -6px var(--wx-tone, #ef4444); }
+  50% { box-shadow: 0 4px 20px -4px var(--wx-tone, #ef4444); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wx-alert { animation: none; }
+}
+
+.wx-tile--tiny .wx-alert {
+  margin-bottom: 0.15rem;
+  padding: 0.12rem 0.4rem;
+  font-size: 0.62rem;
+}
+
+/* High and low read as a pair, so they share a row with a divider dot. */
+.wx-range {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-range b { font-weight: 680; }
+.wx-range span { opacity: 0.55; }
+.wx-dot { opacity: 0.3; }
+
+/* ---------- one-row and portrait tiles ---------- */
+
+.wx-tile--tiny { gap: 0.7rem; padding: 0.5rem 0.7rem; }
+.wx-tile--tiny .wx-temp { font-size: 1.5rem; }
+.wx-tile--tiny .wx-condition { font-size: 0.76rem; }
+.wx-tile--tiny .wx-place,
+.wx-tile--tiny .wx-range { display: none; }
+
+.wx-tile--portrait {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.wx-tile--portrait .wx-main {
+  align-items: center;
+  text-align: center;
+}
+
+.wx-tile--portrait .wx-temp { font-size: 2.4rem; }
+
+.wx-tile--bg.wx-tile--portrait .wx-main {
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* A square card on a phone.
+ *
+ * The readings stack above the forecast instead of sitting beside the scene:
+ * at this width a side-by-side row leaves the strip nothing, and the strip is
+ * the reason to give the card a second row in the first place. Everything
+ * above it is scaled down to pay for it, and margin-top:auto pins it to the
+ * bottom edge so the card reads the same whether the place line is there or
+ * not. */
+.wx-tile--square {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  padding: 0.65rem 0.7rem 0.5rem;
+  /* The strip is pinned to the bottom by an auto margin, which does nothing
+     to stop the block above it overflowing — and an overflowing column pushes
+     the strip off the card rather than shrinking anything. Both halves are
+     told they may shrink, and the card clips as a last resort so a row can
+     never hang past the rounded corner. */
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wx-tile--square .wx-main {
+  flex: 0 1 auto;
+  min-height: 0;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.wx-tile--square .wx-strip {
+  flex: none;
+  margin-top: auto;
+  padding-top: 0.35rem;
+  gap: 0.15rem;
+}
+
+.wx-tile--square .wx-temp { font-size: 2rem; line-height: 1.02; }
+.wx-tile--square .wx-condition { font-size: 0.74rem; }
+.wx-tile--square .wx-place { font-size: 0.68rem; }
+.wx-tile--square .wx-range { margin-top: 0.1rem; font-size: 0.7rem; }
+
+/* The inline scene only — with the default backdrop placement there is no
+   hero icon to shrink, and the strip's own mini scenes are sized below. */
+.wx-tile--square > .wx-scene[data-variant="inline"] {
+  align-self: flex-end;
+  width: 3.4rem;
+  height: 3.4rem;
+}
+
+.wx-tile--square .wx-hour-time { font-size: 0.58rem; }
+.wx-tile--square .wx-hour-temp { font-size: 0.68rem; }
+
+/* A 2x2 card is square rather than portrait, so it keeps the side-by-side
+   layout — but at that width the scene has to give ground or the condition
+   truncates to "Partly clo...". */
+@container (max-width: 15rem) {
+  .wx-tile { gap: 0.7rem; }
+  /* The hero icon only. A backdrop must keep filling the card, and the strip's
+     mini scenes have their own size — both were caught by a looser selector. */
+  .wx-tile:not(.wx-tile--tiny) > .wx-scene[data-variant="inline"] {
+    width: 3.7rem;
+    height: 3.7rem;
+  }
+  .wx-temp { font-size: 2.2rem; }
+  .wx-condition { font-size: 0.8rem; }
+  .wx-place { font-size: 0.72rem; }
+}
+
+/* The scene as a backdrop: it fills the card behind the readings, with the
+   sky wash beneath it and a scrim between it and the text. */
+.wx-tile--bg {
+  position: relative;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0.5rem;
+  /* A backdrop tile is a picture of the sky, in every theme and every weather:
+     white words on it. Clear and broken skies were painted in full; the rest
+     were a faint tint over the card, which on a light dashboard came out as a
+     pale grey patch with dark type — the weather looked switched off. Every
+     condition now has its own sky, by day and by night (below). */
+  color: #fff;
+}
+
+.wx-tile--bg.wx-tile--bg[data-scene="moon"] .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #060b1c 0%, #101c3d 52%, #2b4272 100%);
+}
+
+.wx-tile--bg[data-scene="cloud"]:not([data-night="true"]) .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #4d5d72 0%, #6c7d93 52%, #93a3b7 100%);
+}
+
+.wx-tile--bg[data-scene="cloud"][data-night="true"] .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #0e141e 0%, #1b2432 52%, #2b3647 100%);
+}
+
+.wx-tile--bg[data-scene="rain"]:not([data-night="true"]) .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #334356 0%, #4a5c72 52%, #677a90 100%);
+}
+
+.wx-tile--bg[data-scene="rain"][data-night="true"] .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #0a0f17 0%, #141c29 52%, #212b3b 100%);
+}
+
+.wx-tile--bg[data-scene="storm"]:not([data-night="true"]) .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #1d2331 0%, #2c3444 52%, #434c5e 100%);
+}
+
+.wx-tile--bg[data-scene="storm"][data-night="true"] .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #07090f 0%, #11151f 52%, #1e2431 100%);
+}
+
+.wx-tile--bg[data-scene="snow"]:not([data-night="true"]) .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #56698a 0%, #7b8ea8 52%, #a1b1c4 100%);
+}
+
+.wx-tile--bg[data-scene="snow"][data-night="true"] .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #151c2b 0%, #253045 52%, #36435b 100%);
+}
+
+.wx-tile--bg[data-scene="fog"]:not([data-night="true"]) .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #5f6976 0%, #7d8792 52%, #9ba3ad 100%);
+}
+
+.wx-tile--bg[data-scene="fog"][data-night="true"] .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #171b22 0%, #252a32 52%, #353b44 100%);
+}
+
+.wx-tile--bg[data-scene="wind"]:not([data-night="true"]) .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #2a5f90 0%, #4888b6 52%, #80b1cf 100%);
+}
+
+.wx-tile--bg[data-scene="wind"][data-night="true"] .wx-sky {
+  opacity: 1;
+  background: linear-gradient(180deg, #060b1c 0%, #101c3d 52%, #2b4272 100%);
+}
+
+.wx-backdrop,
+.wx-sky,
+.wx-scrim {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* A wash of the sky the condition implies. Kept in alpha rather than solid
+   colours so the same values sit correctly on a light or a dark card. */
+.wx-sky { opacity: 0.9; }
+
+/* Daylight gets the sky itself rather than a wash of it: deep overhead,
+   pale at the horizon, with the sun's warmth spilling from its own corner.
+   The alpha-only version read as a faint tint on a dark card, which is not
+   what anybody means by "sunny". */
+.wx-tile--bg[data-scene="sun"] .wx-sky {
+  opacity: 1;
+  background:
+    radial-gradient(70% 55% at 82% 14%, rgb(255 236 150 / 0.5), transparent 68%),
+    linear-gradient(180deg, #1559a8 0%, #2f8bd2 48%, #6fc0ea 82%, #a8dcf3 100%);
+}
+
+.wx-tile--bg[data-scene="partly"] .wx-sky {
+  opacity: 1;
+  background:
+    radial-gradient(70% 55% at 82% 14%, rgb(255 236 150 / 0.34), transparent 66%),
+    linear-gradient(180deg, #235d92 0%, #3f85b6 52%, #7db0d0 100%);
+}
+
+/* After dark the same two conditions get a night sky: Home Assistant calls it
+   "sunny" until the sun is under the horizon, and a blue sky at midnight is
+   the one thing a weather card must never show. */
+.wx-tile--bg[data-night="true"][data-scene="sun"] .wx-sky,
+.wx-tile--bg[data-night="true"][data-scene="partly"] .wx-sky {
+  opacity: 1;
+  background:
+    radial-gradient(60% 45% at 80% 16%, rgb(191 205 255 / 0.22), transparent 70%),
+    linear-gradient(180deg, #060b1c 0%, #101c3d 45%, #1d2f5e 78%, #2b4272 100%);
+}
+
+.wx-tile--bg[data-scene="cloud"] .wx-sky {
+  background: linear-gradient(150deg, rgb(148 163 184 / 0.16), rgb(100 116 139 / 0.06) 65%, transparent);
+}
+
+.wx-tile--bg[data-scene="rain"] .wx-sky,
+.wx-tile--bg[data-scene="storm"] .wx-sky {
+  background: linear-gradient(150deg, rgb(59 130 246 / 0.24), rgb(30 41 59 / 0.14) 62%, transparent);
+}
+
+.wx-tile--bg[data-scene="snow"] .wx-sky {
+  background: linear-gradient(150deg, rgb(186 230 253 / 0.26), rgb(148 163 184 / 0.1) 62%, transparent);
+}
+
+.wx-tile--bg[data-scene="fog"] .wx-sky {
+  background: linear-gradient(150deg, rgb(148 163 184 / 0.26), rgb(148 163 184 / 0.08) 70%, transparent);
+}
+
+.wx-tile--bg[data-scene="wind"] .wx-sky {
+  background: linear-gradient(150deg, rgb(125 211 252 / 0.2), rgb(100 116 139 / 0.1) 65%, transparent);
+}
+
+.wx-tile--bg[data-scene="moon"] .wx-sky {
+  background: linear-gradient(150deg, rgb(99 102 241 / 0.26), rgb(15 23 42 / 0.18) 62%, transparent);
+}
+
+/* Sits between scene and text, and only under the text. An earlier version
+   faded out at 78%, which left it around half-opaque across the middle of the
+   card and washed the whole sky out; the readings lean on the text shadow
+   below for the rest. */
+.wx-scrim {
+  background:
+    linear-gradient(98deg, var(--wx-scrim, rgb(9 12 18 / 0.62)) 0%, transparent 46%),
+    linear-gradient(to top, var(--wx-scrim, rgb(9 12 18 / 0.62)) 0%, transparent 28%);
+}
+
+.wx-tile--bg .wx-main,
+.wx-tile--bg .wx-strip {
+  position: relative;
+  z-index: 1;
+  /* Carries legibility where the scrim has already faded out, so the sky can
+     stay bright behind the readings instead of being dimmed for them. */
+  text-shadow: var(--wx-ink-shadow, 0 1px 10px rgb(2 6 12 / 0.55));
+}
+
+/* Next few hours along the bottom — the part that makes it read as a live
+   card rather than a static reading. Hidden when the tile is too short to
+   carry it without crowding the temperature. */
+.wx-strip {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.wx-hour {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.wx-hour-time {
+  font-size: 0.62rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.wx-hour-temp {
+  font-size: 0.76rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- the animated scene ---------- */
+
+.wx-scene {
+  position: relative;
+  width: var(--wx-size, 5rem);
+  height: var(--wx-size, 5rem);
+  flex: none;
+  overflow: hidden;
+}
+
+/* Sun: a still disc behind a slowly turning ray star, so the motion reads as
+   shimmer rather than a spinning graphic. */
+.wx-sun {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46%;
+  height: 46%;
+  transform: translate(-50%, -50%);
+}
+
+.wx-scene[data-scene="partly"] .wx-sun {
+  left: 34%;
+  top: 36%;
+  width: 38%;
+  height: 38%;
+}
+
+.wx-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fde68a, #fbbf24 60%, #f59e0b);
+  box-shadow: 0 0 0.9rem rgb(251 191 36 / 0.45);
+}
+
+.wx-rays {
+  position: absolute;
+  inset: -55%;
+  background:
+    conic-gradient(
+      from 0deg,
+      rgb(251 191 36 / 0.55) 0deg 6deg, transparent 6deg 45deg,
+      rgb(251 191 36 / 0.55) 45deg 51deg, transparent 51deg 90deg,
+      rgb(251 191 36 / 0.55) 90deg 96deg, transparent 96deg 135deg,
+      rgb(251 191 36 / 0.55) 135deg 141deg, transparent 141deg 180deg,
+      rgb(251 191 36 / 0.55) 180deg 186deg, transparent 186deg 225deg,
+      rgb(251 191 36 / 0.55) 225deg 231deg, transparent 231deg 270deg,
+      rgb(251 191 36 / 0.55) 270deg 276deg, transparent 276deg 315deg,
+      rgb(251 191 36 / 0.55) 315deg 321deg, transparent 321deg 360deg
+    );
+  -webkit-mask: radial-gradient(circle, transparent 34%, #000 36%, #000 62%, transparent 66%);
+  mask: radial-gradient(circle, transparent 34%, #000 36%, #000 62%, transparent 66%);
+  animation: wx-spin 24s linear infinite;
+}
+
+@keyframes wx-spin {
+  to { transform: rotate(360deg); }
+}
+
+.wx-moon {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 42%;
+  height: 42%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #f8fafc, #e2e8f0 60%, #cbd5e1);
+  box-shadow: 0 0 0.8rem rgb(226 232 240 / 0.35);
+  animation: wx-bob 7s ease-in-out infinite;
+  /* The crescent is bitten out with a mask rather than covered by a circle in
+     the card's colour — a cover only works if you know what's behind it. */
+  -webkit-mask: radial-gradient(circle at 16% 24%, transparent 48%, #000 49%);
+  mask: radial-gradient(circle at 16% 24%, transparent 48%, #000 49%);
+}
+
+@keyframes wx-bob {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50% { transform: translate(-50%, -58%); }
+}
+
+.wx-star {
+  position: absolute;
+  width: 0.18rem;
+  height: 0.18rem;
+  border-radius: 50%;
+  background: #e2e8f0;
+  animation: wx-twinkle 3.2s ease-in-out infinite;
+}
+
+@keyframes wx-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+/* A rounded bar with three puff circles. Height comes from aspect-ratio and
+   the puffs are circles in their own right (aspect-ratio: 1), because sizing
+   them as a percentage of a short wide bar stretched them into ellipses and
+   the whole cloud read as a squashed pill. */
+.wx-cloud {
+  position: absolute;
+  aspect-ratio: 3.1 / 1;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f8fafc, #b6c2d2);
+}
+
+.wx-cloud::before,
+.wx-cloud::after {
+  content: "";
+  position: absolute;
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.wx-cloud::before {
+  left: 8%;
+  bottom: 34%;
+  width: 44%;
+}
+
+.wx-cloud::after {
+  right: 10%;
+  bottom: 26%;
+  width: 34%;
+}
+
+.wx-cloud--back {
+  left: 8%;
+  top: 30%;
+  width: 54%;
+  opacity: 0.5;
+  animation: wx-drift 13s ease-in-out infinite;
+}
+
+.wx-cloud--front {
+  left: 20%;
+  top: 44%;
+  width: 64%;
+  animation: wx-drift 9s ease-in-out infinite reverse;
+}
+
+@keyframes wx-drift {
+  0%, 100% { transform: translateX(-6%); }
+  50% { transform: translateX(6%); }
+}
+
+/* The pictogram's own scale: its parts below measured in em are fractions of
+   the icon, the same at 1.5rem in a forecast row as at 5rem on a tile. */
+.wx-scene[data-variant="inline"] { font-size: var(--wx-size, 5rem); }
+
+.wx-drop {
+  position: absolute;
+  width: 0.042em;
+  height: 0.17em;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgb(59 130 246 / 0) 0%, #60a5fa 40%, #2563eb 100%);
+  transform: rotate(15deg);
+  animation: wx-fall 0.9s cubic-bezier(0.45, 0, 0.8, 0.6) infinite;
+}
+
+/* A rain cloud is a grey one: plain cloudy and rain no longer the same
+   white cloud with or without lines under it. */
+.wx-scene:is([data-scene="rain"], [data-scene="storm"]) .wx-cloud--front {
+  background: linear-gradient(180deg, #e8edf3, #97a4b6);
+}
+.wx-scene:is([data-scene="rain"], [data-scene="storm"]) .wx-cloud--back {
+  background: linear-gradient(180deg, #cdd5df, #7d8a9c);
+}
+
+@keyframes wx-fall {
+  0% { transform: rotate(15deg) translateY(-0.04em); opacity: 0; }
+  18% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: rotate(15deg) translateY(0.24em); opacity: 0; }
+}
+
+.wx-flake {
+  position: absolute;
+  top: 60%;
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: 50%;
+  background: #e2e8f0;
+  animation: wx-flutter 3.4s linear infinite;
+}
+
+@keyframes wx-flutter {
+  0% { transform: translate(0, 0); opacity: 0; }
+  14% { opacity: 1; }
+  50% { transform: translate(0.35rem, 1.05rem); }
+  100% { transform: translate(-0.2rem, 2.1rem); opacity: 0; }
+}
+
+.wx-bolt {
+  position: absolute;
+  left: 44%;
+  top: 62%;
+  width: 0.55rem;
+  height: 0.95rem;
+  background: #fbbf24;
+  clip-path: polygon(56% 0, 12% 56%, 44% 56%, 30% 100%, 88% 40%, 52% 40%);
+  animation: wx-flash 3.6s ease-in-out infinite;
+}
+
+@keyframes wx-flash {
+  0%, 58%, 100% { opacity: 0.85; filter: none; }
+  62%, 70% { opacity: 1; filter: drop-shadow(0 0 0.35rem #fbbf24); }
+  66% { opacity: 0.45; filter: none; }
+}
+
+.wx-fog {
+  position: absolute;
+  left: 8%;
+  width: 84%;
+  height: 11%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #cbd5e1 22%, #cbd5e1 78%, transparent);
+  opacity: 0.5;
+  filter: blur(1.5px);
+}
+
+.wx-fog--1 { top: 32%; width: 76%; left: 14%; animation: wx-slide 7s ease-in-out infinite; }
+.wx-fog--2 { top: 50%; animation: wx-slide 9s ease-in-out infinite reverse; opacity: 0.68; }
+.wx-fog--3 { top: 68%; width: 68%; left: 6%; animation: wx-slide 11s ease-in-out infinite; opacity: 0.4; }
+
+@keyframes wx-slide {
+  0%, 100% { transform: translateX(-9%); }
+  50% { transform: translateX(9%); }
+}
+
+.wx-gust {
+  position: absolute;
+  height: 0.16rem;
+  border-radius: 999px;
+  background: #cbd5e1;
+  opacity: 0.75;
+}
+
+.wx-gust--1 { left: 10%; top: 70%; width: 46%; animation: wx-gust 3.1s ease-in-out infinite; }
+.wx-gust--2 { left: 22%; top: 80%; width: 34%; animation: wx-gust 3.1s ease-in-out 0.5s infinite; }
+
+@keyframes wx-gust {
+  0% { transform: translateX(-14%); opacity: 0; }
+  30% { opacity: 0.8; }
+  100% { transform: translateX(26%); opacity: 0; }
+}
+
+/* ---------- the atmosphere (backdrop) ---------- */
+
+.wx-atmos {
+  /* So the drops and splashes can be sized against the card they fall in. */
+  container-type: size;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  /* Higher than the old blurred version could take: defined edges at low
+     opacity look faded, not soft. */
+  opacity: 0.85;
+}
+
+/* Cloud cover, not cloud cartoons.
+ *
+ * An feTurbulence field rather than drawn shapes: real overcast has no outline,
+ * it has density that varies across the sky, and circles-on-a-bar read as
+ * clip art at this size. The filter's own fractal noise supplies that
+ * variation, so the softness comes from the cloud rather than from a blur
+ * smeared over a hard edge — which is what made both earlier attempts wrong in
+ * opposite directions.
+ *
+ * feColorMatrix turns the noise into alpha over flat white (the last row takes
+ * the red channel and subtracts a threshold), so the element is a mask and the
+ * theme's own cloud colour paints through it — a data URI cannot read a custom
+ * property, which rules out a background image.
+ *
+ * stitchTiles='stitch' makes the noise itself tile, so the band repeats with no
+ * seam; the animation then translates by exactly one tile width and loops
+ * invisibly, on the compositor. Two fields at different frequencies and speeds
+ * is what reads as depth.
+ */
+.wx-clouds {
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  pointer-events: none;
+  display: block;
+  height: 120%;
+  will-change: transform;
+}
+
+.wx-clouds--far {
+  width: 300%;
+  opacity: 0.55;
+  animation: wx-cloud-far 150s linear infinite;
+}
+
+.wx-clouds--far .wx-clouds-fill { fill: var(--wx-cloud-2, #cbd5e1); }
+
+.wx-clouds--near {
+  width: 200%;
+  opacity: 0.72;
+  animation: wx-cloud-near 96s linear infinite;
+}
+
+.wx-clouds--near .wx-clouds-fill { fill: var(--wx-cloud-1, #e2e8f0); }
+
+@keyframes wx-cloud-far {
+  from { transform: translate(0, 0); }
+  to { transform: translate3d(-33.3333%, 0, 0); }
+}
+
+@keyframes wx-cloud-near {
+  from { transform: translate(0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+/* Overcast covers the card; the others are a passing sky. */
+/* Daylight gets a sky.
+ *
+ * A sun hung on the card's own dark surface reads as a lamp in a cellar. The
+ * scene paints its own blue behind it — deep overhead, paler towards the
+ * bottom the way a sky actually goes — with the warm wash the sun throws into
+ * it laid over the top. Clear skies get the strongest blue; a broken sky is
+ * paler and greyer, which is what cloud does to it. */
+/* Daylight is painted at full strength. The scene is dimmed to 0.85 so a
+   grey overcast does not shout on a dark dashboard; a blue sky dimmed to 0.85
+   over a near-black card is simply navy, which is how the first attempt at
+   this came out. */
+.wx-atmos[data-scene="sun"],
+.wx-atmos[data-scene="partly"] { opacity: 1; }
+
+.wx-atmos[data-scene="sun"] {
+  background:
+    radial-gradient(70% 55% at 82% 14%, rgb(255 236 150 / 0.5), transparent 68%),
+    linear-gradient(180deg, #1559a8 0%, #2f8bd2 48%, #6fc0ea 82%, #a8dcf3 100%);
+}
+
+.wx-atmos[data-scene="partly"] {
+  background:
+    radial-gradient(70% 55% at 82% 14%, rgb(255 236 150 / 0.34), transparent 66%),
+    linear-gradient(180deg, #235d92 0%, #3f85b6 52%, #7db0d0 100%);
+}
+
+/* The same after dark, for the card-filling version. */
+.wx-atmos[data-night="true"][data-scene="sun"],
+.wx-atmos[data-night="true"][data-scene="partly"] {
+  background:
+    radial-gradient(60% 45% at 80% 16%, rgb(191 205 255 / 0.22), transparent 70%),
+    linear-gradient(180deg, #060b1c 0%, #101c3d 45%, #1d2f5e 78%, #2b4272 100%);
+}
+
+/* Cloud silhouettes catch moonlight rather than sunlight: pale edges on a
+   dark body, instead of the bright cumulus daylight gives them. */
+.wx-atmos[data-night="true"] .wx-clouds--near { opacity: 0.38; filter: brightness(0.5); }
+.wx-atmos[data-night="true"] .wx-clouds--far { opacity: 0.24; filter: brightness(0.42); }
+
+.wx-atmos[data-scene="partly"] .wx-clouds--near { opacity: 0.45; }
+.wx-atmos[data-scene="partly"] .wx-clouds--far { opacity: 0.3; }
+.wx-atmos[data-scene="wind"] .wx-clouds--near { opacity: 0.5; animation-duration: 34s; }
+.wx-atmos[data-scene="wind"] .wx-clouds--far { opacity: 0.3; animation-duration: 58s; }
+
+.wx-atmos[data-scene="rain"] .wx-clouds,
+.wx-atmos[data-scene="storm"] .wx-clouds {
+  --wx-cloud-1: #b8c4d4;
+  --wx-cloud-2: #7c8b9f;
+}
+
+.wx-atmos[data-scene="snow"] .wx-clouds--near { opacity: 0.66; }
+
+/* Fog keeps the soft gradient: there the blur is the subject, not a smudge
+   over a shape that should have been crisp. */
+.wx-mist {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(
+      44% 26% at 26% 30%,
+      color-mix(in srgb, var(--wx-cloud-1, #e2e8f0) 92%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      38% 20% at 70% 20%,
+      color-mix(in srgb, var(--wx-cloud-1, #e2e8f0) 76%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      52% 30% at 40% 58%,
+      color-mix(in srgb, var(--wx-cloud-2, #cbd5e1) 74%, transparent),
+      transparent 70%
+    );
+  background-repeat: repeat-x;
+}
+
+/* Fog sits low, thick and slow. Three layers, each travelling exactly its own
+   tile width so the drift loops without a seam. */
+.wx-atmos[data-scene="fog"] .wx-mist {
+  opacity: 0.9;
+  background-size: 58cqw 100%, 84cqw 100%, 110cqw 100%;
+  background-position: 0 26%, 0 40%, 0 18%;
+  /* Fog keeps its softness: here the blur is the subject, not a smudge on it. */
+  filter: blur(5px);
+  animation: wx-fog-drift 100s linear infinite;
+}
+
+@keyframes wx-fog-drift {
+  from { background-position: 0 26%, 0 40%, 0 18%; }
+  to { background-position: 58cqw 26%, 84cqw 40%, 110cqw 18%; }
+}
+
+.wx-orb {
+  position: absolute;
+  right: 9%;
+  top: 10%;
+  width: min(22%, 3.3rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+/* Smaller than the sun: a full moon at the sun's size dominates the card,
+   and the readings have to live under it. */
+.wx-orb--moon {
+  width: min(14%, 2.2rem);
+  right: 11%;
+  top: 13%;
+  /* A full moon with maria, not a crescent: the craters are what make it read
+     as the moon at this size rather than a plain white dot. */
+  /* More maria, smaller and fainter. Four big high-contrast craters read as a
+     cartoon face at card size; a scatter of soft ones reads as the moon. */
+  background:
+    radial-gradient(circle at 63% 34%, rgb(148 163 184 / 0.3) 0 7%, transparent 8%),
+    radial-gradient(circle at 39% 57%, rgb(148 163 184 / 0.26) 0 5.5%, transparent 6.5%),
+    radial-gradient(circle at 69% 66%, rgb(148 163 184 / 0.22) 0 4%, transparent 5%),
+    radial-gradient(circle at 45% 27%, rgb(148 163 184 / 0.2) 0 3%, transparent 4%),
+    radial-gradient(circle at 30% 44%, rgb(148 163 184 / 0.18) 0 3.5%, transparent 4.5%),
+    radial-gradient(circle at 55% 74%, rgb(148 163 184 / 0.16) 0 2.5%, transparent 3.5%),
+    radial-gradient(circle at 34% 32%, #f8fafc, #e2e8f0 58%, #c7d2de 84%, #a8b4c4 100%);
+  /* A close, dim halo instead of a wide white flare — the old one lit up a
+     quarter of the card. */
+  box-shadow:
+    0 0 0 0.18rem rgb(248 250 252 / 0.06),
+    0 0 1.2rem rgb(226 232 240 / 0.28);
+  animation: wx-bob 9s ease-in-out infinite;
+}
+
+/* A sun rather than a disc: a white-hot core off-centre, warm through amber
+   to a deeper rim, and a corona that fades rather than stopping at an edge.
+   The flat circle it was reads as a sticker at card size. */
+.wx-orb--sun {
+  background:
+    radial-gradient(circle at 34% 30%, #fffdf5 0%, #fef3c7 18%, #fcd34d 46%, #f59e0b 78%, #ea8c0b 100%);
+  box-shadow:
+    0 0 1.4rem rgb(253 224 71 / 0.55),
+    0 0 3.2rem rgb(251 191 36 / 0.35),
+    0 0 6rem rgb(251 146 60 / 0.18),
+    inset -0.15rem -0.2rem 0.8rem rgb(217 119 6 / 0.35);
+}
+
+/* The corona: a soft ring of light just off the disc, breathing slowly out of
+   step with the glow so the edge never looks drawn. */
+.wx-orb--sun::after {
+  content: "";
+  position: absolute;
+  inset: -26%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(254 243 199 / 0.45) 38%,
+    rgb(251 191 36 / 0.22) 58%,
+    transparent 76%
+  );
+  filter: blur(4px);
+  animation: wx-breathe 9s ease-in-out infinite alternate-reverse;
+}
+
+.wx-orb-rays {
+  position: absolute;
+  inset: -62%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgb(253 224 71 / 0.3) 0deg 9deg, transparent 9deg 45deg,
+    rgb(253 224 71 / 0.2) 45deg 52deg, transparent 52deg 90deg,
+    rgb(253 224 71 / 0.3) 90deg 99deg, transparent 99deg 135deg,
+    rgb(253 224 71 / 0.2) 135deg 142deg, transparent 142deg 180deg,
+    rgb(253 224 71 / 0.3) 180deg 189deg, transparent 189deg 225deg,
+    rgb(253 224 71 / 0.2) 225deg 232deg, transparent 232deg 270deg,
+    rgb(253 224 71 / 0.3) 270deg 279deg, transparent 279deg 315deg,
+    rgb(253 224 71 / 0.2) 315deg 322deg, transparent 322deg 360deg
+  );
+  -webkit-mask: radial-gradient(circle, transparent 26%, #000 40%, transparent 72%);
+  mask: radial-gradient(circle, transparent 26%, #000 40%, transparent 72%);
+  /* Heavily blurred: crisp spokes read as clip art, a soft flare reads as
+     light coming off the disc. */
+  filter: blur(7px);
+  animation: wx-spin 70s linear infinite;
+}
+
+/* Breathing corona under the disc — the part that makes the sun feel warm
+   rather than pasted on. */
+.wx-orb-glow {
+  position: absolute;
+  inset: -70%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(251 191 36 / 0.4) 0%,
+    rgb(251 191 36 / 0.14) 42%,
+    transparent 70%
+  );
+  filter: blur(6px);
+  animation: wx-breathe 7s ease-in-out infinite alternate;
+}
+
+.wx-orb--moon .wx-orb-glow {
+  background: radial-gradient(
+    circle,
+    rgb(226 232 240 / 0.3) 0%,
+    rgb(191 219 254 / 0.12) 44%,
+    transparent 72%
+  );
+  animation-duration: 9s;
+  /* The corona behind it shrinks to match, or the moon gains back in glow what
+     it gave up in size. */
+  inset: -60%;
+}
+
+@keyframes wx-breathe {
+  from { transform: scale(1); opacity: 0.72; }
+  to { transform: scale(1.15); opacity: 1; }
+}
+
+.wx-atmos-star {
+  position: absolute;
+  /* Sized per star: a field of identical dots reads as a texture, a mix of
+     sizes reads as a sky. */
+  width: var(--s, 0.14rem);
+  height: var(--s, 0.14rem);
+  border-radius: 50%;
+  background: #e2e8f0;
+  box-shadow: 0 0 0.25rem rgb(226 232 240 / 0.5);
+  animation: wx-twinkle 3.6s ease-in-out infinite;
+}
+
+/* A drop is drawn along the line it falls: the element is tilted and the
+   animation moves it down its own axis, so the streak and its path are the
+   same line. Tilting the path but not the streak is what made the old rain
+   look like a curtain of vertical ticks sliding sideways.
+ *
+ * Three fixed keyframe sets rather than one parameterised by custom
+ * properties. A var() inside @keyframes has to be resolved per element at
+ * animation time, which several browsers have got wrong at one time or
+ * another — and when it is got wrong the transform is dropped and the rain
+ * simply hangs there. Literal values cannot be got wrong. The variety that is
+ * left — where each drop starts, how fast it falls, how long it is — comes
+ * from the element, where custom properties are safe. */
+.wx-atmos-drop {
+  position: absolute;
+  top: -8%;
+  width: var(--w, 0.1rem);
+  height: 0.85rem;
+  border-radius: 999px;
+  filter: blur(var(--blur, 0));
+  /* Bright at the leading end, fading out behind — a falling drop's tail. */
+  background: linear-gradient(
+    180deg,
+    rgb(191 219 254 / 0) 0%,
+    rgb(191 219 254 / 0.55) 45%,
+    rgb(219 234 254 / 0.95) 100%
+  );
+  transform: rotate(14deg);
+  animation: wx-fall-mid 1.15s linear infinite;
+  will-change: transform;
+}
+
+/* The far layer leans a touch less and falls shorter, which is what reads as
+   distance; the near one leans more and travels further. */
+.wx-atmos-drop[data-depth="0"] { transform: rotate(16deg); animation-name: wx-fall-near; }
+.wx-atmos-drop[data-depth="2"] { transform: rotate(10deg); animation-name: wx-fall-far; }
+
+@keyframes wx-fall-near {
+  0% { transform: rotate(16deg) translateY(0); opacity: 0; }
+  10% { opacity: 0.95; }
+  88% { opacity: 0.95; }
+  100% { transform: rotate(16deg) translateY(15rem); opacity: 0; }
+}
+
+@keyframes wx-fall-mid {
+  0% { transform: rotate(14deg) translateY(0); opacity: 0; }
+  10% { opacity: 0.65; }
+  88% { opacity: 0.65; }
+  100% { transform: rotate(14deg) translateY(13rem); opacity: 0; }
+}
+
+@keyframes wx-fall-far {
+  0% { transform: rotate(10deg) translateY(0); opacity: 0; }
+  10% { opacity: 0.4; }
+  88% { opacity: 0.4; }
+  100% { transform: rotate(10deg) translateY(11rem); opacity: 0; }
+}
+
+/* Where they land. A shower with no bottom to it is a screen saver. */
+.wx-atmos-splash {
+  position: absolute;
+  bottom: 6%;
+  width: 0.9rem;
+  height: 0.3rem;
+  border-radius: 999px;
+  border: 1px solid rgb(191 219 254 / 0.5);
+  border-top-color: transparent;
+  opacity: 0;
+  animation: wx-atmos-splash 1.2s linear infinite;
+}
+
+@keyframes wx-atmos-splash {
+  0%, 62% { opacity: 0; transform: scale(0.35); }
+  70% { opacity: 0.55; transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+
+.wx-atmos-flake {
+  position: absolute;
+  top: 20%;
+  width: 0.26rem;
+  height: 0.26rem;
+  border-radius: 50%;
+  background: rgb(241 245 249 / 0.9);
+  animation: wx-atmos-flutter 5.5s linear infinite;
+}
+
+@keyframes wx-atmos-flutter {
+  0% { transform: translate(0, 0); opacity: 0; }
+  12% { opacity: 0.9; }
+  50% { transform: translate3d(0.6rem, 4.5rem, 0); }
+  100% { transform: translate3d(-0.33rem, 9rem, 0); opacity: 0; }
+}
+
+/* The sky lights up rather than a glyph flashing — that is what makes a storm
+   read as a storm at card size. */
+.wx-atmos-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 62% 22%, rgb(255 255 255 / 0.55), transparent 62%);
+  opacity: 0;
+  animation: wx-strike 7s ease-out infinite;
+}
+
+@keyframes wx-strike {
+  0%, 55%, 100% { opacity: 0; }
+  57% { opacity: 0.9; }
+  59% { opacity: 0.15; }
+  61% { opacity: 0.7; }
+  67% { opacity: 0; }
+}
+
+.wx-streak {
+  position: absolute;
+  height: 0.14rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgb(226 232 240 / 0.7), transparent);
+  animation: wx-blow 4.2s ease-in-out infinite;
+}
+
+.wx-streak--1 { top: 38%; left: 4%; width: 44%; }
+.wx-streak--2 { top: 56%; left: 18%; width: 56%; animation-delay: 0.8s; }
+.wx-streak--3 { top: 72%; left: 10%; width: 38%; animation-delay: 1.7s; }
+
+@keyframes wx-blow {
+  0% { transform: translateX(-18%); opacity: 0; }
+  25% { opacity: 0.9; }
+  100% { transform: translateX(52%); opacity: 0; }
+}
+
+.wx-atmos[data-animate="false"] .wx-mist,
+.wx-atmos[data-animate="false"] .wx-clouds,
+.wx-atmos[data-animate="false"] .wx-orb--moon,
+.wx-atmos[data-animate="false"] .wx-orb-glow,
+.wx-atmos[data-animate="false"] .wx-sheen,
+.wx-atmos[data-animate="false"] .wx-orb-rays,
+.wx-atmos[data-animate="false"] .wx-atmos-star,
+.wx-atmos[data-animate="false"] .wx-atmos-drop,
+.wx-atmos[data-animate="false"] .wx-atmos-flake,
+.wx-atmos[data-animate="false"] .wx-atmos-flash,
+.wx-atmos[data-animate="false"] .wx-atmos-splash,
+.wx-atmos[data-animate="false"] .wx-streak { animation: none; }
+
+.wx-atmos[data-animate="false"] .wx-atmos-splash { opacity: 0; }
+
+.wx-atmos[data-animate="false"] .wx-atmos-drop,
+.wx-atmos[data-animate="false"] .wx-atmos-flake { opacity: 0.85; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wx-mist, .wx-clouds, .wx-orb--moon, .wx-orb-rays, .wx-orb-glow, .wx-sheen, .wx-atmos-star, .wx-atmos-drop, .wx-atmos-flake, .wx-atmos-flash, .wx-atmos-splash, .wx-streak { animation: none; }
+  .wx-atmos-splash { opacity: 0; }
+  .wx-atmos-drop, .wx-atmos-flake { opacity: 0.85; }
+}
+
+/* The Live animation switch. animation-play-state doesn't inherit, so the
+   scene's own elements are targeted rather than a wrapper. */
+.wx-scene[data-animate="false"] .wx-rays,
+.wx-scene[data-animate="false"] .wx-moon,
+.wx-scene[data-animate="false"] .wx-star,
+.wx-scene[data-animate="false"] .wx-cloud,
+.wx-scene[data-animate="false"] .wx-drop,
+.wx-scene[data-animate="false"] .wx-flake,
+.wx-scene[data-animate="false"] .wx-bolt,
+.wx-scene[data-animate="false"] .wx-fog,
+.wx-scene[data-animate="false"] .wx-gust { animation: none; }
+
+/* Motion is decoration here — the temperature and condition carry the meaning,
+   so everything stops rather than degrading to something slower. */
+@media (prefers-reduced-motion: reduce) {
+  .wx-rays, .wx-moon, .wx-star, .wx-cloud, .wx-drop, .wx-flake, .wx-bolt, .wx-fog, .wx-gust { animation: none; }
+  .wx-drop, .wx-flake { opacity: 0.8; }
+  .wx-bolt { opacity: 1; }
+}
+
+/* ---------- popup ---------- */
+
+.wx-panel {
+  --wx-primary: var(--widget-color, #3b82f6);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.wx-tabs {
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.wx-tabs::-webkit-scrollbar { display: none; }
+
+.wx-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1 0 auto;
+  justify-content: center;
+  padding: 0.5rem 0.85rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0.6;
+  white-space: nowrap;
+  transition: background 0.16s ease, opacity 0.16s ease;
+}
+
+.wx-tab[data-active="true"] {
+  opacity: 1;
+  font-weight: 640;
+  color: #fff;
+  background: var(--wx-primary, var(--widget-color, #2563eb));
+  box-shadow: 0 6px 16px -8px var(--wx-primary, var(--widget-color, #2563eb));
+}
+
+.wx-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.15rem;
+}
+
+.wx-head-title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.wx-head-detail {
+  font-size: 0.76rem;
+  opacity: 0.5;
+  white-space: nowrap;
+}
+
+.wx-switch {
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.18rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+}
+
+.wx-switch button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.73rem;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.6;
+  background: transparent;
+}
+
+.wx-switch button[data-active="true"] {
+  opacity: 1;
+  font-weight: 650;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.wx-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.wx-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.wx-row-day {
+  width: 3.4rem;
+  flex: none;
+  font-size: 0.85rem;
+  font-weight: 640;
+}
+
+.wx-row-scene { flex: none; }
+
+.wx-row-rain {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  width: 3rem;
+  flex: none;
+  font-size: 0.72rem;
+  color: #60a5fa;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The bar is the point of the row: it places each day's range on a shared
+   scale, so a cold snap or a warm spell is visible without reading numbers. */
+.wx-bar {
+  position: relative;
+  flex: 1;
+  min-width: 2.5rem;
+  height: 0.36rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.wx-bar span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #38bdf8, #fbbf24, #f97316);
+}
+
+.wx-row-temps {
+  display: flex;
+  gap: 0.45rem;
+  width: 4.2rem;
+  flex: none;
+  justify-content: flex-end;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-row-temps b { font-weight: 680; }
+.wx-row-temps span { opacity: 0.5; }
+
+/* ---------- details ---------- */
+
+.wx-detail {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+/* Anything the provider does not publish recedes rather than disappearing —
+   an absent reading is still information. */
+.wx-detail[data-has="false"] { opacity: 0.42; }
+
+.wx-detail-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex: none;
+  border-radius: 0.8rem;
+  color: var(--wx-tone);
+  background: color-mix(in srgb, var(--wx-tone) 18%, transparent);
+}
+
+.wx-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.wx-detail-label {
+  font-size: 0.83rem;
+  font-weight: 600;
+  opacity: 0.72;
+}
+
+/* Only for readings with a real ceiling — humidity, cloud cover, UV. A bar
+   under a pressure value would imply a scale that does not exist. */
+.wx-detail-bar {
+  height: 0.28rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  overflow: hidden;
+}
+
+.wx-detail-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--wx-tone);
+}
+
+/* The reading is the point of the row, so it carries the weight. */
+.wx-detail-value {
+  flex: none;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--wx-tone);
+  white-space: nowrap;
+}
+
+.wx-detail-value small {
+  margin-left: 0.15rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.7;
+  letter-spacing: 0;
+}
+
+/* ---------- warnings ---------- */
+
+.wx-warn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.75rem 0.8rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--wx-tone) 34%, transparent);
+  background: color-mix(in srgb, var(--wx-tone) 11%, transparent);
+}
+
+.wx-warn-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.wx-warn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  flex: none;
+  border-radius: 0.7rem;
+  color: #fff;
+  background: var(--wx-tone);
+}
+
+.wx-warn-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.wx-warn-event {
+  font-size: 0.88rem;
+  font-weight: 660;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wx-warn-when {
+  font-size: 0.71rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-warn-level {
+  flex: none;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 660;
+  color: #fff;
+  background: var(--wx-tone);
+}
+
+.wx-warn-headline {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.wx-warn-text {
+  margin: 0;
+  font-size: 0.79rem;
+  line-height: 1.45;
+  opacity: 0.78;
+}
+
+/* What to actually do, set apart from the description of what is coming. */
+.wx-warn-advice {
+  padding-top: 0.4rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  opacity: 0.9;
+}
+
+/* ---------- pollen ---------- */
+
+.wx-pollen-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+@container (min-width: 32rem) {
+  .wx-pollen-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.wx-pollen {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+/* Only the levels worth acting on get tinted; a card where nothing is in
+   season should read as quiet rather than as four coloured alerts. */
+.wx-pollen[data-band="3"],
+.wx-pollen[data-band="4"] {
+  border-color: color-mix(in srgb, var(--wx-tone) 34%, transparent);
+  background: color-mix(in srgb, var(--wx-tone) 12%, transparent);
+}
+
+.wx-pollen-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  flex: none;
+  border-radius: 0.8rem;
+  color: var(--wx-tone);
+  background: color-mix(in srgb, var(--wx-tone) 18%, transparent);
+}
+
+.wx-pollen[data-band="3"] .wx-pollen-icon,
+.wx-pollen[data-band="4"] .wx-pollen-icon {
+  color: #fff;
+  background: var(--wx-tone);
+}
+
+.wx-pollen-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.wx-pollen-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.wx-pollen-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.86rem;
+  font-weight: 620;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wx-pollen-level {
+  font-size: 0.73rem;
+  font-weight: 650;
+  color: var(--wx-tone);
+  white-space: nowrap;
+}
+
+.wx-pollen-meter {
+  display: flex;
+  gap: 0.2rem;
+  height: 0.3rem;
+}
+
+.wx-pollen-meter span {
+  flex: 1;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 13%, transparent);
+  transition: background 0.2s ease;
+}
+
+.wx-pollen-meter span[data-on="true"] { background: var(--wx-tone); }
+
+.wx-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.9rem;
+  font-size: 0.82rem;
+  opacity: 0.6;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+/* ---------- the popup's header: the weather itself ----------
+ *
+ * The tile's sky and moving condition across the whole head of the popup —
+ * behind its title, up to its rounded top — with the reading on it in white
+ * at the foot of a spacer in the content. The sky is a layer of the dialog's
+ * own (panels.tsx), behind everything in it. */
+.wx-pop-sky {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  height: 13rem;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  /* Into the dialog's colour at its foot, rather than an edge across it. */
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 1.6rem), transparent);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 1.6rem), transparent);
+}
+.wx-pop-sky .wx-scrim {
+  background:
+    linear-gradient(180deg, rgb(9 12 18 / 0.38) 0%, transparent 34%),
+    linear-gradient(to top, rgb(9 12 18 / 0.5) 0%, transparent 46%);
+}
+
+/* The dialog's own title and controls, on the sky: white, as the tile's. */
+[data-wx-sky="true"] :is(h2, [data-slot$="title"]) {
+  color: #fff !important;
+  text-shadow: 0 1px 10px rgb(0 0 0 / 0.35);
+}
+
+.wx-pop-hero {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.1rem;
+  min-height: 7.5rem;
+  margin-bottom: 1.4rem;
+  padding: 0 0.15rem;
+  color: #fff;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.35);
+}
+.wx-pop-hero-temp { font-size: 2.6rem; font-weight: 250; line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.wx-pop-hero-cond { font-size: 0.95rem; font-weight: 600; }
+.wx-pop-hero-meta { font-size: 0.78rem; opacity: 0.8; }
+
+/* Reduced motion: no movement for anyone who asked their system for less
+   (WCAG 2.3.3). Colours and fades still change, just without moving. */
+@media (prefers-reduced-motion: reduce) {
+  .wx-cloud--back { animation: none; }
+  .wx-cloud--front { animation: none; }
+  .wx-fog--1 { animation: none; }
+  .wx-fog--2 { animation: none; }
+  .wx-fog--3 { animation: none; }
+  .wx-gust--1 { animation: none; }
+  .wx-gust--2 { animation: none; }
+  .wx-clouds--far { animation: none; }
+  .wx-clouds--near { animation: none; }
+  .wx-orb--sun::after { animation: none; }
+}
