@@ -1,0 +1,583 @@
+.uf-card, .uf-card *, .uf-panel, .uf-panel * { box-sizing: border-box; }
+.uf-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+/* ---------- shared parts ---------- */
+
+/* UniFi's mark: a rounded square in its blue, lit from the top. */
+.uf-glyph {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0.8rem;
+  color: #fff;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--uf-blue) 70%, #fff), var(--uf-blue) 70%);
+  box-shadow: 0 10px 20px -12px var(--uf-blue), inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+
+/* The state as a dot that glows, with its words beside it. */
+.uf-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 0.74rem;
+  opacity: 0.7;
+}
+.uf-status > i {
+  flex: none;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--uf-ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--uf-ok) 22%, transparent);
+}
+.uf-status[data-off="true"] { color: var(--uf-bad); opacity: 1; font-weight: 600; }
+.uf-status[data-off="true"] > i { background: var(--uf-bad); box-shadow: 0 0 0 3px color-mix(in srgb, var(--uf-bad) 22%, transparent); }
+.uf-status--pill {
+  flex: none;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-weight: 650;
+  opacity: 1;
+  color: var(--uf-ok);
+  background: color-mix(in srgb, var(--uf-ok) 12%, transparent);
+}
+.uf-status--pill[data-off="true"] { background: color-mix(in srgb, var(--uf-bad) 12%, transparent); }
+
+/* The rings: a soft track, the arc rounded at its ends, the value inside. */
+.uf-ring {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  --uf-tone: var(--uf-blue);
+  --uf-ring: 4.6rem;
+}
+.uf-ring[data-size="sm"] { --uf-ring: 3.2rem; gap: 0.2rem; }
+.uf-ring[data-size="xs"] { --uf-ring: 2.1rem; gap: 0.1rem; }
+.uf-ring[data-size="xs"] .uf-ring-value { font-size: 0.6rem; }
+.uf-ring[data-size="xs"] .uf-ring-label { font-size: 0.5rem; letter-spacing: 0.06em; }
+.uf-ring[data-size="xs"] .uf-ring-track,
+.uf-ring[data-size="xs"] .uf-ring-arc { stroke-width: 3.6; }
+.uf-ring[data-tone="warn"] { --uf-tone: var(--uf-warn); }
+.uf-ring[data-tone="alarm"] { --uf-tone: var(--uf-bad); }
+.uf-ring > svg { width: var(--uf-ring); height: var(--uf-ring); transform: rotate(-90deg); overflow: visible; }
+.uf-ring-track { fill: none; stroke: color-mix(in srgb, currentColor 10%, transparent); stroke-width: 3.2; }
+.uf-ring-arc {
+  fill: none;
+  stroke: var(--uf-tone);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--uf-tone) 45%, transparent));
+  transition: stroke-dasharray 0.6s ease, stroke 0.3s ease;
+}
+.uf-ring-value {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--uf-ring);
+  height: var(--uf-ring);
+  transform: translateX(-50%);
+  font-size: calc(var(--uf-ring) * 0.27);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.uf-ring-value > i { font-style: normal; font-size: 0.55em; font-weight: 600; opacity: 0.55; margin-left: 0.05em; }
+.uf-ring-label { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.55; }
+
+/* A rate's last day, under it. */
+.uf-spark { display: block; width: 100%; height: 2.2rem; margin-top: 0.3rem; overflow: visible; }
+.uf-spark-area { fill: color-mix(in srgb, var(--uf-tone) 15%, transparent); }
+.uf-spark-line { fill: none; stroke: var(--uf-tone); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+
+/* ---------- device marks (popup) ---------- */
+
+.uf-device-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.05rem;
+  height: 2.05rem;
+  border-radius: 0.7rem;
+  color: var(--uf-blue);
+  background: color-mix(in srgb, var(--uf-blue) 11%, transparent);
+}
+
+.uf-badge {
+  flex: none;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: var(--uf-blue);
+  background: color-mix(in srgb, var(--uf-blue) 13%, transparent);
+}
+
+/* ---------- the popup ---------- */
+
+.uf-panel { display: flex; flex-direction: column; gap: 1.2rem; min-width: 0; container-type: inline-size; }
+
+/* The gateway: a card of its own, its health as rings. */
+.uf-gw {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border-radius: 1.3rem;
+  background:
+    radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--uf-blue) 10%, transparent), transparent 60%),
+    color-mix(in srgb, currentColor 4%, transparent);
+}
+.uf-gw-head { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+.uf-gw-text { display: flex; flex-direction: column; gap: 0.1rem; flex: 1; min-width: 0; }
+.uf-gw-text > b { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
+.uf-gw-text > span { font-size: 0.75rem; opacity: 0.6; }
+.uf-gw-rings { display: flex; justify-content: space-around; gap: 1rem; flex-wrap: wrap; }
+
+.uf-hero { display: flex; flex-direction: column; gap: 0.75rem; }
+.uf-panel .uf-lat { border-radius: 1.2rem; background: color-mix(in srgb, currentColor 4%, transparent); }
+.uf-panel .uf-lat-cell { padding: 0.8rem 0.9rem; gap: 0.4rem; }
+.uf-panel .uf-lat-name { font-size: 0.72rem; }
+.uf-panel .uf-lat-value { font-size: 1.4rem; }
+.uf-rates { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.uf-rate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  padding: 0.85rem 0.95rem 0.6rem;
+  border-radius: 1.2rem;
+  background: color-mix(in srgb, currentColor 4%, transparent);
+  --uf-tone: var(--uf-blue);
+}
+.uf-rate[data-tone="up"] { --uf-tone: var(--uf-up); }
+.uf-rate-label { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--uf-tone); }
+.uf-rate-value { font-size: 1.75rem; font-weight: 300; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@container (max-width: 26rem) { .uf-rate-value { font-size: 1.3rem; } }
+
+.uf-facts { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.uf-fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+.uf-fact > b { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.uf-section { display: flex; flex-direction: column; gap: 0.55rem; }
+.uf-section-title { margin: 0 0 0 0.2rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.5; }
+
+/* The devices as one list: a single surface, the rows divided by hairlines. */
+
+.uf-wlans { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.5rem; align-items: start; }
+.uf-wlan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 1.1rem;
+  background: color-mix(in srgb, currentColor 4%, transparent);
+}
+.uf-wlan-head { display: flex; align-items: center; gap: 0.65rem; min-width: 0; }
+.uf-wlan-icon { display: grid; place-items: center; flex: none; width: 2.05rem; height: 2.05rem; border-radius: 0.7rem; color: var(--uf-blue); background: color-mix(in srgb, var(--uf-blue) 11%, transparent); }
+.uf-wlan[data-on="false"] .uf-wlan-icon { color: inherit; opacity: 0.5; background: color-mix(in srgb, currentColor 7%, transparent); }
+.uf-wlan-text { display: flex; flex-direction: column; gap: 0.05rem; flex: 1; min-width: 0; }
+.uf-wlan-text > b { font-size: 0.87rem; font-weight: 640; }
+.uf-wlan-text > span { font-size: 0.7rem; opacity: 0.58; }
+
+.uf-icon-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  transition: background 0.15s ease;
+}
+.uf-icon-btn[data-on="true"] { color: #fff; background: var(--uf-blue); }
+
+.uf-switch {
+  position: relative;
+  flex: none;
+  width: 2.6rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  transition: background 0.2s ease;
+}
+.uf-switch > i {
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+  transition: transform 0.2s ease;
+}
+.uf-switch[data-on="true"] { background: var(--uf-blue); }
+.uf-switch[data-on="true"] > i { transform: translateX(1.1rem); }
+.uf-switch:disabled { opacity: 0.6; cursor: progress; }
+
+.uf-qr { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; padding: 0.3rem 0 0.2rem; }
+.uf-qr > img { width: 9rem; height: 9rem; padding: 0.55rem; border-radius: 0.9rem; background: #fff; image-rendering: pixelated; }
+.uf-qr > span { font-size: 0.72rem; opacity: 0.6; }
+
+.uf-empty { margin: 0; font-size: 0.85rem; opacity: 0.7; line-height: 1.45; }
+
+@media (prefers-reduced-motion: reduce) {
+  .uf-ring-arc, .uf-switch, .uf-switch > i { transition: none; }
+}
+
+/* ---------- the popup's device cards ---------- */
+
+.uf-section-title { display: flex; align-items: center; gap: 0.4rem; }
+.uf-section-title > span {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  letter-spacing: 0;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.uf-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 0.55rem; }
+
+.uf-dcard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.8rem 0.85rem 0.75rem;
+  border-radius: 1.15rem;
+  background: color-mix(in srgb, currentColor 4%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 6%, transparent);
+}
+.uf-dcard[data-online="false"] {
+  background: color-mix(in srgb, var(--uf-bad) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--uf-bad) 22%, transparent);
+}
+.uf-dcard[data-online="false"] .uf-device-icon { color: var(--uf-bad); background: color-mix(in srgb, var(--uf-bad) 12%, transparent); }
+.uf-dcard-head { display: flex; align-items: center; gap: 0.65rem; min-width: 0; }
+.uf-dcard-titles { display: flex; flex-direction: column; gap: 0.05rem; flex: 1; min-width: 0; }
+.uf-dcard-titles > b { font-size: 0.9rem; font-weight: 650; }
+.uf-dcard-titles > span { font-size: 0.7rem; opacity: 0.55; }
+.uf-dcard .uf-status--pill { padding: 0.22rem 0.55rem; font-size: 0.68rem; }
+
+.uf-meters { display: flex; flex-direction: column; gap: 0.45rem; }
+.uf-meter {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr 2.6rem;
+  align-items: center;
+  gap: 0.6rem;
+  --uf-tone: var(--uf-blue);
+}
+.uf-meter[data-tone="warn"] { --uf-tone: var(--uf-warn); }
+.uf-meter[data-tone="alarm"] { --uf-tone: var(--uf-bad); }
+.uf-meter-label { font-size: 0.66rem; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.55; }
+.uf-meter-bar {
+  position: relative;
+  height: 0.38rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+}
+.uf-meter-bar > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--uf-tone);
+  transition: width 0.5s ease;
+}
+.uf-meter-value { font-size: 0.78rem; font-weight: 650; text-align: right; font-variant-numeric: tabular-nums; }
+
+.uf-dcard-foot {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.9rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 7%, transparent);
+  font-size: 0.72rem;
+}
+.uf-dcard-foot > span:not(.uf-badge) { display: inline-flex; align-items: center; gap: 0.3rem; opacity: 0.7; }
+.uf-dcard-foot b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.uf-dcard-foot > .uf-badge { margin-left: auto; }
+
+@media (prefers-reduced-motion: reduce) { .uf-meter-bar > i { transition: none; } }
+
+/* ---------- latency, on the tile ----------
+ *
+ * One surface in equal cells, hairlines between: the provider and its mark,
+ * the round trip large, and under it a thin bar — shorter is faster, its
+ * colour green, amber or red. A narrow tile keeps a single row. */
+.uf-lat {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5.2rem, 1fr));
+  flex: none;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+.uf-lat-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  padding: 0.6rem 0.7rem 0.65rem;
+  box-shadow: inset 1px 0 0 color-mix(in srgb, currentColor 7%, transparent);
+  --uf-tone: var(--uf-ok);
+}
+.uf-lat-cell:first-child { box-shadow: none; }
+.uf-lat-cell[data-tone="slow"] { --uf-tone: var(--uf-warn); }
+.uf-lat-cell[data-tone="down"] { --uf-tone: var(--uf-bad); background: color-mix(in srgb, var(--uf-bad) 8%, transparent); }
+.uf-lat-name {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  opacity: 0.6;
+}
+.uf-lat-name > svg[data-icon] { flex: none; }
+.uf-lat-value {
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.uf-lat-cell[data-tone="down"] .uf-lat-value { color: var(--uf-tone); font-size: 0.95rem; }
+.uf-lat-value > i { font-style: normal; font-size: 0.6em; font-weight: 600; opacity: 0.5; margin-left: 0.15rem; }
+.uf-lat-bar {
+  position: relative;
+  height: 0.22rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+.uf-lat-bar > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--uf-tone);
+  transition: width 0.5s ease;
+}
+@media (prefers-reduced-motion: reduce) { .uf-lat-bar > i { transition: none; } }
+
+/* ---------- the tile: the network's pulse ----------
+ *
+ * The day's download and upload as two soft waves across the whole card,
+ * fading in from its middle; over them only what says how the network is.
+ * The pills along the foot are frosted, so the wave shows through them. */
+.uf-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0.85rem 0.95rem 0.8rem;
+  overflow: hidden;
+}
+
+.uf-pulse {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  width: 100%;
+  height: 52%;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 40%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 40%);
+  pointer-events: none;
+}
+.uf-pulse-down-0 { stop-color: var(--uf-blue); stop-opacity: 0.42; }
+.uf-pulse-down-1 { stop-color: var(--uf-blue); stop-opacity: 0.04; }
+.uf-pulse-up-0 { stop-color: var(--uf-up); stop-opacity: 0.38; }
+.uf-pulse-up-1 { stop-color: var(--uf-up); stop-opacity: 0.04; }
+.uf-pulse-line { fill: none; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+.uf-pulse-line--down { stroke: var(--uf-blue); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--uf-blue) 60%, transparent)); }
+.uf-pulse-line--up { stroke: var(--uf-up); opacity: 0.85; }
+.uf-card[data-offline="true"] .uf-pulse { filter: grayscale(1); opacity: 0.5; }
+
+.uf-card-head { display: flex; align-items: center; gap: 0.6rem; min-width: 0; flex: none; }
+.uf-card-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.6rem;
+  color: #fff;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--uf-blue) 70%, #fff), var(--uf-blue) 70%);
+  box-shadow: 0 6px 14px -8px var(--uf-blue);
+}
+.uf-card-id { display: flex; flex-direction: column; gap: 0.05rem; flex: 1; min-width: 0; }
+.uf-card-id > b { font-size: 0.88rem; font-weight: 700; letter-spacing: -0.01em; }
+.uf-card-state { display: flex; align-items: center; gap: 0.35rem; min-width: 0; font-size: 0.7rem; opacity: 0.65; }
+.uf-card-state > i {
+  flex: none;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--uf-ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--uf-ok) 25%, transparent);
+  animation: uf-breathe 2.8s ease-in-out infinite;
+}
+.uf-card[data-offline="true"] .uf-card-state { color: var(--uf-bad); opacity: 1; font-weight: 650; }
+.uf-card[data-offline="true"] .uf-card-state > i { background: var(--uf-bad); box-shadow: 0 0 0 3px color-mix(in srgb, var(--uf-bad) 25%, transparent); }
+@keyframes uf-breathe { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--uf-ok) 0%, transparent); } }
+
+/* What is moving now: the download large, the upload under it. */
+.uf-card-now { display: flex; flex-direction: column; gap: 0.15rem; flex: none; margin-top: 0.15rem; }
+.uf-card-down { display: flex; align-items: baseline; gap: 0.25rem; min-width: 0; color: inherit; }
+.uf-card-arrow { align-self: center; font-size: 1.3rem; color: var(--uf-blue); }
+.uf-card-down > b {
+  font-size: 2.7rem;
+  font-weight: 250;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+}
+.uf-card-down > i,
+.uf-card-up > i { font-style: normal; font-size: 0.78rem; font-weight: 600; opacity: 0.5; }
+.uf-card-up { display: flex; align-items: center; gap: 0.25rem; color: var(--uf-up); }
+.uf-card-up > b { font-size: 1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.uf-card-up > i { color: inherit; }
+
+/* Every switch and access point as a tile of its own (tall cards). */
+/* As many whole rows as there is room for: a tile that would be cut off
+   at the foot is hidden (see fitRows). */
+.uf-card-devices {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.6rem, 1fr));
+  grid-auto-rows: 1.95rem;
+  gap: 0.35rem;
+  flex: 1 1 0;
+  min-height: 0;
+  margin-top: 0.3rem;
+  overflow: hidden;
+  align-content: start;
+}
+.uf-card-device {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.4rem 1rem 0.4rem 0.55rem;
+  border-radius: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.uf-card-device > svg[data-icon] { flex: none; color: var(--uf-blue); }
+.uf-card-device > i {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: var(--uf-ok);
+}
+.uf-card-device[data-online="false"] { color: var(--uf-bad); background: color-mix(in srgb, var(--uf-bad) 12%, transparent); }
+.uf-card-device[data-online="false"] > svg[data-icon] { color: inherit; }
+.uf-card-device[data-online="false"] > i { background: var(--uf-bad); }
+
+/* Frosted pills along the foot, over the wave. */
+/* A pill that does not fit wraps out of sight, never cut in half. */
+.uf-card-foot { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: auto; flex: none; height: 1.75rem; overflow: hidden; }
+.uf-glass {
+  display: inline-flex;
+  height: 1.75rem;
+  align-items: center;
+  gap: 0.25rem;
+  flex: none;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 7%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  --uf-tone: var(--uf-ok);
+}
+.uf-glass > svg[data-icon] { opacity: 0.6; }
+.uf-glass > b { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--uf-tone); }
+.uf-glass > i { font-style: normal; font-size: 0.85em; opacity: 0.5; }
+.uf-glass[data-tone="slow"] { --uf-tone: var(--uf-warn); }
+.uf-glass[data-tone="down"] { --uf-tone: var(--uf-bad); background: color-mix(in srgb, var(--uf-bad) 16%, transparent); }
+.uf-glass[data-tone="plain"] { --uf-tone: currentColor; }
+.uf-glass[data-tone="accent"] { color: #fff; background: var(--uf-blue); box-shadow: none; }
+.uf-glass[data-tone="accent"] > svg[data-icon] { opacity: 1; }
+
+/* A narrow card: the latency's marks go, its numbers stay. */
+.uf-card[data-narrow="true"] .uf-glass > svg[data-icon] { display: none; }
+.uf-card[data-narrow="true"] .uf-glass[data-tone="accent"] > svg[data-icon] { display: inline-flex; }
+
+/* One row: the name and state, and the download — the wave behind. */
+.uf-card[data-size="tiny"] { flex-direction: row; align-items: center; gap: 0.7rem; padding: 0.6rem 0.9rem; }
+.uf-card[data-size="tiny"] .uf-card-head { flex: 1; }
+.uf-card[data-size="tiny"] .uf-pulse { height: 90%; opacity: 0.45; }
+.uf-card[data-size="tiny"] .uf-card-now { margin: 0; }
+.uf-card[data-size="tiny"] .uf-card-down > b { font-size: 1.5rem; }
+.uf-card[data-size="tiny"] .uf-card-arrow { font-size: 0.95rem; }
+.uf-card[data-size="tiny"] .uf-card-up { display: none; }
+.uf-card[data-size="tiny"][data-narrow="true"] .uf-card-mark,
+.uf-card[data-size="tiny"][data-narrow="true"] .uf-card-down > i { display: none; }
+
+/* Tall: the waves lower, under the devices. */
+.uf-card[data-size="tall"] .uf-pulse { height: 42%; }
+
+@media (prefers-reduced-motion: reduce) { .uf-card-state > i { animation: none; } }
+
+/* ---------- the console's readings, as gauges ---------- */
+
+/* The rates and the gauges: one beside the other on a wide tile, the
+   gauges under the rates otherwise. */
+.uf-card-mid { display: flex; flex-direction: column; gap: 0.6rem; flex: none; min-width: 0; }
+.uf-card-mid[data-side="true"] { flex-direction: row; align-items: flex-start; gap: 1rem; }
+.uf-card-mid[data-side="true"] .uf-card-now { flex: 1; min-width: 0; }
+.uf-card-mid[data-side="true"] .uf-card-stats { flex: 0 1 15.5rem; }
+
+/* A card of two rows (4×2): the rates, the gauges and the pills share it,
+   so each is given its own band — the gauges smaller and to the right, the
+   day's wave kept low behind the pills instead of through the readings. */
+.uf-card[data-size="full"] .uf-card-mid[data-side="true"] { align-items: center; }
+.uf-card[data-size="full"] .uf-card-mid[data-side="true"] .uf-card-stats { flex: 0 1 12.5rem; gap: 0.5rem; }
+.uf-card[data-size="full"] .uf-card-mid[data-side="true"] .uf-gauge { max-width: 3.9rem; }
+.uf-card[data-size="full"] > .uf-pulse { height: 34%; opacity: 0.8; }
+/* A tall card with its devices: the wave stays down behind the pills. */
+.uf-card[data-size="tall"] > .uf-pulse { height: 22%; }
+
+/* The console's readings: three gauges in a row, on the card itself. */
+.uf-card-stats { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0.6rem; min-width: 0; justify-items: center; }

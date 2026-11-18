@@ -66,7 +66,12 @@ import { SwitchCard, SwitchPanel } from "./switches";
 import { WasteCard, WastePanel, looksLikeWaste } from "./waste";
 import { MatchPanel, SportCard, isFootball, looksLikeTeamTracker } from "./sport";
 import { WeatherCard, WeatherPanel } from "./weather";
-import { isMonitor } from "../uptime/model";
+import { UptimeBar, UptimeCard, UptimeBoardPanel } from "./uptime";
+import { UnifiBoardPanel, UnifiCard, usePingList } from "./unifi";
+import { ProxmoxBoardPanel, ProxmoxCard } from "./proxmox";
+import { useCluster } from "../proxmox/model";
+import { useNetwork, usePings } from "../unifi/model";
+import { groupMonitors, isMonitor, tagGroups, useMonitors } from "../uptime/model";
 import { VacuumCard, VacuumPanel } from "./vacuum";
 import { HeroMetric, Metric } from "./metrics";
 import {
@@ -94,6 +99,11 @@ import "./styles.css";
 import "../weather/styles.css";
 import "../media-player/styles.css";
 import "../soccer/styles.css";
+import "../uptime/styles.css";
+import "../unifi/styles.css";
+import "../unifi/gauge.css";
+import "../unifi/styles-2.css";
+import "../proxmox/styles.css";
 import { widgetDialogProps } from "./ui";
 import { attr, classOf, metricsOf, numeric, safeIcon, themeVars } from "./util";
 import { Keyed } from "./keyed";
@@ -790,6 +800,9 @@ function RoomBoard(props: { config: Config }) {
     | "waste"
     | "covers"
     | "people"
+    | "uptime"
+    | "unifi"
+    | "proxmox"
     | "activity"
     | "match"
     | "setup";
@@ -812,6 +825,9 @@ function RoomBoard(props: { config: Config }) {
     waste: "Waste collection",
     covers: "Shutters & blinds",
     people: "Who is home",
+    uptime: "Uptime Kuma",
+    unifi: "Network",
+    proxmox: "Proxmox",
     activity: "Activity",
     match: "Matchday",
     setup: "Shown in this room",
@@ -822,6 +838,10 @@ function RoomBoard(props: { config: Config }) {
   const homeDock = () =>
     narrow() && players().length > 0 && /^home$/i.test((current()?.label || area()?.name || current()?.area || "").trim());
 
+  const openUptime = (group: number | null) => {
+    setUptimeOpen({ group });
+    openPanel("uptime");
+  };
   const openPanel = (which: Panel) => {
     if (which === "media") {
       /* Opened on what is actually playing: the speaker behind a stand-in. */
@@ -875,16 +895,26 @@ function RoomBoard(props: { config: Config }) {
     return ids;
   });
 
-  /* Uptime Kuma, UniFi and Proxmox have no cards on this board: the board
-     has to start within the sealed engine's budget, and their cards were the
-     largest part of its code. Their sensors stay out of the readings all the
-     same, or a server room would be hundreds of them. Uptime Kuma's are the
-     monitors' status sensors and every sensor on the same devices. */
+  /* Uptime Kuma's monitors in this room's area: their status sensors, and
+     with them every sensor on the same devices — the response time, the
+     certificate, the URL — which belong to the Uptime card rather than each
+     becoming a reading of its own. */
   const monitorIds = createMemo(() =>
     ofDomain("sensor")
       .filter((entity) => isMonitor(entity))
       .map((entity) => entity.id),
   );
+  const roomMonitors = useMonitors(monitorIds, { auto: false });
+  /* The server room — any room with "server" in its name — is where the
+     whole of Uptime Kuma lives on the board: its card takes the activity
+     feed's column, and shows every monitor in the house unless the room's
+     area holds monitors of its own. */
+  const serverRoom = () => /server/i.test(current()?.label || area()?.name || current()?.area || "");
+  const houseMonitors = useMonitors(() => [], { auto: () => serverRoom() && monitorIds().length === 0 });
+  const monitors = createMemo(() => (serverRoom() && !roomMonitors().length ? houseMonitors() : roomMonitors()));
+  /* Grouped by their Uptime Kuma tags, as the Uptime widget groups them. */
+  const uptimeGroups = createMemo(() => groupMonitors(monitors(), tagGroups(monitors())));
+  const [uptimeOpen, setUptimeOpen] = createSignal<{ group: number | null }>({ group: null });
   const uptimeIds = createMemo(() => {
     const ids = new Set(monitorIds());
     const devices = new Set(
@@ -900,12 +930,41 @@ function RoomBoard(props: { config: Config }) {
   const isUnifi = (id: string) => platformOf(id) === "unifi";
   const isProxmox = (id: string) => platformOf(id) === "proxmoxve";
 
+  /* The UniFi network, in the room that holds it: one whose area has UniFi
+     devices in it, or whose name says it is where the network lives — the
+     server room, the rack, the network cupboard. The network is read only
+     there; its entities in the room become the card, not readings. */
+  const unifiRoom = createMemo(
+    () =>
+      entities().some((entity) => isUnifi(entity.id)) ||
+      /server|network|netzwerk|rack|unifi/i.test(current()?.label || area()?.name || current()?.area || ""),
+  );
+  const network = useNetwork(() => ({ off: !unifiRoom() }));
+  const pingHosts = usePings(() => [], () => !unifiRoom());
+  const unifiPings = usePingList(network, pingHosts);
+  /* The rates the card shows — a speed test's, where the gateway has none —
+     are the card's, not readings of their own. */
+  const rateIds = createMemo(
+    () => new Set([network().throughput.down?.id, network().throughput.up?.id].filter((id): id is string => !!id)),
+  );
+  const hasNetwork = () => unifiRoom() && (!!network().gateway || network().devices.length > 0);
+  /* Proxmox, likewise: in a room whose area holds its entities, or whose
+     name says it is where the servers live. Read only there. */
+  const proxmoxRoom = createMemo(
+    () =>
+      entities().some((entity) => isProxmox(entity.id)) ||
+      /server|proxmox|rack/i.test(current()?.label || area()?.name || current()?.area || ""),
+  );
+  const cluster = useCluster(() => ({ off: !proxmoxRoom() }));
+  const hasCluster = () => proxmoxRoom() && (cluster().nodes.length > 0 || cluster().guests.length > 0);
+
   const metrics = createMemo(() =>
     metricsOf(
       entities().filter(
         (entity) =>
           !machineIds().has(entity.id) &&
           !uptimeIds().has(entity.id) &&
+          !rateIds().has(entity.id) &&
           !isUnifi(entity.id) &&
           !isProxmox(entity.id),
       ),
@@ -1490,7 +1549,10 @@ function RoomBoard(props: { config: Config }) {
                   covers().length ||
                   machines().length ||
                   vacuums().length ||
-                  climates().length
+                  climates().length ||
+                  hasNetwork() ||
+                  hasCluster() ||
+                  monitors().length > 0
                 }
                 fallback={
                   <div class="rb-empty">
@@ -1656,6 +1718,24 @@ function RoomBoard(props: { config: Config }) {
                     /></Guard>
                   </Show>
 
+                  <Show when={hasNetwork()}>
+                    <Guard name="Network">
+                      <UnifiCard network={network()} pings={unifiPings()} onOpen={() => openPanel("unifi")} />
+                    </Guard>
+                  </Show>
+
+                  <Show when={hasCluster()}>
+                    <Guard name="Proxmox">
+                      <ProxmoxCard cluster={cluster()} onOpen={() => openPanel("proxmox")} />
+                    </Guard>
+                  </Show>
+
+                  <Show when={monitors().length && !serverRoom()}>
+                    <Guard name="Uptime">
+                      <UptimeCard monitors={monitors()} groups={uptimeGroups()} onOpen={openUptime} />
+                    </Guard>
+                  </Show>
+
                   <Keyed each={rest()}>
                     {(entity) => (
                       <Metric entity={entity} hours={props.config.historyHours ?? 6} />
@@ -1669,34 +1749,54 @@ function RoomBoard(props: { config: Config }) {
                     On a phone the two columns become one, and the feed would
                     be a second scrolling list underneath the first — so there
                     it is a bar along the foot instead, and opens from it. */}
-                <Show when={!narrow()} fallback={
+                <Show
+                  when={serverRoom() && monitors().length}
+                  fallback={
+                    <Show when={!narrow()} fallback={
+                      <Show
+                        when={homeDock()}
+                        fallback={
+                          <Guard name="Activity">
+                            <ActivityBar entities={entities()} onOpen={() => openPanel("activity")} />
+                          </Guard>
+                        }
+                      >
+                        {/* The Home room on a phone: the player docked over
+                            the activity line, at the foot of the screen. */}
+                        <div class="rb-dock">
+                          <Guard name="Media">
+                            <MiniPlayer
+                              players={cardPlayers()}
+                              haBaseUrl={NO_ADDRESS}
+                              artworkProxy={NO_ADDRESS}
+                              chosen={chosenPlayer()}
+                              onOpen={() => openPanel("media")}
+                            />
+                          </Guard>
+                          <Guard name="Activity">
+                            <ActivityBar entities={entities()} onOpen={() => openPanel("activity")} />
+                          </Guard>
+                        </div>
+                      </Show>
+                    }>
+                      <Guard name="Activity"><ActivityCard entities={entities()} onOpen={() => openPanel("activity")} /></Guard>
+                    </Show>
+                  }
+                >
+                  {/* The server room: Uptime Kuma in the feed's place — and on a
+                      phone, as the feed is there, a bar along the foot. */}
                   <Show
-                    when={homeDock()}
+                    when={!narrow()}
                     fallback={
-                      <Guard name="Activity">
-                        <ActivityBar entities={entities()} onOpen={() => openPanel("activity")} />
+                      <Guard name="Uptime">
+                        <UptimeBar monitors={monitors()} onOpen={() => openUptime(null)} />
                       </Guard>
                     }
                   >
-                    {/* The Home room on a phone: the player docked over
-                        the activity line, at the foot of the screen. */}
-                    <div class="rb-dock">
-                      <Guard name="Media">
-                        <MiniPlayer
-                          players={cardPlayers()}
-                          haBaseUrl={NO_ADDRESS}
-                          artworkProxy={NO_ADDRESS}
-                          chosen={chosenPlayer()}
-                          onOpen={() => openPanel("media")}
-                        />
-                      </Guard>
-                      <Guard name="Activity">
-                        <ActivityBar entities={entities()} onOpen={() => openPanel("activity")} />
-                      </Guard>
-                    </div>
+                    <Guard name="Uptime">
+                      <UptimeCard monitors={monitors()} groups={uptimeGroups()} onOpen={openUptime} side />
+                    </Guard>
                   </Show>
-                }>
-                  <Guard name="Activity"><ActivityCard entities={entities()} onOpen={() => openPanel("activity")} /></Guard>
                 </Show>
                 </div>
               </Show>
@@ -1813,6 +1913,18 @@ function RoomBoard(props: { config: Config }) {
                           rooms={props.config.vacuumRooms ?? []}
                           sensorIds={props.config.vacuumSensors ?? []}
                         />
+                      </Show>
+
+                      <Show when={panel() === "unifi" && hasNetwork()}>
+                        <UnifiBoardPanel network={network()} pings={unifiPings()} />
+                      </Show>
+
+                      <Show when={panel() === "proxmox" && hasCluster()}>
+                        <ProxmoxBoardPanel cluster={cluster()} />
+                      </Show>
+
+                      <Show when={panel() === "uptime" && monitors().length}>
+                        <UptimeBoardPanel monitors={monitors()} groups={uptimeGroups()} open={uptimeOpen()} />
                       </Show>
 
                       <Show when={panel() === "people" && people().length}>
