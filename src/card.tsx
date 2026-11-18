@@ -25,6 +25,9 @@ const CARD_VERSION = "0.1.0";
 
 /** Room left under the board at the bottom of the screen. */
 const BOTTOM_GAP_PX = 8;
+/** How far the card may start from the status bar's edge and still be taken
+    to sit right under it. */
+const BLEED_SLACK_PX = 6;
 
 /** The board's own changes to its config, kept per user. */
 const USER_KEYS = ["hidden", "layout"] as const;
@@ -51,6 +54,8 @@ const HOST_CSS = `
   --foreground: var(--primary-text-color, #e1e1e1);
   --popover: var(--card-background-color, var(--primary-background-color, #1c1c1c));
   --popover-foreground: var(--primary-text-color, #e1e1e1);
+  --card: var(--ha-card-background, var(--card-background-color, var(--background)));
+  --border: var(--divider-color, rgba(127, 127, 127, 0.2));
   --primary: var(--primary-color, #03a9f4);
   --primary-foreground: var(--text-primary-color, #fff);
 }
@@ -65,6 +70,23 @@ const HOST_CSS = `
   color: var(--secondary-text-color); text-align: center;
 }
 .ha-rb-error { padding: 16px; color: var(--error-color, #db4437); }
+/* Reads the safe-area insets for the card (--rb-safe-* stand in for them in
+   a test page). */
+.ha-rb-safe {
+  position: absolute; visibility: hidden; pointer-events: none; width: 0; height: 0;
+  padding-top: var(--rb-safe-top, env(safe-area-inset-top, 0px));
+  padding-bottom: var(--rb-safe-bottom, env(safe-area-inset-bottom, 0px));
+}
+/* Under the status bar: square corners, the picture behind the bar, and the
+   clock and the panel's heading below it. */
+:host([data-bleed]) .ha-rb-widget { border-radius: 0; }
+:host([data-bleed]) .rb-scene { padding-top: calc(1rem + var(--rb-bleed-top, 0px)); }
+/* The photo band on a phone gains the status bar's height rather than
+   losing it from what is under the clock. */
+:host([data-bleed]) .rb-board[data-narrow="true"]:has(.rb-scene-photo) {
+  grid-template-rows: calc(clamp(11rem, 28%, 16rem) + var(--rb-bleed-top, 0px)) 1fr;
+}
+:host([data-bleed]) .rb-board:not([data-narrow="true"]) .rb-panel { padding-top: calc(var(--rb-pad) + var(--rb-bleed-top, 0px)); }
 `;
 
 type Config = Record<string, unknown> & { type?: string; storage_key?: string; height?: string };
@@ -102,9 +124,42 @@ class RoomBoardCard extends HTMLElement {
      view, at the very top. An explicit `height` in the config wins. */
   private readonly fit = () => {
     const viewport = window.visualViewport?.height ?? window.innerHeight;
-    const top = Math.max(0, this.getBoundingClientRect().top);
-    this.style.setProperty("--room-board-fit", `${Math.max(420, Math.floor(viewport - top - BOTTOM_GAP_PX))}px`);
+    const { top: safeTop, bottom: safeBottom } = this.safeArea();
+    /* Where the card would start without the bleed below. */
+    const natural = Math.max(0, this.getBoundingClientRect().top + this.bleedTop);
+    /* Right under the status bar, with nothing of Home Assistant's above it
+       (a kiosk view on a phone): the card takes the status bar's strip as
+       well, the picture running up behind it and the clock below it. */
+    const bleed = safeTop > 0 && Math.abs(natural - safeTop) <= BLEED_SLACK_PX ? natural : 0;
+    if (bleed !== this.bleedTop) {
+      this.bleedTop = bleed;
+      this.style.marginTop = bleed ? `${-bleed}px` : "";
+      this.toggleAttribute("data-bleed", bleed > 0);
+      this.style.setProperty("--rb-bleed-top", `${bleed}px`);
+    }
+    /* Down to the screen's edge where there is a home indicator to sit
+       above (the bar keeps its words clear of it), a little short of it
+       otherwise. */
+    const gap = bleed > 0 || safeBottom > 0 ? 0 : BOTTOM_GAP_PX;
+    this.style.marginBottom = safeBottom > 0 ? `${-safeBottom}px` : "";
+    this.style.setProperty("--room-board-fit", `${Math.max(420, Math.floor(viewport - (natural - bleed) - gap))}px`);
   };
+  private bleedTop = 0;
+
+  /** The screen's safe-area insets (the status bar, the home indicator), as
+      the page is given them. */
+  private safeArea(): { top: number; bottom: number } {
+    const root = this.shadowRoot;
+    if (!root) return { top: 0, bottom: 0 };
+    let probe = root.querySelector<HTMLElement>(".ha-rb-safe");
+    if (!probe) {
+      probe = document.createElement("div");
+      probe.className = "ha-rb-safe";
+      root.append(probe);
+    }
+    const style = getComputedStyle(probe);
+    return { top: Number.parseFloat(style.paddingTop) || 0, bottom: Number.parseFloat(style.paddingBottom) || 0 };
+  }
   private fitTimer?: ReturnType<typeof setTimeout>;
 
   private startFitting(): void {
