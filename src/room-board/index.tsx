@@ -918,7 +918,9 @@ function RoomBoard(props: { config: Config }) {
   };
 
   const name = () => current()?.label || area()?.name || props.config.title || "Room";
-  const photo = () => imageUrl(current()?.image);
+  /* The room's own photo from the settings, else the picture Home Assistant
+     keeps for the area (Settings → Areas → the area → its picture). */
+  const photo = () => imageUrl(current()?.image) ?? imageUrl(area()?.picture);
 
   const gestures = useWidgetGestures(() => ({
     /* A tap on the board's own background does nothing: every card on it is
