@@ -23,6 +23,9 @@ import { setThemeHost } from "./theme";
 
 const CARD_VERSION = "0.1.0";
 
+/** Room left under the board at the bottom of the screen. */
+const BOTTOM_GAP_PX = 8;
+
 /** The board's own changes to its config, kept per user. */
 const USER_KEYS = ["hidden", "layout"] as const;
 
@@ -42,7 +45,7 @@ const HOST_CSS = `
 :host {
   display: block;
   --default-font-family: "Geist Variable", var(--paper-font-body1_-_font-family, Roboto), system-ui, sans-serif;
-  height: var(--room-board-height, calc(100vh - var(--header-height, 56px) - 16px));
+  height: var(--room-board-height, var(--room-board-fit, calc(100vh - var(--header-height, 56px) - 16px)));
   min-height: 420px;
   --background: var(--card-background-color, var(--primary-background-color, #1c1c1c));
   --foreground: var(--primary-text-color, #e1e1e1);
@@ -94,11 +97,37 @@ class RoomBoardCard extends HTMLElement {
     this.mount();
   }
 
+  /* The board fills the screen from where it starts down to the bottom:
+     measured, as it may sit under Home Assistant's header or, in a kiosk
+     view, at the very top. An explicit `height` in the config wins. */
+  private readonly fit = () => {
+    const viewport = window.visualViewport?.height ?? window.innerHeight;
+    const top = Math.max(0, this.getBoundingClientRect().top);
+    this.style.setProperty("--room-board-fit", `${Math.max(420, Math.floor(viewport - top - BOTTOM_GAP_PX))}px`);
+  };
+  private fitTimer?: ReturnType<typeof setTimeout>;
+
+  private startFitting(): void {
+    window.addEventListener("resize", this.fit);
+    window.visualViewport?.addEventListener("resize", this.fit);
+    requestAnimationFrame(this.fit);
+    /* Again once Home Assistant's own layout (header, sidebar) has settled. */
+    this.fitTimer = setTimeout(this.fit, 500);
+  }
+
+  private stopFitting(): void {
+    window.removeEventListener("resize", this.fit);
+    window.visualViewport?.removeEventListener("resize", this.fit);
+    clearTimeout(this.fitTimer);
+  }
+
   connectedCallback(): void {
+    this.startFitting();
     if (hasHass()) this.mount();
   }
 
   disconnectedCallback(): void {
+    this.stopFitting();
     this.dispose?.();
     this.dispose = undefined;
   }
