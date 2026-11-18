@@ -741,6 +741,9 @@ function RoomBoard(props: { config: Config }) {
      a dock's "child lock" is not something a room board should offer. */
   /* Washers, dryers and anything else that reports a programme and a run. */
   const machines = createMemo(() => appliancesOf(entities()));
+  /* The sensors the washers' and dryers' cards are made of, for the setup
+     list: a machine's state is a word, and it is on the board all the same. */
+  const applianceSensors = createMemo(() => new Set(machines().flatMap((machine) => machine.all.map((entity) => entity.id))));
 
   const switches = createMemo(
     () => ofDomain("switch").filter((entity) => !entity.entityCategory),
@@ -1837,6 +1840,7 @@ function RoomBoard(props: { config: Config }) {
                       <Show when={panel() === "setup"}>
                         <SetupPanel
                           entities={setupEntities()}
+                          onCards={applianceSensors()}
                           hidden={hidden()}
                           onSet={setHidden}
                         />
