@@ -1292,6 +1292,11 @@
   grid-column: 1 / -1;
   order: 9999;
 }
+/* The foot bar at its own height: in a room of few cards the column
+   stretches its rows to the screen, and the bar became a tall empty box. */
+.rb-board[data-narrow="true"] :is(.rb-grid, .rb-panel-body) > :is(.rb-act-bar, .rb-dock) {
+  align-self: end;
+}
 
 /* A card that opens on a key (openable, util.ts): a ring when reached by Tab. */
 .rb-card[role="button"]:focus-visible { outline: 2px solid var(--rb-primary, #3b82f6); outline-offset: 2px; }

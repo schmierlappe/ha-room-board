@@ -1,0 +1,50 @@
+.uf-gauge {
+  position: relative;
+  width: 100%;
+  max-width: 6.2rem;
+  aspect-ratio: 1;
+  container-type: inline-size;
+  --uf-tone: var(--uf-blue);
+}
+.uf-gauge[data-hue="violet"] { --uf-tone: var(--uf-up); }
+.uf-gauge[data-hue="teal"] { --uf-tone: var(--uf-teal); }
+.uf-gauge[data-tone="warn"] { --uf-tone: var(--uf-warn); }
+.uf-gauge[data-tone="alarm"] { --uf-tone: var(--uf-bad); }
+.uf-gauge > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.uf-gauge-track { fill: none; stroke: color-mix(in srgb, currentColor 10%, transparent); stroke-width: 8; stroke-linecap: round; }
+.uf-gauge-arc {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--uf-tone) 45%, transparent));
+  transition: stroke-dasharray 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.uf-gauge-from { stop-color: color-mix(in srgb, var(--uf-tone) 55%, transparent); }
+.uf-gauge-to { stop-color: var(--uf-tone); }
+.uf-gauge-value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 4cqi;
+  font-size: 25cqi;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.uf-gauge-value > i { font-style: normal; font-size: 0.48em; font-weight: 600; opacity: 0.5; margin-left: 0.06em; transform: translateY(-0.45em); }
+.uf-gauge[data-tone="warn"] .uf-gauge-value,
+.uf-gauge[data-tone="alarm"] .uf-gauge-value { color: var(--uf-tone); }
+.uf-gauge-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2cqi;
+  text-align: center;
+  font-size: max(0.55rem, 11cqi);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}

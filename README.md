@@ -69,6 +69,16 @@ The board fills the screen below whatever Home Assistant shows above it. For the
   To keep them on the desktop and hide them only on the tablet, use `hide_sidebar` / `hide_header` in kiosk-mode's per-user or per-entity settings instead, or open the dashboard with `?kiosk` in its address on the tablet. Without the sidebar there is no menu on that screen: keep a way back to Home Assistant's settings in mind, such as the address without `?kiosk`.
 - **Android's status and navigation bars:** in the Home Assistant Companion app, Settings → Companion app → turn on **Full screen** (it may sit under *Other settings*, depending on the app's version).
 
+### Network, servers and monitors
+
+Three cards appear by themselves where they belong:
+
+- **Network (UniFi):** in a room whose area holds UniFi devices, or whose name says *server*, *rack*, *network* or *unifi*. The gateway's throughput (or your speed test's), its load, clients and latency; tap for every device and Wi-Fi network.
+- **Proxmox:** in a room whose area holds Proxmox VE devices, or whose name says *server*, *rack* or *proxmox*. The nodes and their guests; tap for the whole cluster.
+- **Uptime Kuma:** the monitors in the room's area. A room with *server* in its name shows every monitor in the house in the activity column (on a phone, as a bar at the foot), the trouble first; tap for all of them, grouped by their Uptime Kuma tags.
+
+They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/integrations/unifi/), [Proxmox VE](https://www.home-assistant.io/integrations/proxmoxve/) and [Uptime Kuma](https://www.home-assistant.io/integrations/uptime_kuma/) integrations; nothing to configure on the card.
+
 ## Options
 
 | Option | Default | What it does |

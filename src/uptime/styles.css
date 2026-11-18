@@ -1,0 +1,397 @@
+.up-tile, .up-tile *, .up-panel, .up-panel * { box-sizing: border-box; }
+
+/* The colour of each state, as a variable on the element that carries it. */
+[data-status="up"] { --up-tone: var(--up-ok); }
+[data-status="down"] { --up-tone: var(--up-bad); }
+[data-status="pending"] { --up-tone: var(--up-wait); }
+[data-status="maintenance"] { --up-tone: var(--up-maint); }
+[data-status="unknown"], [data-status="none"] { --up-tone: color-mix(in srgb, currentColor 40%, transparent); }
+
+.up-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+/* The whole service's state: an orb, ringed and breathing. */
+.up-orb {
+  position: relative;
+  flex: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--up-tone) 70%, #fff), var(--up-tone) 70%);
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--up-tone) 16%, transparent),
+    0 8px 18px -8px var(--up-tone);
+}
+.up-orb::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid var(--up-tone);
+  opacity: 0;
+  animation: up-ring 2.4s ease-out infinite;
+}
+.up-orb[data-status="up"]::after { animation-duration: 3.6s; }
+
+@keyframes up-ring {
+  0% { transform: scale(0.9); opacity: 0.55; }
+  100% { transform: scale(1.45); opacity: 0; }
+}
+
+/* ---------- the tile ---------- */
+
+.up-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0.85rem 0.95rem 0.8rem;
+  overflow: hidden;
+}
+
+.up-head { display: flex; align-items: center; gap: 0.7rem; min-width: 0; flex: none; }
+.up-head .up-orb { width: 2.1rem; height: 2.1rem; }
+.up-head-titles { display: flex; flex-direction: column; gap: 0.05rem; min-width: 0; flex: 1; }
+.up-head-titles > b { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+.up-head-titles > span { font-size: 0.74rem; opacity: 0.62; }
+.up-head-count {
+  flex: none;
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.up-head-count > i { font-size: 0.55em; font-style: normal; opacity: 0.55; }
+
+/* The monitors, as many as the tile has room for. */
+.up-rows {
+  display: grid;
+  grid-template-columns: repeat(var(--up-cols, 1), minmax(0, 1fr));
+  gap: 0.35rem 1.2rem;
+  align-content: start;
+  min-height: 0;
+}
+.up-more { font-size: 0.7rem; opacity: 0.55; padding-left: 0.2rem; }
+
+/* ---------- a monitor, as Uptime Kuma lists it ----------
+ *
+ * Its uptime as a pill, its name, and its heartbeat: the last day in slim
+ * bars, newest on the right, the oldest giving way first when the row runs
+ * short. */
+.up-line {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  min-height: 2.5rem;
+}
+.up-pill {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  /* Wide enough for "99.58%": every pill the same width, so the names line up. */
+  min-width: 4.1rem;
+  height: 1.5rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--up-on);
+  background: var(--up-tone);
+}
+.up-pill:is([data-status="down"], [data-status="maintenance"]) { color: #fff; }
+.up-pill[data-status="unknown"] { color: inherit; background: color-mix(in srgb, currentColor 12%, transparent); }
+
+/* The name, and under it the bars across the rest of the row. */
+.up-line-text { display: flex; flex-direction: column; gap: 0.2rem; flex: 1 1 0; min-width: 0; }
+.up-line-name { font-size: 0.86rem; font-weight: 560; opacity: 0.9; }
+.up-line[data-status="down"] .up-line-name { opacity: 1; font-weight: 650; }
+.up-line-sub { display: flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; opacity: 0.6; }
+.up-line-cert { display: inline-flex; align-items: center; gap: 0.15rem; margin-left: 0.25rem; }
+.up-line-cert[data-warn="true"] { color: var(--up-wait); font-weight: 700; }
+
+.up-beats {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.18rem;
+  width: 100%;
+  min-width: 0;
+  height: 0.85rem;
+  overflow: hidden;
+  /* Where the row cuts the oldest bars off, they fade out rather than end
+     in a sliver. */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 0.9rem);
+  mask-image: linear-gradient(90deg, transparent 0, #000 0.9rem);
+}
+/* Stretched to fill the row under the name — never thinner than a hairline,
+   so on a narrow row the oldest are cut instead of crushed. */
+.up-beats > i {
+  flex: 1 1 0;
+  min-width: 0.24rem;
+  max-width: 0.45rem;
+  height: 100%;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+.up-beats > i[data-beat="up"] { background: var(--up-ok); }
+.up-beats > i[data-beat="down"] { background: var(--up-bad); }
+.up-beats > i[data-beat="pending"] { background: var(--up-wait); }
+.up-beats > i[data-beat="maintenance"] { background: var(--up-maint); }
+/* The slices before the newest a touch quieter, so the latest reads first. */
+.up-beats > i:not(:last-child) { opacity: 0.88; }
+
+/* ---------- a group, on the card ----------
+ *
+ * One line for many monitors: its icon on a tile in the group's colour, its
+ * name, what is wrong (or "All up"), and at the right how many are up over
+ * a slim bar shared out by state. */
+.up-rows[data-groups="true"] { gap: 0.45rem 0.8rem; }
+.up-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  height: 2.75rem;
+  padding: 0 0.75rem 0 0.35rem;
+  border-radius: 0.95rem;
+  background: color-mix(in srgb, currentColor 4.5%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 5%, transparent);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.up-group:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+.up-group:active { transform: scale(0.985); }
+.up-group:is([data-status="down"], [data-status="pending"]) {
+  background: color-mix(in srgb, var(--up-tone) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--up-tone) 30%, transparent);
+}
+.up-group-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.72rem;
+  color: #fff;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--up-hue) 78%, #fff), var(--up-hue) 75%);
+  box-shadow: 0 6px 14px -8px var(--up-hue), inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+.up-group-badge {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.2rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--up-tone);
+  box-shadow: 0 0 0 2px var(--up-ring, rgb(20 22 28));
+}
+.up-group-text { display: flex; flex-direction: column; gap: 0.05rem; flex: 1 1 0; min-width: 0; }
+.up-group-name { font-size: 0.88rem; font-weight: 650; letter-spacing: -0.01em; }
+.up-group-note { font-size: 0.7rem; opacity: 0.55; }
+.up-group:not([data-status="up"]):not([data-status="none"]) .up-group-note { color: var(--up-tone); opacity: 1; font-weight: 600; }
+.up-group-side { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; flex: none; width: 4.2rem; }
+.up-group-count { font-size: 0.92rem; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1; }
+.up-group-count > i { font-style: normal; font-size: 0.78em; font-weight: 500; opacity: 0.45; }
+.up-group-bar { display: flex; gap: 2px; width: 100%; height: 0.28rem; border-radius: 999px; overflow: hidden; }
+.up-group-bar > i { flex: 1 1 0; min-width: 0.28rem; background: var(--up-tone); }
+.up-group-bar > i[data-status="up"] { background: var(--up-ok); }
+
+/* One row: the orb, the headline and the count. */
+.up-tile[data-size="tiny"] { flex-direction: row; align-items: center; gap: 0.7rem; padding: 0.6rem 0.9rem; }
+.up-tile[data-size="tiny"] .up-head { flex: 1; }
+.up-tile[data-size="tiny"] .up-rows { display: none; }
+
+/* ---------- the panel (popup, and the room board's overlay) ---------- */
+
+.up-panel { display: flex; flex-direction: column; gap: 0.8rem; min-width: 0; }
+
+/* The state of what is shown: a card tinted by it, the headline, and the
+   four counts as large numbers. */
+.up-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  padding: 1rem 1.05rem 0.9rem;
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--up-tone) 22%, transparent), transparent 60%),
+    color-mix(in srgb, currentColor 4%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--up-tone) 22%, transparent);
+}
+.up-hero-top { display: flex; align-items: center; gap: 0.95rem; min-width: 0; }
+.up-hero .up-orb { width: 2.6rem; height: 2.6rem; }
+.up-hero-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 0.95rem;
+  color: #fff;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--up-hue) 78%, #fff), var(--up-hue) 75%);
+  box-shadow: 0 10px 22px -12px var(--up-hue), inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+.up-hero-titles { display: flex; flex-direction: column; gap: 0.05rem; min-width: 0; }
+.up-hero-kicker { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; }
+.up-hero-titles > h3 { margin: 0; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+.up-hero[data-status]:not([data-status="up"]):not([data-status="none"]) .up-hero-titles > h3 { color: var(--up-tone); }
+.up-hero-sub { font-size: 0.8rem; opacity: 0.6; }
+
+.up-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem; }
+.up-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.85rem;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+.up-stat > b { font-size: 1.35rem; font-weight: 650; letter-spacing: -0.03em; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--up-tone); }
+.up-stat > span { font-size: 0.68rem; font-weight: 600; opacity: 0.6; }
+.up-stat[data-zero="true"] > b { color: inherit; opacity: 0.3; }
+.up-stat:not([data-zero="true"]):not([data-status="up"]) { background: color-mix(in srgb, var(--up-tone) 12%, transparent); }
+
+/* The search: a quiet field, until it is used. */
+.up-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding: 0 0.8rem;
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 7%, transparent);
+  transition: box-shadow 0.2s;
+}
+.up-search:focus-within { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 30%, transparent); }
+.up-search > svg[data-icon] { opacity: 0.5; flex: none; }
+.up-search > input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  font-size: 0.86rem;
+  color: inherit;
+  background: none;
+}
+.up-search > input::-webkit-search-cancel-button { display: none; }
+.up-search > button { display: grid; place-items: center; border: 0; padding: 0; color: inherit; background: none; opacity: 0.5; cursor: pointer; }
+
+.up-calm {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--up-ok);
+  background: color-mix(in srgb, var(--up-ok) 10%, transparent);
+}
+
+.up-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 1.1rem;
+  background: color-mix(in srgb, currentColor 4%, transparent);
+}
+.up-lines > .up-line { min-height: 3.6rem; padding: 0.35rem 0; }
+.up-lines > .up-line + .up-line { border-top: 1px solid color-mix(in srgb, currentColor 7%, transparent); }
+
+/* The groups as tabs across the popup's top: a dot in each one's state. */
+.up-tabs {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  margin: 0 -0.1rem;
+  padding: 0.1rem 2rem 0.1rem 0.1rem;
+  /* Fading at the right edge, where more tabs wait; the padding lets the
+     last one scroll clear of the fade. */
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 2rem), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 2rem), transparent);
+}
+.up-tabs::-webkit-scrollbar { display: none; }
+.up-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: none;
+  padding: 0.4rem 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.up-tab > i { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--up-tone); }
+.up-tab > em { font-style: normal; font-size: 0.7rem; font-weight: 600; opacity: 0.45; font-variant-numeric: tabular-nums; }
+.up-tab-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-left: -0.3rem;
+  border-radius: 0.38rem;
+  color: #fff;
+  background: var(--up-hue);
+}
+/* A group in trouble: a dot on its tab's icon. */
+.up-tab:is([data-status="down"], [data-status="pending"]) .up-tab-icon::after {
+  content: "";
+  position: absolute;
+  top: -0.18rem;
+  right: -0.18rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--up-tone);
+}
+.up-tab[aria-selected="true"] { color: inherit; background: color-mix(in srgb, currentColor 16%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent); }
+
+/* "All" with groups: what needs attention, then the groups, a line each. */
+.up-section-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; padding-left: 0.2rem; }
+.up-group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.45rem; }
+.up-group-grid .up-group { height: 3.1rem; }
+/* The button round each group in the popup: no look of its own. */
+.up-group-pick {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0.95rem;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+}
+.up-group-pick:focus-visible { outline: 2px solid var(--up-ok); outline-offset: 2px; }
+
+.up-section { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.up-empty { margin: 0; font-size: 0.85rem; opacity: 0.7; line-height: 1.45; }
+
+@media (prefers-reduced-motion: reduce) {
+  .up-orb::after { animation: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .up-tabs { scroll-behavior: auto; }
+}
