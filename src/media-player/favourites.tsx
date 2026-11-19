@@ -4,6 +4,8 @@ import { Icon, useService, type EntityView } from "@glasshome/widget-sdk";
 import { Cover, resolveArtwork } from "./cover";
 import { attr } from "./util";
 import { inOrder } from "../async";
+import { brandStyle } from "./brand";
+import { channelBrand } from "./channels";
 import { errorMessage } from "../errors";
 
 /**
@@ -335,16 +337,28 @@ export function FavouritesPanel(props: {
                   data-pending={pending() === name}
                   onClick={() => play(name)}
                 >
-                  <span class="mp-fav-art">
-                    <Cover
-                      name={name}
-                      image={coverFor(name) || undefined}
-                      mediaType={INPUT.test(name) ? "radio" : "playlist"}
-                    />
-                    <i class="mp-fav-badge">
-                      <Icon icon={iconFor(name)} width="13" />
-                    </i>
-                  </span>
+                  <Show
+                    when={!coverFor(name) && channelBrand(name)}
+                    fallback={
+                      <span class="mp-fav-art">
+                        <Cover
+                          name={name}
+                          image={coverFor(name) || undefined}
+                          mediaType={INPUT.test(name) ? "radio" : "playlist"}
+                        />
+                        <i class="mp-fav-badge">
+                          <Icon icon={iconFor(name)} width="13" />
+                        </i>
+                      </span>
+                    }
+                  >
+                    {(channel) => (
+                      /* A receiver's channel: its logo on its colour. */
+                      <span class="mp-fav-art mp-fav-channel" style={brandStyle(channel())}>
+                        <Icon icon={channel().icon} />
+                      </span>
+                    )}
+                  </Show>
                   <span class="mp-lib-name mp-truncate">{name}</span>
                 </button>
               )}

@@ -1,4 +1,4 @@
-import { For, Show, createSignal } from "solid-js";
+import { For, Show, createEffect, createSignal, onCleanup } from "solid-js";
 import { Icon, useService, type EntityView } from "@glasshome/widget-sdk";
 import { StateGlyph, Thermostat } from "./thermostat";
 import { Spark } from "./spark";
@@ -335,7 +335,30 @@ export function ClimatePanel(props: {
      release. Calling the service on every input event sends dozens of commands
      during one drag, and a radiator valve answers each of them. */
   const [dragging, setDragging] = createSignal<number | undefined>();
-  const shown = () => dragging() ?? targetOf(props.climate) ?? min();
+  /* What was sent, held until the thermostat says so: without it the handle
+     jumped back to the old target on release and over again a moment later. */
+  const [sent, setSent] = createSignal<number | undefined>();
+  let sentTimer: ReturnType<typeof setTimeout> | undefined;
+  createEffect(() => {
+    const target = targetOf(props.climate);
+    if (sent() !== undefined && target !== undefined && Math.abs(target - sent()!) < 0.01) setSent(undefined);
+  });
+  onCleanup(() => clearTimeout(sentTimer));
+  const shown = () => dragging() ?? sent() ?? targetOf(props.climate) ?? min();
+
+  const send = (value: number) => {
+    setSent(value);
+    clearTimeout(sentTimer);
+    sentTimer = setTimeout(() => setSent(undefined), 8000);
+    apply(value);
+  };
+  /* One step either way, from what is shown: tapped twice quickly, the second
+     tap goes on from the first rather than from what the thermostat had. */
+  const nudge = (direction: number) => {
+    const by = step() > 0 ? step() : 0.5;
+    const next = Math.min(max(), Math.max(min(), Math.round((shown() + direction * by) / by) * by));
+    send(Number(next.toFixed(2)));
+  };
 
   const apply = (value: number) =>
     void callService(
@@ -416,10 +439,20 @@ export function ClimatePanel(props: {
 
         {/* Middle: the number. */}
         <div class="rb-clim-read" style={{ "--rb-warmth": `${warmth(shown())}` }}>
-          <span class="rb-clim-value">
-            {shown().toFixed(shown() % 1 ? 1 : 0)}
-            <i>°C</i>
-          </span>
+          {/* The number between a step down and a step up — the buttons
+              show on a phone, where a thumb taps more surely than it drags. */}
+          <div class="rb-clim-setter">
+            <button class="rb-clim-step" aria-label="Lower" onClick={() => nudge(-1)}>
+              <Icon icon="mdi:minus" width="22" />
+            </button>
+            <span class="rb-clim-value">
+              {shown().toFixed(shown() % 1 ? 1 : 0)}
+              <i>°C</i>
+            </span>
+            <button class="rb-clim-step" aria-label="Raise" onClick={() => nudge(1)}>
+              <Icon icon="mdi:plus" width="22" />
+            </button>
+          </div>
 
           <Show when={currentOf(props.climate) !== undefined}>
             <span class="rb-clim-feels">
@@ -529,7 +562,7 @@ export function ClimatePanel(props: {
         onPreview={setDragging}
         onCommit={(value) => {
           setDragging(undefined);
-          apply(value);
+          send(value);
         }}
       />
     </div>
