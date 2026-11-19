@@ -162,11 +162,8 @@ ${AURORA_CSS}
 :host(:is([data-bleed], [data-screen])) .rb-board[data-narrow="true"] .rb-clock-time { line-height: 0.9; }
 /* With the status bar hidden, up into its strip: the clock on one side of
    the camera, the temperature on the other, kept clear of the screen's
-   rounded corners; and the photo band no taller than without the strip. */
-:host([data-statusbar-hidden][data-bleed]) .rb-board[data-narrow="true"] .rb-scene { padding-top: 0.9rem; }
-:host([data-statusbar-hidden][data-bleed]) .rb-board[data-narrow="true"]:has(.rb-scene-photo) {
-  grid-template-rows: clamp(11rem, 28%, 16rem) 1fr;
-}
+   rounded corners. The photo band keeps the strip's height. */
+:host([data-statusbar-hidden][data-bleed]) .rb-board[data-narrow="true"] .rb-scene { padding-top: 1.75rem; }
 /* The photo band on a phone gains the status bar's height rather than
    losing it from what is under the clock. */
 :host([data-bleed]) .rb-board[data-narrow="true"]:has(.rb-scene-photo) {
