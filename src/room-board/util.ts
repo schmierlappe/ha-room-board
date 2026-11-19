@@ -251,13 +251,35 @@ export function metricsOf(entities: EntityView[]): EntityView[] {
  * the dashboard's own accent towards amber as the reading gets worse, so the
  * board keeps whatever colour the dashboard is set to.
  */
+/* Each kind of reading in a colour of its own, so a row of tiles reads at a
+   glance — water cyan, air green, light yellow — and a bad reading still
+   turns amber over it (toneOf mixes towards it by health). */
+const KIND_COLOURS: Record<string, string> = {
+  humidity: "#22b8e6",
+  moisture: "#22b8e6",
+  carbon_dioxide: "#2ec27e",
+  volatile_organic_compounds: "#84cc16",
+  volatile_organic_compounds_parts: "#84cc16",
+  pm25: "#a78bfa",
+  pm10: "#a78bfa",
+  pm1: "#a78bfa",
+  illuminance: "#eab308",
+  pressure: "#818cf8",
+  atmospheric_pressure: "#818cf8",
+  power: "#f472b6",
+  energy: "#fb7185",
+  battery: "#22c55e",
+  sound_pressure: "#f472b6",
+};
+
 export function toneOf(deviceClass: string, value: number | undefined): string {
   if (deviceClass === "temperature" && value !== undefined) {
     return `color-mix(in srgb, #ff8a3d ${Math.round(warmth(value) * 100)}%, #4f9dff)`;
   }
 
   const good = value === undefined ? 1 : health(deviceClass, value);
-  return `color-mix(in srgb, var(--rb-primary, #3b82f6) ${Math.round(good * 100)}%, #f59e0b)`;
+  const own = KIND_COLOURS[deviceClass] ?? "var(--rb-primary, #3b82f6)";
+  return `color-mix(in srgb, ${own} ${Math.round(good * 100)}%, #f59e0b)`;
 }
 
 /**

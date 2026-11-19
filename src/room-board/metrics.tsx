@@ -19,19 +19,9 @@ const ICONS: Record<string, string> = {
   energy: "mdi:lightning-bolt",
 };
 
-/* A line for anything that drifts, bars for anything that steps. Temperature,
-   pressure and humidity move slowly and continuously — a room's humidity is
-   the same kind of curve as its temperature, and drawing it as a picket fence
-   said it changed in steps that it never took. A CO₂ reading or a power draw
-   really does jump, and bars say so without pretending to interpolate between
-   samples. */
-const BARS = new Set(["carbon_dioxide", "power", "energy", "illuminance"]);
-
-/* Humidity as capsules: a room's damp is a range within the hour rather than
-   a single number, and the reference draws exactly that — a floating mark per
-   bucket, warm where the reading leaves the comfortable band. */
-const CAPSULES = new Set(["humidity"]);
-
+/* Every reading as the same smooth line over a fading fill, in its own
+   colour. Bars and capsules said "a sample per slice" truthfully but read as
+   noise on a dashboard; the line is the trend, which is what a tile is for. */
 /** The range a reading is meant to sit in, in its own units. */
 const BANDS: Record<string, [number, number]> = {
   humidity: [35, 60],
@@ -41,10 +31,7 @@ const BANDS: Record<string, [number, number]> = {
   pm10: [0, 35],
 };
 
-const chartKind = (kind: string) => {
-  if (CAPSULES.has(kind)) return "capsules";
-  return BARS.has(kind) ? "bars" : "line";
-};
+const chartKind = (_kind: string) => "line" as const;
 
 
 

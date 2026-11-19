@@ -13840,3 +13840,45 @@
 .rb-board:not([data-scheme="light"]) .rb-updates-bar-text > b { color: #4ade80; }
 .rb-updates-bar[data-busy="true"] .rb-updates-bar-text > b { color: #3b82f6; }
 .rb-updates-bar-text > span { opacity: 0.6; margin-left: 0.4rem; }
+
+/* ---------- the tiles' charts ----------
+ *
+ * One look for every reading: a smooth line with a soft glow, a fill that
+ * fades to nothing, and a live dot with a slow halo at "now". On a small
+ * tile the chart runs to the card's edges and its foot, the way a dashboard
+ * tile is drawn, instead of sitting in a box inside it. */
+.rb-line { filter: drop-shadow(0 3px 5px color-mix(in srgb, var(--rb-chart) 45%, transparent)); }
+.rb-spark:not([data-interactive="true"]) .rb-stop-top { stop-opacity: 0.34; }
+/* Along the line: faint in the past, full at now. */
+.rb-spark:not([data-tone="temp"]) .rb-stop-from { stop-color: var(--rb-chart); stop-opacity: 0.4; }
+.rb-spark:not([data-tone="temp"]) .rb-stop-to { stop-color: var(--rb-chart); stop-opacity: 1; }
+/* A temperature: up the chart, warm over cool, in the fill as well. */
+.rb-spark[data-tone="temp"] .rb-stop-from { stop-color: var(--rb-hot); stop-opacity: 1; }
+.rb-spark[data-tone="temp"] .rb-stop-to { stop-color: var(--rb-cold); stop-opacity: 1; }
+.rb-spark[data-tone="temp"] .rb-stop-top { stop-color: var(--rb-hot); stop-opacity: 0.26; }
+.rb-spark[data-tone="temp"] .rb-stop-bottom { stop-color: var(--rb-cold); stop-opacity: 0; }
+
+.rb-spark-head { box-shadow: 0 0 0 3px color-mix(in srgb, var(--rb-chart) 25%, transparent); }
+.rb-spark-head::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid var(--rb-chart);
+  opacity: 0;
+  animation: rb-spark-halo 2.8s ease-out infinite;
+}
+@keyframes rb-spark-halo {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .rb-spark-head::after { animation: none; } }
+
+/* Full bleed on a small tile. */
+.rb-card:not(.rb-card--hero):has(> .rb-spark:not([data-interactive="true"])) { overflow: hidden; }
+.rb-card:not(.rb-card--hero) > .rb-spark:not([data-interactive="true"]) {
+  margin: auto -0.85rem -0.8rem;
+  min-height: 3.2rem;
+}
+.rb-card:not(.rb-card--hero) > .rb-spark:not([data-interactive="true"]) .rb-spark-plot { min-height: 3.2rem; }
+.rb-card:not(.rb-card--hero) > .rb-spark .rb-spark-head { width: 0.5rem; height: 0.5rem; }

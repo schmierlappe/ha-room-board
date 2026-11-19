@@ -248,11 +248,15 @@ export function Spark(props: {
     /* One pass of a three-wide moving average. The bucket average already
        removes the sampling noise; this removes the step between one bucket and
        the next, which is what the eye reads as a kink in the line. */
-    const smooth = filled.map((value, index) => {
-      const before = filled[index - 1] ?? value;
-      const after = filled[index + 1] ?? value;
-      return (before + value * 2 + after) / 4;
-    });
+    const pass = (from: number[]) =>
+      from.map((value, index) => {
+        const before = from[index - 1] ?? value;
+        const after = from[index + 1] ?? value;
+        return (before + value * 2 + after) / 4;
+      });
+    /* A tile gets a second pass: at two inches wide, the trend is the whole
+       point, and the wobble left after one pass reads as jitter. */
+    const smooth = props.rich || props.interactive ? pass(filled) : pass(pass(filled));
 
     /* Capsules span the raw low and high of each bucket, not the smoothed
        value, so the scale has to cover those too. Measured on the smoothed
@@ -285,12 +289,15 @@ export function Spark(props: {
        in from the edges by their own width. A line runs edge to edge as it
        always has — its fill closes to the corners. */
     const inset = capsules ? 2.5 : 0;
+    /* A tile's line stops short of the right-hand edge, so the "now" dot and
+       its halo sit on the end of it rather than half off the card. */
+    const end = !capsules && !props.rich && !props.interactive ? 96 : 100 - inset;
 
     const points = smooth.map((value, index) => {
       const [low, high] = spans[index] ?? [value, value];
       const band = props.band;
       return {
-        x: inset + (index / (COLUMNS - 1)) * (100 - inset * 2),
+        x: inset + (index / (COLUMNS - 1)) * (end - inset),
         y: place(value),
         v: value,
         /* What the reading was there, for the readout: the column's own
@@ -353,7 +360,7 @@ export function Spark(props: {
     const top = Math.min(...ys);
     const bottom = Math.max(...ys);
     const warm = bottom === top ? 0.5 : (bottom - y) / (bottom - top);
-    return `color-mix(in srgb, var(--rb-hot) ${Math.round(warm * 100)}%, var(--rb-cold))`;
+    return `color-mix(in oklch, var(--rb-hot) ${Math.round(warm * 100)}%, var(--rb-cold))`;
   };
   const active = () => {
     const index = hovered();
@@ -392,6 +399,9 @@ export function Spark(props: {
      own — a shared id would have them all painting from whichever instance
      mounted last. */
   const fillId = createUniqueId();
+  /* A temperature runs its colour up the chart, warm peaks over cool dips;
+     anything else fades in along it, from the past into now. */
+  const vertical = () => props.interactive === true || props.warmth !== undefined;
   const strokeId = createUniqueId();
 
   return (
@@ -480,8 +490,8 @@ export function Spark(props: {
               id={strokeId}
               x1="0"
               y1="0"
-              x2={props.interactive ? "0" : "1"}
-              y2={props.interactive ? "1" : "0"}
+              x2={vertical() ? "0" : "1"}
+              y2={vertical() ? "1" : "0"}
             >
               <stop class="rb-stop-from" offset="0%" />
               <stop class="rb-stop-to" offset="100%" />
@@ -547,13 +557,13 @@ export function Spark(props: {
           <Show when={(props.kind ?? "line") === "line"}>
             {/* The fill is the same path closed to the floor, so the two can
                 never disagree about where the line runs. */}
-            <path class="rb-spark-fill" fill={`url(#${fillId})`} d={`${path()} L 100 40 L 0 40 Z`} />
+            <path class="rb-spark-fill" fill={`url(#${fillId})`} d={`${path()} L ${points().at(-1)?.x ?? 100} 40 L 0 40 Z`} />
             <path
               class="rb-line"
               d={path()}
               /* As a style: the stylesheet's own stroke outranks an
                  attribute, and the gradient never showed. */
-              style={props.rich || props.interactive ? { stroke: `url(#${strokeId})` } : undefined}
+              style={{ stroke: `url(#${strokeId})` }}
             />
           </Show>
         </svg>
@@ -569,7 +579,7 @@ export function Spark(props: {
             style={{
               left: `${points().at(-1)!.x}%`,
               top: `${(points().at(-1)!.y / 40) * 100}%`,
-              ...(props.interactive ? { "--rb-chart": tint(points().at(-1)!.y) } : {}),
+              ...(vertical() ? { "--rb-chart": tint(points().at(-1)!.y) } : {}),
             }}
           />
         </Show>
