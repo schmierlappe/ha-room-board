@@ -13902,3 +13902,182 @@
 .rb-card:not(.rb-card--hero)[data-shape="big"] .rb-read-badge { transform: scale(1.35); margin-right: 0.3rem; }
 .rb-card:not(.rb-card--hero)[data-shape="big"] .rb-card-name { font-size: 1.05rem; }
 .rb-card:not(.rb-card--hero)[data-shape="big"]:has(> .rb-spark) { container-type: inline-size; }
+
+/* ---------- the vacuum's side panel: rooms or maintenance ----------
+ *
+ * Two tabs at the top of the panel beside the machine, a light gliding
+ * between them; the content slides in under them. The robot and its
+ * controls never leave the screen. */
+.rb-board:not([data-narrow="true"]) .rb-vacm-roomside { flex-direction: column; overflow: hidden; }
+.rb-vac-tabs {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: none;
+  margin-bottom: 1rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rb-ink) 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rb-ink) 6%, transparent);
+}
+.rb-vac-tabs-glide {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  width: calc(50% - 0.25rem);
+  border-radius: 999px;
+  background: var(--rb-card, #14161c);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2), 0 6px 16px -8px rgb(0 0 0 / 0.5), inset 0 0 0 1px color-mix(in srgb, var(--rb-ink) 9%, transparent);
+  transition: transform 0.32s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.rb-vac-tabs[data-side="wear"] .rb-vac-tabs-glide { transform: translateX(100%); }
+.rb-vac-tabs > button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.8rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--rb-dim);
+  cursor: pointer;
+  background: transparent;
+  transition: color 0.2s ease;
+}
+.rb-vac-tabs > button[aria-selected="true"] { color: var(--rb-ink); }
+.rb-vac-tabs-due {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+}
+.rb-vac-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  animation: rb-vac-pane-in 0.36s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.rb-vacm-roomside[data-side="rooms"] .rb-vac-pane { --rb-pane-from: -1.2rem; }
+@keyframes rb-vac-pane-in {
+  from { opacity: 0; transform: translateX(var(--rb-pane-from, 1.2rem)); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .rb-vac-pane, .rb-vac-tabs-glide { animation: none; transition: none; } }
+
+/* The wrench, lit while the maintenance is showing, with a dot when a part is due. */
+.rb-vacm-key { position: relative; transition: transform 0.14s ease, background 0.2s ease, color 0.2s ease; }
+.rb-vacm-key[data-active="true"] { color: var(--rb-on-primary, #fff); background: var(--rb-primary, #7c6cf0); }
+.rb-vacm-key[data-due="true"]::after {
+  content: "";
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px var(--rb-card, #14161c);
+}
+
+/* ---------- maintenance ---------- */
+.rb-wear { display: flex; flex-direction: column; gap: 0.9rem; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+.rb-wear::-webkit-scrollbar { display: none; }
+.rb-wear-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, #22c55e 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #22c55e 22%, transparent);
+}
+.rb-wear-summary[data-due="true"] {
+  background: color-mix(in srgb, #f59e0b 11%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #f59e0b 26%, transparent);
+}
+.rb-wear-summary-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  color: #fff;
+  background: #22c55e;
+}
+.rb-wear-summary[data-due="true"] .rb-wear-summary-icon { background: #f59e0b; }
+.rb-wear-summary-text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.rb-wear-summary-text > b { font-size: 0.92rem; font-weight: 640; }
+.rb-wear-summary-text > small { font-size: 0.75rem; color: var(--rb-dim); }
+
+.rb-wear-list { display: flex; flex-direction: column; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.rb-wear-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--rb-ink) 4%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rb-ink) 6%, transparent);
+  transition: background 0.2s ease;
+}
+.rb-wear-row:hover { background: color-mix(in srgb, var(--rb-ink) 6.5%, transparent); }
+.rb-wear-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.8rem;
+  color: var(--wear-color);
+  background: color-mix(in srgb, var(--wear-color) 15%, transparent);
+}
+.rb-wear-main { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 0; }
+.rb-wear-line { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; }
+.rb-wear-line > b { font-size: 0.88rem; font-weight: 600; }
+.rb-wear-pct { font-size: 0.88rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--wear-color); }
+.rb-wear-bar {
+  position: relative;
+  height: 0.38rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--rb-ink) 9%, transparent);
+}
+.rb-wear-bar > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--wear);
+  border-radius: inherit;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--wear-color) 70%, transparent), var(--wear-color));
+  box-shadow: 0 0 10px -2px var(--wear-color);
+  transition: width 0.6s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.rb-wear-detail { font-size: 0.72rem; color: var(--rb-dim); font-variant-numeric: tabular-nums; }
+.rb-wear-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: none;
+  padding: 0.4rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--rb-ink);
+  cursor: pointer;
+  background: color-mix(in srgb, var(--rb-ink) 8%, transparent);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.rb-wear-reset:hover { background: color-mix(in srgb, var(--rb-ink) 13%, transparent); }
+.rb-wear-reset[data-armed="true"] { color: #14161c; background: #f59e0b; }
+
+:where(.rb-board[data-scheme="light"]) .rb-vac-tabs-glide { background: #fff; box-shadow: 0 1px 2px rgb(15 23 42 / 0.08), 0 6px 14px -8px rgb(15 23 42 / 0.25); }
+:where(.rb-board[data-scheme="light"]) .rb-wear-row { background: var(--rb-card, #fff); box-shadow: inset 0 0 0 1px var(--rb-edge), 0 1px 2px rgb(15 23 42 / 0.04); }
