@@ -159,7 +159,14 @@ ${AURORA_CSS}
 /* On a phone the clock, date and temperature sit as high as they can: right
    under the status bar, the digits' own leading trimmed off. */
 :host([data-bleed]) .rb-board[data-narrow="true"] .rb-scene { padding-top: calc(0.2rem + var(--rb-bleed-top, 0px)); }
-:host([data-bleed]) .rb-board[data-narrow="true"] .rb-clock-time { line-height: 0.9; }
+:host(:is([data-bleed], [data-screen])) .rb-board[data-narrow="true"] .rb-clock-time { line-height: 0.9; }
+/* With the status bar hidden, up into its strip: the clock on one side of
+   the camera, the temperature on the other, kept clear of the screen's
+   rounded corners; and the photo band no taller than without the strip. */
+:host([data-statusbar-hidden][data-bleed]) .rb-board[data-narrow="true"] .rb-scene { padding-top: 0.9rem; }
+:host([data-statusbar-hidden][data-bleed]) .rb-board[data-narrow="true"]:has(.rb-scene-photo) {
+  grid-template-rows: clamp(11rem, 28%, 16rem) 1fr;
+}
 /* The photo band on a phone gains the status bar's height rather than
    losing it from what is under the clock. */
 :host([data-bleed]) .rb-board[data-narrow="true"]:has(.rb-scene-photo) {
@@ -190,6 +197,10 @@ class RoomBoardCard extends HTMLElement {
     /* Aurora unless Home Assistant's own theme is asked for. */
     const theme = config.theme === "home_assistant" || config.theme === "home-assistant" ? "home_assistant" : "aurora";
     this.setAttribute("data-theme", theme);
+    /* The status bar hidden (the companion app's full screen): nothing of the
+       system's is drawn at the top, so the clock may go up into that strip.
+       A page cannot tell on its own — the safe area is the same either way. */
+    this.toggleAttribute("data-statusbar-hidden", config.statusBar === "hidden" || config.statusBar === false);
   }
 
   set hass(next: Hass) {

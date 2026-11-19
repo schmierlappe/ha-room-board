@@ -99,6 +99,7 @@ They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/inte
 | `vacuumRooms` | `[]` | The vacuum's rooms, for cleaning one. |
 | `vacuumSensors` | `[]` | Consumable sensors (filter, brushes) for the vacuum card. |
 | `theme` | `aurora` | `aurora`: the board's own look — soft glows of colour drifting behind frosted glass, in dark and light following Home Assistant's dark-mode setting. `home_assistant`: the colours of your Home Assistant theme. |
+| `statusBar` | `visible` | `hidden` when the phone shows no status bar (the Home Assistant app's full-screen mode): the clock, date and temperature move up to the very top of the screen. |
 | `height` | full screen | The board's height, e.g. `800px`. On a panel view it fills the screen. |
 | `storage_key` | | Name for this board's saved layout; set it when you have more than one board. |
 
