@@ -1,7 +1,6 @@
 import { For, Index, Show, createEffect, createSignal, on } from "solid-js";
 import { Icon, useEntities, useService, type EntityView } from "@glasshome/widget-sdk";
 import { Keyed } from "./keyed";
-import { errorMessage } from "../errors";
 
 /**
  * Shopping and to-do lists — Bring!, Home Assistant's own list, anything that
@@ -66,9 +65,8 @@ function TodoList(props: { entity: EntityView }) {
         })),
       );
       setTicked([]);
-    } catch (error) {
+    } catch {
       setItems([]);
-      setNote(`Could not read the list: ${errorMessage(error, "no answer")}`);
     }
     setLoaded(true);
   };
@@ -90,12 +88,7 @@ function TodoList(props: { entity: EntityView }) {
       "update_item",
       { item: item.uid, status: "completed" },
       { entity_id: props.entity.id },
-    ).catch((error: unknown) => {
-      /* Said, not just undone: an item that quietly unticks itself looks
-         like a tap that missed. */
-      setTicked((was) => was.filter((id) => id !== item.uid));
-      setNote(`"${item.summary}" could not be ticked off: ${errorMessage(error, "no answer")}`);
-    });
+    ).catch(() => setTicked((was) => was.filter((id) => id !== item.uid)));
   };
 
   const add = (event: Event) => {
@@ -108,17 +101,14 @@ function TodoList(props: { entity: EntityView }) {
        it has saved the item (an error in reading Bring's reply), and the list
        then has it all the same. Only an item that truly did not arrive is
        said so — and put back in the field to try again. */
-    let failure = "";
     void callService("todo", "add_item", { item: text }, { entity_id: props.entity.id })
-      .catch((error: unknown) => {
-        failure = errorMessage(error, "");
-      })
+      .catch(() => undefined)
       .then(() => new Promise((done) => setTimeout(done, 800)))
       .then(() => load())
       .then(() => {
         const arrived = items().some((item) => item.summary.toLowerCase() === text.toLowerCase());
         if (!arrived) {
-          setNote(`"${text}" could not be added${failure ? `: ${failure}` : "."}`);
+          setNote(`"${text}" could not be added.`);
           if (!draft()) setDraft(text);
         }
       });
