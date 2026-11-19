@@ -9,6 +9,14 @@
  */
 import {
   siAppletv,
+  siDaserste,
+  siNdr,
+  siProsieben,
+  siRtlzwei,
+  siSat1,
+  siSwr,
+  siTele5,
+  siVox,
   siCrunchyroll,
   siDazn,
   siDeutschetelekom,
@@ -27,6 +35,14 @@ import {
 
 export const BRAND_PATHS: Record<string, string> = {
   appletv: siAppletv.path,
+  daserste: siDaserste.path,
+  ndr: siNdr.path,
+  prosieben: siProsieben.path,
+  rtlzwei: siRtlzwei.path,
+  sat1: siSat1.path,
+  swr: siSwr.path,
+  tele5: siTele5.path,
+  vox: siVox.path,
   crunchyroll: siCrunchyroll.path,
   dazn: siDazn.path,
   telekom: siDeutschetelekom.path,

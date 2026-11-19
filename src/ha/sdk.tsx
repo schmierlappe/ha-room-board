@@ -795,7 +795,7 @@ export function Icon(props: {
           y="12.6"
           text-anchor="middle"
           dominant-baseline="middle"
-          font-size="5.2"
+          font-size={String(Math.min(5.2, 42 / Math.max(1, own.icon.length - "wordmark:".length)))}
           font-weight="800"
           letter-spacing="-0.15"
           font-family="inherit"

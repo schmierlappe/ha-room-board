@@ -4269,7 +4269,8 @@
    it is to the handle, so the row swells under the finger. */
 .rb-dial-ticks {
   position: absolute;
-  inset: 0 0.2rem 1.1rem;
+  /* Over the input exactly, so the swell sits under the finger. */
+  inset: 0 1.6rem 1.1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4290,7 +4291,7 @@
 .rb-dial-glow {
   position: absolute;
   top: 1.6rem;
-  left: var(--fill, 0%);
+  left: calc(1.6rem + (100% - 3.2rem) * var(--f, 0));
   width: 9rem;
   height: 2.4rem;
   transform: translate(-50%, -50%);
@@ -4308,7 +4309,7 @@
 .rb-dial-knob {
   position: absolute;
   top: 1.6rem;
-  left: var(--fill, 0%);
+  left: calc(1.6rem + (100% - 3.2rem) * var(--f, 0));
   display: grid;
   place-items: center;
   width: 2.5rem;
@@ -13090,3 +13091,11 @@
 .rb-setup-ha-text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .rb-setup-ha-text > b { font-size: 0.9rem; font-weight: 600; }
 .rb-setup-ha-text > small { font-size: 0.76rem; color: var(--rb-dim); }
+
+/* The dial follows the finger: nothing eases while it is held, and the
+   handle settles onto the step it was let go at. */
+.rb-dial[data-held="true"] .rb-dial-ticks > i { transition: none; }
+.rb-dial:not([data-held="true"]) :is(.rb-dial-knob, .rb-dial-glow) { transition: left 0.18s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .rb-dial :is(.rb-dial-knob, .rb-dial-glow) { transition: none; }
+}

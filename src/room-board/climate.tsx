@@ -1,4 +1,4 @@
-import { For, Show, createSignal } from "solid-js";
+import { For, Show, createEffect, createSignal, onCleanup } from "solid-js";
 import { Icon, useService, type EntityView } from "@glasshome/widget-sdk";
 import { StateGlyph, Thermostat } from "./thermostat";
 import { Spark } from "./spark";
@@ -335,7 +335,16 @@ export function ClimatePanel(props: {
      release. Calling the service on every input event sends dozens of commands
      during one drag, and a radiator valve answers each of them. */
   const [dragging, setDragging] = createSignal<number | undefined>();
-  const shown = () => dragging() ?? targetOf(props.climate) ?? min();
+  /* What was sent, held until the thermostat says so: without it the handle
+     jumped back to the old target on release and over again a moment later. */
+  const [sent, setSent] = createSignal<number | undefined>();
+  let sentTimer: ReturnType<typeof setTimeout> | undefined;
+  createEffect(() => {
+    const target = targetOf(props.climate);
+    if (sent() !== undefined && target !== undefined && Math.abs(target - sent()!) < 0.01) setSent(undefined);
+  });
+  onCleanup(() => clearTimeout(sentTimer));
+  const shown = () => dragging() ?? sent() ?? targetOf(props.climate) ?? min();
 
   const apply = (value: number) =>
     void callService(
@@ -528,6 +537,9 @@ export function ClimatePanel(props: {
         label="Target temperature"
         onPreview={setDragging}
         onCommit={(value) => {
+          setSent(value);
+          clearTimeout(sentTimer);
+          sentTimer = setTimeout(() => setSent(undefined), 8000);
           setDragging(undefined);
           apply(value);
         }}

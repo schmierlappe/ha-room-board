@@ -50,8 +50,19 @@ export function TickDial(props: {
   /** Fired on release, when the machine is actually told. */
   onCommit: (value: number) => void;
 }) {
+  /* Where the finger is, unrounded: the handle follows it without steps, and
+     only the number (and what is sent) is rounded to the machine's step. */
   const [live, setLive] = createSignal<number | undefined>();
   const shown = () => live() ?? props.value;
+  const snap = (value: number) => {
+    const step = props.step > 0 ? props.step : 0.5;
+    const snapped = Math.round((value - props.min) / step) * step + props.min;
+    return Math.min(props.max, Math.max(props.min, Number(snapped.toFixed(2))));
+  };
+  const commit = (value: number) => {
+    setLive(undefined);
+    props.onCommit(snap(value));
+  };
 
   const fill = createMemo(() => {
     const span = props.max - props.min;
@@ -85,7 +96,8 @@ export function TickDial(props: {
   return (
     <div
       class="rb-dial"
-      style={{ "--fill": `${fill() * 100}%`, "--rb-tone": rampAt(fill()) }}
+      data-held={live() !== undefined}
+      style={{ "--fill": `${fill() * 100}%`, "--f": `${fill()}`, "--rb-tone": rampAt(fill()) }}
     >
       <div class="rb-dial-ticks" aria-hidden="true">
         <Index each={ticks()}>
@@ -112,18 +124,22 @@ export function TickDial(props: {
         type="range"
         min={props.min}
         max={props.max}
-        step={props.step}
+        step="any"
         value={shown()}
         aria-label={props.label ?? "Value"}
+        aria-valuetext={`${snap(shown())}°`}
         onInput={(event) => {
           const value = Number(event.currentTarget.value);
           setLive(value);
-          props.onPreview(value);
+          props.onPreview(snap(value));
         }}
-        onChange={(event) => {
-          const value = Number(event.currentTarget.value);
-          setLive(undefined);
-          props.onCommit(value);
+        onChange={(event) => commit(Number(event.currentTarget.value))}
+        onKeyDown={(event) => {
+          /* The keys step as the machine does; "any" would creep. */
+          const by = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[event.key];
+          if (!by) return;
+          event.preventDefault();
+          commit(snap(shown()) + by * (props.step > 0 ? props.step : 0.5));
         }}
       />
 
