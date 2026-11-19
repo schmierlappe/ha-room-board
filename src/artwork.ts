@@ -124,6 +124,56 @@ export function useArtworkService(): void {
 const isRemote = (src: string) =>
   src.startsWith(MASS_ITEM) || src.startsWith(MASS_REC) || src.startsWith(ENTITY_ART);
 
+/* A picture that is all black is no picture.
+ *
+ * A Fire TV or an Android TV sends a screenshot of the screen as its
+ * artwork, and the apps that protect what they show (MagentaTV, Netflix,
+ * Prime Video...) black it out: the card drew a black square where the app's
+ * logo would have said what is on. Each of Home Assistant's own pictures is
+ * looked at once, shrunk to 16×16; nearly black, it counts as none, and the
+ * card shows the app instead. Another host's pictures cannot be read back,
+ * and are left as they are. */
+const blanks = new Map<string, () => boolean>();
+const BLANK_MEAN = 10;
+const BLANK_PEAK = 40;
+
+function isBlank(src: string): boolean {
+  if (typeof document === "undefined" || !src.startsWith("/")) return false;
+  /* By the whole address: a new screenshot comes with a new cache key. */
+  const key = src;
+  let found = blanks.get(key);
+  if (!found) {
+    const [get, set] = createSignal(false);
+    found = get;
+    blanks.set(key, get);
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 16;
+        canvas.height = 16;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) return;
+        ctx.drawImage(image, 0, 0, 16, 16);
+        const data = ctx.getImageData(0, 0, 16, 16).data;
+        let sum = 0;
+        let peak = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const light = (data[i]! + data[i + 1]! + data[i + 2]!) / 3;
+          sum += light;
+          if (light > peak) peak = light;
+        }
+        set(sum / (data.length / 4) < BLANK_MEAN && peak < BLANK_PEAK);
+      } catch {
+        /* Not readable: shown as it is. */
+      }
+    };
+    image.src = src;
+  }
+  return found();
+}
+
 /**
  * The address to put on an <img> for a cover: as it is when the engine loads
  * it, its picture from the integration once that has arrived, and undefined
@@ -134,7 +184,7 @@ export function artSrc(src: string | null | undefined, size = TILE): string | un
   if (!src) return undefined;
   if (src.startsWith("data:image/") || src.startsWith("blob:")) return src;
   const direct = sealedImage(src);
-  if (direct) return direct;
+  if (direct) return isBlank(direct) ? undefined : direct;
   if (!isRemote(src) || unavailable || !call) return undefined;
 
   const key = `${size}|${src}`;

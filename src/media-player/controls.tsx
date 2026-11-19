@@ -12,7 +12,7 @@ import { favouriteButtonFor } from "./favourite";
 import { SubSheet } from "./subsheet";
 import { StableImg, holdLast } from "./stable-img";
 import { LyricsView, fetchLyrics, type Lyrics } from "./lyrics";
-import { brandOf, brandStyle } from "./brand";
+import { brandStyle, placeholderBrand } from "./brand";
 import { keyStep } from "../keys";
 import { errorMessage } from "../errors";
 
@@ -539,13 +539,13 @@ export function NowPlaying(props: {
               fallback={
                 <div
                   class="mp-pnow-art mp-art-placeholder"
-                  data-brand={!!brandOf(props.player())}
-                  style={brandOf(props.player()) ? brandStyle(brandOf(props.player())!) : undefined}
+                  data-brand="true"
+                  style={brandStyle(placeholderBrand(props.player()))}
                 >
                   {/* No cover, but a known app: its logo on its own ground. */}
                   <Icon
-                    icon={brandOf(props.player())?.icon ?? "mdi:music"}
-                    width={brandOf(props.player()) ? undefined : "36"}
+                    icon={placeholderBrand(props.player()).icon}
+                    width={undefined}
                   />
                 </div>
               }
@@ -793,13 +793,13 @@ export function NowPlaying(props: {
                 fallback={
                   <div
                     class="mp-snow-art mp-art-placeholder"
-                    data-brand={!!brandOf(props.player())}
-                    style={brandOf(props.player()) ? brandStyle(brandOf(props.player())!) : undefined}
+                    data-brand="true"
+                    style={brandStyle(placeholderBrand(props.player()))}
                   >
                     {/* No cover, but a known app: its logo on its own ground. */}
                     <Icon
-                      icon={brandOf(props.player())?.icon ?? "mdi:music"}
-                      width={brandOf(props.player()) ? undefined : "48"}
+                      icon={placeholderBrand(props.player()).icon}
+                      width={undefined}
                     />
                   </div>
                 }
