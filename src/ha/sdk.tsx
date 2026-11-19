@@ -215,7 +215,10 @@ export async function callService(
   target?: ServiceTarget,
   options?: { returnResponse?: boolean },
 ): Promise<any> {
-  const result = await hass().callService(domain, service, data, target, true, options?.returnResponse);
+  /* Home Assistant's own error toast for what the user did, not for a read
+     the board makes by itself (a list's items, a forecast): those fail
+     quietly and the card shows what it has. */
+  const result = await hass().callService(domain, service, data, target, !options?.returnResponse, options?.returnResponse);
   return options?.returnResponse ? (result?.response ?? result) : result;
 }
 

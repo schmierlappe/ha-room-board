@@ -21,7 +21,8 @@ export const openCount = (entity: EntityView | undefined) => {
 /** The chip on the agenda card: a basket and how much is still open, all
     lists added up — one chip, however many lists there are. */
 export function TodoChips(props: { ids: string[] }) {
-  const lists = useEntities(() => props.ids);
+  const all = useEntities(() => props.ids);
+  const lists = () => all().filter(usable);
   const open = () => lists().reduce((sum, list) => sum + openCount(list), 0);
   const names = () => lists().map((list) => `${list.friendlyName ?? list.id}: ${openCount(list)}`).join("\n");
   return (
@@ -45,6 +46,7 @@ function TodoList(props: { entity: EntityView }) {
   const [note, setNote] = createSignal<string | undefined>();
 
   const load = async () => {
+    if (!usable(props.entity)) return;
     try {
       const response = (await callService(
         "todo",
@@ -173,10 +175,16 @@ function TodoList(props: { entity: EntityView }) {
 }
 
 /** Every configured list, for the agenda overlay. */
+/* A list whose integration has lost it (a Bring! list deleted in the app)
+   stays behind as unavailable, and asking it for items fails — Home
+   Assistant answers that the call matched no entity. Left off instead. */
+const usable = (entity: EntityView | undefined) =>
+  !!entity && entity.state !== "unavailable" && entity.state !== "unknown";
+
 export function TodoLists(props: { ids: string[] }) {
   const lists = useEntities(() => props.ids);
   return <For each={props.ids}>{(id) => (
-    <Show when={lists().find((entity) => entity.id === id)}>
+    <Show when={lists().find((entity) => entity.id === id && usable(entity))}>
       {(entity) => <TodoList entity={entity()} />}
     </Show>
   )}</For>;
