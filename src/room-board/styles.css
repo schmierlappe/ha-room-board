@@ -3913,6 +3913,7 @@
 .rb-clim-read,
 .rb-clim-side { min-width: 0; }
 .rb-clim-history .rb-spark { min-height: 3.4rem; }
+.rb-clim-history { width: min(26rem, 100%); }
 
 /* ---------- the thermostat on a phone ----------
  *
@@ -4206,14 +4207,6 @@
   gap: 0.15rem;
   width: min(22rem, 100%);
   margin-top: 0.2rem;
-}
-
-.rb-clim-history-note {
-  align-self: center;
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  opacity: 0.35;
 }
 
 .rb-switch {
@@ -4610,7 +4603,6 @@
   margin: 0;
 }
 
-.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-history-note { display: none; }
 
 /* The tiles, compact: the badge on the left, the value over its label, the
    caret at the end — one row a tile instead of a tall stack. */
@@ -13364,20 +13356,118 @@
 .rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-history {
   grid-column: 1 / -1;
   order: 5;
-  position: relative;
-  height: 6.5rem;
+  height: auto;
   margin-top: 0.3rem;
-  padding: 1.6rem 0 0;
+  padding: 0.7rem 0.85rem 0.6rem;
   border-radius: 1rem;
-  overflow: hidden;
   background: color-mix(in srgb, var(--rb-ink) 5%, transparent);
   box-shadow: inset 0 0 0 1px var(--rb-edge);
 }
-.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-history-note {
-  display: block;
-  position: absolute;
-  top: 0.55rem;
-  left: 0.8rem;
-  font-size: 0.7rem;
+.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-history .rb-spark { height: auto; }
+
+/* ---------- the interactive chart ----------
+ *
+ * The thermostat's history, to be read rather than glanced at: the window's
+ * low and high over it, the target as a dashed level, a clock under it, and a
+ * finger or pointer on it lifts the reading at that moment into a bubble. */
+.rb-spark[data-interactive="true"] {
+  flex: none;
+  margin: 0;
+  gap: 0.35rem;
+  color: var(--rb-ink);
+}
+.rb-spark[data-interactive="true"] .rb-spark-plot {
+  flex: none;
+  height: 5.4rem;
+  touch-action: pan-y;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Three faint levels behind the line instead of uprights: across is the
+     direction a temperature is read in. */
+  background:
+    linear-gradient(var(--rb-edge), var(--rb-edge)) 0 10% / 100% 1px no-repeat,
+    linear-gradient(var(--rb-edge), var(--rb-edge)) 0 50% / 100% 1px no-repeat,
+    linear-gradient(var(--rb-edge), var(--rb-edge)) 0 95% / 100% 1px no-repeat;
+}
+.rb-spark[data-interactive="true"] .rb-line { stroke-width: 2.6; }
+.rb-spark[data-interactive="true"] .rb-stop-from { stop-color: var(--rb-hot); stop-opacity: 1; }
+.rb-spark[data-interactive="true"] .rb-stop-to { stop-color: var(--rb-cold); }
+.rb-spark[data-interactive="true"] .rb-stop-top { stop-color: var(--rb-hot); stop-opacity: 0.26; }
+.rb-spark[data-interactive="true"] .rb-stop-bottom { stop-color: var(--rb-cold); stop-opacity: 0; }
+.rb-spark[data-interactive="true"] .rb-spark-axis { margin-top: 0.1rem; opacity: 0.5; }
+
+.rb-spark-head-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+}
+.rb-spark-caption {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--rb-dim);
 }
+.rb-spark-range {
+  display: flex;
+  gap: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.rb-spark-range [data-end="low"] { color: color-mix(in srgb, var(--rb-cold) 80%, var(--rb-ink)); }
+.rb-spark-range [data-end="high"] { color: color-mix(in srgb, var(--rb-hot) 80%, var(--rb-ink)); }
+
+/* The target, as a dashed level with its value at the end. */
+.rb-spark-target {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1.5px dashed color-mix(in srgb, var(--rb-ink) 38%, transparent);
+  pointer-events: none;
+}
+.rb-spark-target > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translateY(-50%);
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--rb-ink);
+  background: color-mix(in srgb, var(--rb-ink) 14%, var(--rb-card, #14161c));
+  box-shadow: 0 0 0 1px var(--rb-edge);
+}
+
+/* While a moment is picked out the "now" ring steps back for it. */
+.rb-spark-plot[data-scrubbing="true"] .rb-spark-head { opacity: 0.35; }
+.rb-spark-plot[data-scrubbing="true"] .rb-spark-target > span { opacity: 0; }
+
+.rb-spark-cursor {
+  position: absolute;
+  top: -0.2rem;
+  bottom: 0;
+  width: 0;
+  border-left: 1px solid color-mix(in srgb, var(--rb-chart) 70%, transparent);
+  pointer-events: none;
+}
+.rb-spark-dot {
+  position: absolute;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--rb-chart);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rb-chart) 28%, transparent), 0 0 12px var(--rb-chart);
+  pointer-events: none;
+}
+.rb-spark-head-row { min-height: 1.35rem; align-items: center; }
+.rb-spark-read { display: flex; align-items: baseline; gap: 0.45rem; font-variant-numeric: tabular-nums; }
+.rb-spark-read > b { font-size: 1.05rem; font-weight: 700; color: var(--rb-chart); }
+.rb-spark-read > span { color: var(--rb-dim); }
+.rb-spark-delta { color: var(--rb-dim); font-variant-numeric: tabular-nums; }
+:where(.rb-board[data-scheme="light"]) .rb-spark-range [data-end="low"] { color: #2563eb; }
+:where(.rb-board[data-scheme="light"]) .rb-spark-range [data-end="high"] { color: #c2410c; }

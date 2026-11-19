@@ -471,9 +471,11 @@ export function ClimatePanel(props: {
                 entityId={props.historyEntityId!}
                 hours={props.historyHours}
                 kind="line"
+                interactive
+                caption={`Last ${props.historyHours} h`}
+                target={props.climate?.state === "off" || targetOf(props.climate) === undefined ? undefined : shown()}
                 warmth={warmth(currentOf(props.climate) ?? shown())}
               />
-              <span class="rb-clim-history-note">Last {props.historyHours} h</span>
             </div>
           </Show>
         </div>
