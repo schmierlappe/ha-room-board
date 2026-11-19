@@ -13010,3 +13010,14 @@
   max-width: 12rem;
   scroll-snap-align: start;
 }
+
+/* An overlay open on a phone: the bar at the foot stands down — it lies
+   over everything to stay above the tiles, and over an overlay it hid the
+   overlay's own foot (the media player's tabs and speaker). The overlay
+   keeps its foot above the home indicator. */
+.rb-board[data-narrow="true"][data-overlay="true"] .rb-panel-body > :is(.rb-act-bar, .rb-dock) {
+  display: none;
+}
+.rb-board[data-narrow="true"] .rb-sheet {
+  padding-bottom: var(--rb-safe-foot, 0px);
+}
