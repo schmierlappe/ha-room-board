@@ -156,6 +156,10 @@ ${AURORA_CSS}
    clock and the panel's heading below it. */
 :host(:is([data-bleed], [data-screen])) .ha-rb-widget { border-radius: 0; }
 :host([data-bleed]) .rb-scene { padding-top: calc(1rem + var(--rb-bleed-top, 0px)); }
+/* On a phone the clock, date and temperature sit as high as they can: right
+   under the status bar, the digits' own leading trimmed off. */
+:host([data-bleed]) .rb-board[data-narrow="true"] .rb-scene { padding-top: calc(0.2rem + var(--rb-bleed-top, 0px)); }
+:host([data-bleed]) .rb-board[data-narrow="true"] .rb-clock-time { line-height: 0.9; }
 /* The photo band on a phone gains the status bar's height rather than
    losing it from what is under the clock. */
 :host([data-bleed]) .rb-board[data-narrow="true"]:has(.rb-scene-photo) {
