@@ -304,3 +304,109 @@ export function MatchPanel(props: { entity: EntityView; proxy: string }) {
     </div>
   );
 }
+
+/* ---------- the match bar ----------
+ *
+ * On game day, on a phone, the match rides in the bar at the foot of the
+ * screen with the activity line: the score live while it is on, the kick-off
+ * before, the result after — in whichever room you are, since a match is the
+ * house's news rather than a room's. */
+
+const sameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+/** Playing now, or kicking off or finished today. */
+export const gameDay = (entity: EntityView, now = new Date()) => {
+  const state = String(entity.state ?? "").toUpperCase();
+  if (state === "IN") return true;
+  if (state !== "PRE" && state !== "POST") return false;
+  const date = new Date(attr<string>(entity, "date", ""));
+  return !Number.isNaN(date.getTime()) && sameDay(date, now);
+};
+
+/** The one match the bar shows: a live one first, then the next to kick off, then the last to end. */
+export const barMatch = (teams: EntityView[], now = new Date()) => {
+  const today = teams.filter((team) => gameDay(team, now));
+  const order = (team: EntityView) => ({ IN: 0, PRE: 1, POST: 2 })[String(team.state).toUpperCase()] ?? 3;
+  return today.sort((a, b) => order(a) - order(b))[0];
+};
+
+export function MatchBar(props: { entity: EntityView; proxy: string; haBase: string; onOpen?: () => void }) {
+  const state = () => String(props.entity.state ?? "").toUpperCase();
+  const live = () => state() === "IN";
+  const done = () => state() === "POST";
+  const us = () => side(props.entity, "team");
+  const them = () => side(props.entity, "opponent");
+  const weAreHome = () => attr<string>(props.entity, "team_homeaway", "home") !== "away";
+  const left = () => (weAreHome() ? us() : them());
+  const right = () => (weAreHome() ? them() : us());
+  const clock = () => attr<string>(props.entity, "clock", "");
+  const when = () => kickoff(attr<string>(props.entity, "date", ""));
+  const result = () => {
+    if (!done()) return undefined;
+    if (us().winner) return "won";
+    return them().winner ? "lost" : "draw";
+  };
+
+  /* A goal: the score lights up for a few seconds when it changes while the
+     match is on — the one moment worth catching from across the room. */
+  const [goal, setGoal] = createSignal(false);
+  let goalTimer: ReturnType<typeof setTimeout> | undefined;
+  onCleanup(() => clearTimeout(goalTimer));
+  createEffect(
+    on(
+      () => `${left().score ?? ""}:${right().score ?? ""}`,
+      () => {
+        if (!live()) return;
+        setGoal(true);
+        clearTimeout(goalTimer);
+        goalTimer = setTimeout(() => setGoal(false), 6000);
+      },
+      { defer: true },
+    ),
+  );
+
+  const status = () => {
+    if (live()) return clock() || "Live";
+    if (done()) return result() === "won" ? "Won" : result() === "lost" ? "Lost" : "Full time";
+    return when().time;
+  };
+
+  return (
+    <button
+      class="rb-matchbar"
+      data-state={state().toLowerCase()}
+      data-result={result()}
+      data-goal={goal()}
+      aria-label={`${left().name} ${left().score ?? ""} ${right().name} ${right().score ?? ""}, ${status()}`}
+      onClick={() => props.onOpen?.()}
+    >
+      <span class="rb-matchbar-status">
+        <Show when={live()} fallback={<Icon icon={done() ? "mdi:flag-checkered" : "mdi:soccer"} width="13" />}>
+          <i class="rb-sport-live" />
+        </Show>
+        <span>{status()}</span>
+      </span>
+
+      <span class="rb-matchbar-fixture">
+        <span class="rb-matchbar-side" data-us={left() === us()}>
+          <span class="rb-truncate">{left().abbr || left().name}</span>
+          <Crest side={left()} proxy={props.proxy} haBase={props.haBase} />
+        </span>
+        <Show when={state() !== "PRE"} fallback={<span class="rb-matchbar-vs">vs</span>}>
+          <b class="rb-matchbar-score">
+            {left().score ?? "0"}
+            <i>:</i>
+            {right().score ?? "0"}
+          </b>
+        </Show>
+        <span class="rb-matchbar-side" data-us={right() === us()}>
+          <Crest side={right()} proxy={props.proxy} haBase={props.haBase} />
+          <span class="rb-truncate">{right().abbr || right().name}</span>
+        </span>
+      </span>
+
+      <Icon class="rb-matchbar-caret" icon="mdi:chevron-up" width="16" />
+    </button>
+  );
+}
