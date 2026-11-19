@@ -472,3 +472,41 @@ export function WeatherPanel(props: {
     </div>
   );
 }
+
+/**
+ * The sky behind the top of the weather overlay, the way the iOS weather app
+ * draws it: the colour of the hour and the condition, with what is actually
+ * happening moving in it — clouds drifting, rain falling, snow, a flash in a
+ * storm, stars at night — fading into the sheet before the forecast starts.
+ *
+ * Plain elements and CSS rather than a canvas: a dozen layers animated by
+ * transform cost the browser next to nothing, keep running when the widget
+ * does not, and stop for anyone who asked for less motion.
+ */
+export function WeatherSky(props: { entityId: string }) {
+  const weather = useEntity(() => props.entityId);
+  const sun = useEntity(() => "sun.sun");
+  const scene = () => sceneFor(weather()?.state);
+  const night = () => isNight(sun(), weather()?.state);
+  const heavy = () => weather()?.state === "pouring" || weather()?.state === "lightning-rainy";
+  return (
+    <div
+      class="rb-sky"
+      aria-hidden="true"
+      data-scene={scene()}
+      data-night={night()}
+      data-heavy={heavy()}
+    >
+      <i class="rb-sky-stars" />
+      <i class="rb-sky-orb" />
+      <i class="rb-sky-rays" />
+      <For each={[0, 1, 2, 3, 4]}>{(index) => <i class="rb-sky-cloud" style={{ "--i": index }} />}</For>
+      <For each={[0, 1, 2]}>{(index) => <i class="rb-sky-fog" style={{ "--i": index }} />}</For>
+      <i class="rb-sky-rain" data-layer="far" />
+      <i class="rb-sky-rain" data-layer="near" />
+      <i class="rb-sky-snow" data-layer="far" />
+      <i class="rb-sky-snow" data-layer="near" />
+      <i class="rb-sky-flash" />
+    </div>
+  );
+}
