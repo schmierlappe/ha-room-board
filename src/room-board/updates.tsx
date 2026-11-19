@@ -61,28 +61,48 @@ const plainNotes = (text: string) =>
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
-/** The pill on the room's photo: how many updates are waiting. */
-export function UpdatesPill(props: { updates: EntityView[]; onOpen: () => void }) {
+/** In the Overview line beside Arrange, on a wide screen: how many are waiting. */
+export function UpdatesButton(props: { updates: EntityView[]; onOpen: () => void }) {
   const busy = () => props.updates.some(installing);
   return (
     <button
-      class="rb-updates-pill"
+      class="rb-updates-toggle"
       data-busy={busy()}
-      aria-label={`${props.updates.length} updates available`}
+      title="Updates"
       onPointerDown={(event) => event.stopPropagation()}
       onClick={(event) => {
         event.stopPropagation();
         props.onOpen();
       }}
     >
-      <span class="rb-updates-pill-icon">
-        <Icon icon={busy() ? "mdi:progress-download" : "mdi:arrow-up-bold-circle"} width="14" />
+      <Icon icon={busy() ? "mdi:progress-download" : "mdi:arrow-up-bold-circle-outline"} width="16" />
+      <span>{props.updates.length === 1 ? "Update" : "Updates"}</span>
+      <b class="rb-updates-count">{props.updates.length}</b>
+    </button>
+  );
+}
+
+/** In the bar at the foot of a phone, over the activity line: how many, and which. */
+export function UpdatesBar(props: { updates: EntityView[]; onOpen: () => void }) {
+  const busy = () => props.updates.some(installing);
+  const names = () =>
+    [...props.updates]
+      .sort((a, b) => rank(a) - rank(b) || titleOf(a).localeCompare(titleOf(b)))
+      .map(titleOf)
+      .join(", ");
+  return (
+    <button class="rb-updates-bar" data-busy={busy()} onClick={props.onOpen}>
+      <span class="rb-updates-bar-icon">
+        <Icon icon={busy() ? "mdi:progress-download" : "mdi:arrow-up-bold"} width="13" />
       </span>
-      <span>
-        {busy() && props.updates.length === 1
-          ? "Updating…"
-          : `${props.updates.length} ${props.updates.length === 1 ? "update" : "updates"}`}
+      <span class="rb-updates-bar-text rb-truncate">
+        <b>
+          {props.updates.length} {props.updates.length === 1 ? "update" : "updates"}
+          {busy() ? " · installing" : ""}
+        </b>
+        <span>{names()}</span>
       </span>
+      <Icon icon="mdi:chevron-up" width="17" />
     </button>
   );
 }

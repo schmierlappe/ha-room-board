@@ -88,7 +88,7 @@ On a phone, on the day a team you follow with [TeamTracker](https://github.com/v
 
 ### Updates
 
-When Home Assistant has updates waiting (Home Assistant itself, add-ons, HACS, integrations, device firmware), a pill under the clock says how many. It opens a list with each one's installed and new version, its release notes ("What's new"), and an **Update** button. Updates that can make a backup first (Home Assistant and its add-ons) do so unless you switch it off for that one. **Skip** hides that version, and **Update all** installs every one. Update, Update all and Skip each need a second tap. A running install shows its progress. Set `updates: false` to leave the pill out.
+When Home Assistant has updates waiting (Home Assistant itself, add-ons, HACS, integrations, device firmware), an **Updates** button with their number appears in the Overview line beside Arrange. On a phone it's a row in the bar at the foot, above the activity line, naming what is waiting. Either opens a list with each one's installed and new version, its release notes ("What's new"), and an **Update** button. Updates that can make a backup first (Home Assistant and its add-ons) do so unless you switch it off for that one. **Skip** hides that version, and **Update all** installs every one. Update, Update all and Skip each need a second tap. A running install shows its progress. Set `updates: false` to leave it out.
 
 ### Network, servers and monitors
 
@@ -119,7 +119,7 @@ They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/inte
 | `statusBar` | `visible` | `hidden` when the phone shows no status bar (the Home Assistant app's full-screen mode): the clock, date and temperature move up to the very top of the screen. |
 | `height` | full screen | The board's height, e.g. `800px`. On a panel view it fills the screen. |
 | `matchBar` | `true` | On a phone, a TeamTracker team's match docked at the foot on game day, with the live score. |
-| `updates` | `true` | A pill under the clock when updates are waiting, with a list to install them. |
+| `updates` | `true` | An Updates button beside Arrange (on a phone, a row in the bar at the foot) when updates are waiting, with a list to install them. |
 | `layout_per_device` | `true` | Each screen keeps its own arrangement and hidden cards. `false`: one layout for every screen. |
 | `storage_key` | | Name for this board's saved layout; set it when you have more than one board. |
 

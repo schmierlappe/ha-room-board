@@ -111,7 +111,7 @@ import { attr, classOf, metricsOf, numeric, safeIcon, themeVars } from "./util";
 import { Keyed } from "./keyed";
 import { errorMessage } from "../errors";
 import { CLOCK_STYLES, SceneClock } from "./clock";
-import { UpdatesPanel, UpdatesPill, pending as updatePending } from "./updates";
+import { UpdatesBar, UpdatesButton, UpdatesPanel, pending as updatePending } from "./updates";
 
 /**
  * The players a stand-in player names: a universal media player the one in
@@ -1470,14 +1470,6 @@ function RoomBoard(props: { config: Config }) {
               </div>
 
 
-              {/* Waiting updates, under the clock: seen from across the room,
-                  and out of the way of everything the room itself shows. */}
-              <Show when={updates().length}>
-                <div class="rb-scene-updates">
-                  <UpdatesPill updates={updates()} onOpen={() => openPanel("updates")} />
-                </div>
-              </Show>
-
               {/* One button rather than a row of them: a strip of chips is a
                   menu left permanently open across the photograph, and with
                   more than four rooms it either wrapped or scrolled. The
@@ -1586,6 +1578,12 @@ function RoomBoard(props: { config: Config }) {
                   {entities().length} {entities().length === 1 ? "entity" : "entities"}
                 </span>
 
+                {/* Waiting updates, beside Arrange on a wide screen; on a
+                    phone they are in the bar at the foot instead. */}
+                <Show when={!narrow() && updates().length}>
+                  <UpdatesButton updates={updates()} onOpen={() => openPanel("updates")} />
+                </Show>
+
                 {/* Arrange: move the cards and choose the big ones. */}
                 <button
                   class="rb-arrange-toggle"
@@ -1643,7 +1641,15 @@ function RoomBoard(props: { config: Config }) {
                   </div>
                 }
               >
-                <div class="rb-panel-body">
+                <div
+                  class="rb-panel-body"
+                  style={{
+                    /* How tall the dock at a phone's foot is, so the tiles
+                       can scroll clear of it: the activity line, and a row
+                       for each of the match, the player and the updates. */
+                    "--rb-dock-h": `${3.6 + (matchToday() ? 3.4 : 0) + (homeDock() ? 3.5 : 0) + (updates().length ? 2.6 : 0)}rem`,
+                  }}
+                >
                 <Show when={arranging() && offBoard().length}>
                   <div class="rb-removed" onPointerDown={swallow}>
                     <div class="rb-removed-head">
@@ -1832,7 +1838,7 @@ function RoomBoard(props: { config: Config }) {
                   fallback={
                     <Show when={!narrow()} fallback={
                       <Show
-                        when={homeDock() || matchToday()}
+                        when={homeDock() || matchToday() || updates().length}
                         fallback={
                           <Guard name="Activity">
                             <ActivityBar entities={entities()} onOpen={() => openPanel("activity")} />
@@ -1842,7 +1848,7 @@ function RoomBoard(props: { config: Config }) {
                         {/* Docked at the foot of the screen, over the
                             activity line: the match on game day, in every
                             room, and the Home room's player. */}
-                        <div class="rb-dock" data-match={!!matchToday()} data-player={homeDock()}>
+                        <div class="rb-dock" data-match={!!matchToday()} data-player={homeDock()} data-updates={updates().length > 0}>
                           <Show when={matchToday()}>
                             {(team) => (
                               <Guard name="Match">
@@ -1871,6 +1877,11 @@ function RoomBoard(props: { config: Config }) {
                                 chosen={chosenPlayer()}
                                 onOpen={() => openPanel("media")}
                               />
+                            </Guard>
+                          </Show>
+                          <Show when={updates().length}>
+                            <Guard name="Updates">
+                              <UpdatesBar updates={updates()} onOpen={() => openPanel("updates")} />
                             </Guard>
                           </Show>
                           <Guard name="Activity">
