@@ -13712,3 +13712,100 @@
 }
 .rb-updates-none-badge { color: #22c55e; }
 .rb-board[data-narrow="true"] .rb-update-extras { padding-left: 0; }
+
+/* ---------- the match bar ----------
+ *
+ * Game day on a phone: the fixture docked at the foot over the activity
+ * line. The status on the left (the minute with a live dot, the kick-off, or
+ * the result), the two clubs either side of the score in the middle. A goal
+ * lights the score for a few seconds. */
+.rb-matchbar {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4.6rem minmax(0, 1fr) 1.2rem;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.6rem 0.6rem 0.55rem;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  color: var(--rb-ink);
+  cursor: pointer;
+  background: transparent;
+}
+.rb-dock[data-player="true"] > .rb-matchbar { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--rb-ink) 8%, transparent); }
+.rb-matchbar-status {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 0.35rem;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--rb-dim);
+  background: color-mix(in srgb, var(--rb-ink) 8%, transparent);
+}
+.rb-matchbar[data-state="in"] .rb-matchbar-status { color: #ef4444; background: rgb(239 68 68 / 0.14); }
+.rb-matchbar[data-result="won"] .rb-matchbar-status { color: #16a34a; background: rgb(34 197 94 / 0.14); }
+.rb-matchbar[data-result="lost"] .rb-matchbar-status { color: #ef4444; background: rgb(239 68 68 / 0.12); }
+.rb-board:not([data-scheme="light"]) .rb-matchbar[data-result="won"] .rb-matchbar-status { color: #4ade80; }
+.rb-board:not([data-scheme="light"]) .rb-matchbar[data-state="in"] .rb-matchbar-status { color: #f87171; }
+
+.rb-matchbar-fixture {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+.rb-matchbar-side {
+  --rb-crest: 1.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.rb-matchbar-side:first-child { justify-content: flex-end; }
+.rb-matchbar-side[data-us="true"] { font-weight: 750; }
+.rb-matchbar-side .rb-sport-crest > img { filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.3)); }
+.rb-matchbar-side .rb-sport-initials { font-size: 0.6rem; }
+.rb-matchbar-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.12rem 0.55rem;
+  border-radius: 0.55rem;
+  font-size: 1.2rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--rb-ink) 8%, transparent);
+  transition: background 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
+}
+.rb-matchbar-score > i { font-style: normal; opacity: 0.45; margin-top: -0.1rem; }
+.rb-matchbar[data-state="in"] .rb-matchbar-score { color: #fff; background: #ef4444; }
+.rb-matchbar[data-goal="true"] .rb-matchbar-score { animation: rb-goal 0.9s ease-in-out 3; }
+@keyframes rb-goal {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(239 68 68 / 0.7); transform: scale(1); }
+  50% { box-shadow: 0 0 0 0.45rem rgb(239 68 68 / 0); transform: scale(1.12); }
+}
+@media (prefers-reduced-motion: reduce) { .rb-matchbar[data-goal="true"] .rb-matchbar-score { animation: none; } }
+.rb-matchbar-vs { font-size: 0.72rem; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; color: var(--rb-dim); }
+.rb-matchbar-caret { justify-self: end; opacity: 0.45; }
+
+/* The tiles keep clear of a taller dock. */
+.rb-board[data-narrow="true"] .rb-panel-body:has(> .rb-dock[data-match="true"]) > .rb-grid {
+  padding-bottom: calc(7rem + var(--rb-safe-foot));
+  scroll-padding-bottom: calc(7rem + var(--rb-safe-foot));
+}
+.rb-board[data-narrow="true"] .rb-panel-body:has(> .rb-dock[data-match="true"][data-player="true"]) > .rb-grid {
+  padding-bottom: calc(10.6rem + var(--rb-safe-foot));
+  scroll-padding-bottom: calc(10.6rem + var(--rb-safe-foot));
+}

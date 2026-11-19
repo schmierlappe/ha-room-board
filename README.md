@@ -82,6 +82,10 @@ Each screen keeps its own layout: arrange or hide cards on your phone and the ta
 
 Each is kept in Home Assistant under your user, and the screen is recognised by its browser. Clearing the browser's or the Companion app's data makes it a new screen, which starts from the shared layout. Set `layout_per_device: false` for one layout on every screen, as before.
 
+### Match bar on game day
+
+On a phone, on the day a team you follow with [TeamTracker](https://github.com/vasqued2/ha-teamtracker) plays, the match is docked at the foot of the screen in every room, above the activity line. It shows the kick-off time before the match, the live score and minute during it (the score flashes when a goal goes in), and the result afterwards until midnight. Tap it for the matchday, table and news. If two teams play on the same day, a live match comes first. Set `matchBar: false` to leave it out.
+
 ### Updates
 
 When Home Assistant has updates waiting (Home Assistant itself, add-ons, HACS, integrations, device firmware), a pill under the clock says how many. It opens a list with each one's installed and new version, its release notes ("What's new"), and an **Update** button. Updates that can make a backup first (Home Assistant and its add-ons) do so unless you switch it off for that one. **Skip** hides that version, and **Update all** installs every one. Update, Update all and Skip each need a second tap. A running install shows its progress. Set `updates: false` to leave the pill out.
@@ -114,6 +118,7 @@ They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/inte
 | `theme` | `aurora` | `aurora`: the board's own look — soft glows of colour drifting behind frosted glass, in dark and light following Home Assistant's dark-mode setting. `home_assistant`: the colours of your Home Assistant theme. |
 | `statusBar` | `visible` | `hidden` when the phone shows no status bar (the Home Assistant app's full-screen mode): the clock, date and temperature move up to the very top of the screen. |
 | `height` | full screen | The board's height, e.g. `800px`. On a panel view it fills the screen. |
+| `matchBar` | `true` | On a phone, a TeamTracker team's match docked at the foot on game day, with the live score. |
 | `updates` | `true` | A pill under the clock when updates are waiting, with a list to install them. |
 | `layout_per_device` | `true` | Each screen keeps its own arrangement and hidden cards. `false`: one layout for every screen. |
 | `storage_key` | | Name for this board's saved layout; set it when you have more than one board. |

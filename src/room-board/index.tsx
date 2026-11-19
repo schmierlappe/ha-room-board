@@ -64,7 +64,9 @@ import { roomIcon } from "../vacuum/util";
 import { SetupPanel } from "./setup";
 import { SwitchCard, SwitchPanel } from "./switches";
 import { WasteCard, WastePanel, looksLikeWaste } from "./waste";
-import { MatchPanel, SportCard, isFootball, looksLikeTeamTracker } from "./sport";
+import { MatchBar, MatchPanel, SportCard, barMatch, isFootball, looksLikeTeamTracker } from "./sport";
+import { state as haStore } from "../ha/store";
+import { sameIds } from "../domains";
 import { WeatherCard, WeatherPanel } from "./weather";
 import { UptimeBar, UptimeCard, UptimeBoardPanel } from "./uptime";
 import { UnifiBoardPanel, UnifiCard, usePingList } from "./unifi";
@@ -206,6 +208,12 @@ const configSchema = defineConfig({
      settings that widget has. They are repeated here rather than read from
      that card: two widgets on a dashboard are independent, and a board should
      not stop working because a media player card was moved or removed. */
+  matchBar: field.toggle({
+    title: "Match bar on game day",
+    default: true,
+    description:
+      "On a phone, a TeamTracker team's match (live score, kick-off or result) docked at the foot on the day it plays.",
+  }),
   updates: field.toggle({
     title: "Update notifications",
     default: true,
@@ -745,9 +753,32 @@ function RoomBoard(props: { config: Config }) {
   const wasteId = () => ofDomain("sensor").find(looksLikeWaste)?.id ?? "";
   /* Teams followed with TeamTracker: a card each, in the room the sensor is in. */
   const teams = createMemo(() => ofDomain("sensor").filter(looksLikeTeamTracker), NONE, SAME_ITEMS);
+  /* Every team followed in the house, for the match bar: a match is news in
+     every room, not only the one its sensor was put in. Found by the
+     integration that made them, so the house's thousands of other sensors
+     are never read. */
+  const houseTeamIds = createMemo(
+    () =>
+      props.config.matchBar === false
+        ? []
+        : (domains().sensor ?? []).filter((id) => haStore.entityRegistry[id]?.platform === "teamtracker"),
+    [],
+    { equals: sameIds },
+  );
+  const houseTeams = useEntities(houseTeamIds);
+  const allTeams = createMemo(() => {
+    const seen = new Set(houseTeams().map((team) => team.id));
+    return [...houseTeams(), ...teams().filter((team) => !seen.has(team.id))];
+  });
+  /* Game day turns over at midnight, and a kick-off's day is checked against
+     the clock: a minute's tick is plenty. */
+  const [today, setToday] = createSignal(new Date());
+  const dayTick = setInterval(() => setToday(new Date()), 60_000);
+  onCleanup(() => clearInterval(dayTick));
+
   /* Which team's overlay is open. */
   const [matchTeam, setMatchTeam] = createSignal("");
-  const openTeam = () => teams().find((team) => team.id === matchTeam());
+  const openTeam = () => allTeams().find((team) => team.id === matchTeam());
 
   /* Likewise the calendars: the ones assigned to this area, in the order the
      area lists them, which is what gives each its colour. */
@@ -1059,6 +1090,13 @@ function RoomBoard(props: { config: Config }) {
     const { w, h } = size();
     return w > 0 && (w < 560 || (w < 1000 && h > w * 1.15));
   });
+
+  /* The match docked at the foot on a phone, on game day (sport.tsx). */
+  const matchToday = createMemo(() =>
+    narrow() && props.config.matchBar !== false
+      ? barMatch(allTeams().filter(looksLikeTeamTracker), today())
+      : undefined,
+  );
 
   /* How many columns the narrow board's tiles take: two on a phone, and on
      a wider portrait screen as many as keep a tile about a phone's size —
@@ -1794,25 +1832,47 @@ function RoomBoard(props: { config: Config }) {
                   fallback={
                     <Show when={!narrow()} fallback={
                       <Show
-                        when={homeDock()}
+                        when={homeDock() || matchToday()}
                         fallback={
                           <Guard name="Activity">
                             <ActivityBar entities={entities()} onOpen={() => openPanel("activity")} />
                           </Guard>
                         }
                       >
-                        {/* The Home room on a phone: the player docked over
-                            the activity line, at the foot of the screen. */}
-                        <div class="rb-dock">
-                          <Guard name="Media">
-                            <MiniPlayer
-                              players={cardPlayers()}
-                              haBaseUrl={NO_ADDRESS}
-                              artworkProxy={NO_ADDRESS}
-                              chosen={chosenPlayer()}
-                              onOpen={() => openPanel("media")}
-                            />
-                          </Guard>
+                        {/* Docked at the foot of the screen, over the
+                            activity line: the match on game day, in every
+                            room, and the Home room's player. */}
+                        <div class="rb-dock" data-match={!!matchToday()} data-player={homeDock()}>
+                          <Show when={matchToday()}>
+                            {(team) => (
+                              <Guard name="Match">
+                                <MatchBar
+                                  entity={team()}
+                                  proxy={NO_ADDRESS}
+                                  haBase={NO_ADDRESS}
+                                  onOpen={
+                                    isFootball(team())
+                                      ? () => {
+                                          setMatchTeam(team().id);
+                                          openPanel("match");
+                                        }
+                                      : undefined
+                                  }
+                                />
+                              </Guard>
+                            )}
+                          </Show>
+                          <Show when={homeDock()}>
+                            <Guard name="Media">
+                              <MiniPlayer
+                                players={cardPlayers()}
+                                haBaseUrl={NO_ADDRESS}
+                                artworkProxy={NO_ADDRESS}
+                                chosen={chosenPlayer()}
+                                onOpen={() => openPanel("media")}
+                              />
+                            </Guard>
+                          </Show>
                           <Guard name="Activity">
                             <ActivityBar entities={entities()} onOpen={() => openPanel("activity")} />
                           </Guard>
