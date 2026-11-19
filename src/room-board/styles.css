@@ -13471,3 +13471,37 @@
 .rb-spark-delta { color: var(--rb-dim); font-variant-numeric: tabular-nums; }
 :where(.rb-board[data-scheme="light"]) .rb-spark-range [data-end="low"] { color: #2563eb; }
 :where(.rb-board[data-scheme="light"]) .rb-spark-range [data-end="high"] { color: #c2410c; }
+
+/* Which layout this screen shows: its own, or the shared one. */
+.rb-setup-device {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--rb-ink) 6%, transparent);
+  box-shadow: inset 0 0 0 1px var(--rb-edge);
+}
+.rb-setup-device .rb-setup-ha-icon { background: color-mix(in srgb, var(--rb-ink) 14%, transparent); color: var(--rb-ink); }
+.rb-setup-device .rb-setup-ha-icon[data-own="true"] { background: var(--rb-primary, #7c6cf0); color: #fff; }
+.rb-setup-device-actions { display: flex; gap: 0.35rem; flex: none; }
+.rb-setup-device-btn {
+  padding: 0.35rem 0.65rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--rb-ink);
+  cursor: pointer;
+  background: color-mix(in srgb, var(--rb-ink) 10%, transparent);
+  transition: background 0.2s ease;
+}
+.rb-setup-device-btn:hover { background: color-mix(in srgb, var(--rb-ink) 16%, transparent); }
+.rb-setup-device-btn[data-asking="true"] { background: #f59e0b; color: #14161c; }
+/* Where there is no room beside the words, the buttons go under them
+   rather than squeezing them into a column. */
+.rb-setup-device { flex-wrap: wrap; row-gap: 0.5rem; }
+.rb-setup-device > .rb-setup-ha-text { flex: 1 1 13rem; }
+.rb-setup-device-actions { margin-left: auto; }

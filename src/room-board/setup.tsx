@@ -1,6 +1,6 @@
 import { Show, createMemo, createSignal } from "solid-js";
 import { openHomeAssistant, sidebarShown } from "../ha/kiosk";
-import { Icon } from "@glasshome/widget-sdk";
+import { Icon, useWidgetContext } from "@glasshome/widget-sdk";
 import type { EntityView } from "@glasshome/widget-sdk";
 import { kindOf } from "./openings";
 import { isPollenSensor, isWarningSensor } from "./dwd";
@@ -178,6 +178,32 @@ export function SetupPanel(props: {
 
   const shownCount = () => props.entities.filter((entity) => isShown(entity.id)).length;
 
+  /* Where the layout lives. Each screen keeps its own; this row says which
+     one is showing, and offers the way back to the shared one or the way to
+     make this one what new screens start from. Both ask twice — a layout
+     tuned for a wall display is easy to lose and tedious to redo. */
+  const layout = useWidgetContext().layout;
+  const [asking, setAsking] = createSignal<"reset" | "share">();
+  const [done, setDone] = createSignal("");
+  let askTimer: ReturnType<typeof setTimeout> | undefined;
+  const ask = (what: "reset" | "share") => {
+    clearTimeout(askTimer);
+    if (asking() !== what) {
+      setAsking(what);
+      askTimer = setTimeout(() => setAsking(undefined), 3000);
+      return;
+    }
+    setAsking(undefined);
+    if (what === "reset") {
+      layout?.reset();
+      setDone("Back to the shared layout");
+    } else {
+      layout?.share();
+      setDone("New screens start from this layout");
+    }
+    askTimer = setTimeout(() => setDone(""), 3000);
+  };
+
   return (
     <div class="rb-setup">
       {/* The way out of a kiosk: on a wall screen or a full-screen phone
@@ -192,6 +218,43 @@ export function SetupPanel(props: {
           </span>
           <Icon icon="mdi:chevron-right" width="18" />
         </button>
+      </Show>
+
+      <Show when={layout?.perDevice()}>
+        <div class="rb-setup-device">
+          <span class="rb-setup-ha-icon" data-own={layout!.own()}>
+            <Icon icon="mdi:monitor-cellphone" width="20" />
+          </span>
+          <span class="rb-setup-ha-text">
+            <b>{layout!.own() ? "This screen's own layout" : "Shared layout"}</b>
+            <small>
+              {done() ||
+                (layout!.own()
+                  ? "Arranging and hiding here change only this screen"
+                  : "Arrange or hide something to give this screen its own")}
+            </small>
+          </span>
+          <Show when={layout!.own()}>
+            <span class="rb-setup-device-actions">
+              <button
+                class="rb-setup-device-btn"
+                data-asking={asking() === "share"}
+                title="Start new screens from this layout"
+                onClick={() => ask("share")}
+              >
+                {asking() === "share" ? "Sure?" : "Use for new"}
+              </button>
+              <button
+                class="rb-setup-device-btn"
+                data-asking={asking() === "reset"}
+                title="Forget this screen's layout and use the shared one"
+                onClick={() => ask("reset")}
+              >
+                {asking() === "reset" ? "Sure?" : "Reset"}
+              </button>
+            </span>
+          </Show>
+        </div>
       </Show>
 
       <header class="rb-setup-head">

@@ -73,6 +73,15 @@ The board fills the screen below whatever Home Assistant shows above it. For the
 
 On a screen taller than it is wide — a wall display such as the Shelly Wall Display, or a tablet stood upright — the board lays itself out as on a phone: the room's photo across the top, the cards below it, as many columns as keep each tile about a phone's size (three or four), and the activity at the foot. Landscape screens keep the side-by-side layout.
 
+### A layout for each screen
+
+Each screen keeps its own layout: arrange or hide cards on your phone and the tablet and wall display stay as they are. A screen you haven't changed shows the shared layout (on a board from before this, the layout you already had). The ☰ menu says which one a screen is showing, and once it has its own:
+
+- **Use for new:** screens that haven't been changed yet start from this layout.
+- **Reset:** forget this screen's layout and go back to the shared one.
+
+Each is kept in Home Assistant under your user, and the screen is recognised by its browser. Clearing the browser's or the Companion app's data makes it a new screen, which starts from the shared layout. Set `layout_per_device: false` for one layout on every screen, as before.
+
 ### Network, servers and monitors
 
 Three cards appear by themselves where they belong:
@@ -101,6 +110,7 @@ They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/inte
 | `theme` | `aurora` | `aurora`: the board's own look — soft glows of colour drifting behind frosted glass, in dark and light following Home Assistant's dark-mode setting. `home_assistant`: the colours of your Home Assistant theme. |
 | `statusBar` | `visible` | `hidden` when the phone shows no status bar (the Home Assistant app's full-screen mode): the clock, date and temperature move up to the very top of the screen. |
 | `height` | full screen | The board's height, e.g. `800px`. On a panel view it fills the screen. |
+| `layout_per_device` | `true` | Each screen keeps its own arrangement and hidden cards. `false`: one layout for every screen. |
 | `storage_key` | | Name for this board's saved layout; set it when you have more than one board. |
 
 What you change on the board itself — the cards hidden in a room, their order and their sizes — is saved for your Home Assistant user, so it is the same on every device you sign in on.
