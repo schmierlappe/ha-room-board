@@ -154,8 +154,19 @@ ${AURORA_CSS}
 }
 /* Under the status bar: square corners, the picture behind the bar, and the
    clock and the panel's heading below it. */
-:host([data-bleed]) .ha-rb-widget { border-radius: 0; }
+:host(:is([data-bleed], [data-screen])) .ha-rb-widget { border-radius: 0; }
 :host([data-bleed]) .rb-scene { padding-top: calc(1rem + var(--rb-bleed-top, 0px)); }
+/* On a phone the clock, date and temperature sit as high as they can: right
+   under the status bar, the digits' own leading trimmed off. */
+:host([data-bleed]) .rb-board[data-narrow="true"] .rb-scene { padding-top: calc(0.2rem + var(--rb-bleed-top, 0px)); }
+:host(:is([data-bleed], [data-screen])) .rb-board[data-narrow="true"] .rb-clock-time { line-height: 0.9; }
+/* With the status bar hidden, up into its strip: the clock on one side of
+   the camera, the temperature on the other, kept clear of the screen's
+   rounded corners; and the photo band no taller than without the strip. */
+:host([data-statusbar-hidden][data-bleed]) .rb-board[data-narrow="true"] .rb-scene { padding-top: 0.9rem; }
+:host([data-statusbar-hidden][data-bleed]) .rb-board[data-narrow="true"]:has(.rb-scene-photo) {
+  grid-template-rows: clamp(11rem, 28%, 16rem) 1fr;
+}
 /* The photo band on a phone gains the status bar's height rather than
    losing it from what is under the clock. */
 :host([data-bleed]) .rb-board[data-narrow="true"]:has(.rb-scene-photo) {
@@ -186,6 +197,10 @@ class RoomBoardCard extends HTMLElement {
     /* Aurora unless Home Assistant's own theme is asked for. */
     const theme = config.theme === "home_assistant" || config.theme === "home-assistant" ? "home_assistant" : "aurora";
     this.setAttribute("data-theme", theme);
+    /* The status bar hidden (the companion app's full screen): nothing of the
+       system's is drawn at the top, so the clock may go up into that strip.
+       A page cannot tell on its own — the safe area is the same either way. */
+    this.toggleAttribute("data-statusbar-hidden", config.statusBar === "hidden" || config.statusBar === false);
   }
 
   set hass(next: Hass) {
@@ -221,9 +236,15 @@ class RoomBoardCard extends HTMLElement {
     /* Down to the screen's edge where there is a home indicator to sit
        above (the bar keeps its words clear of it), a little short of it
        otherwise. */
-    const gap = bleed > 0 || safeBottom > 0 ? 0 : BOTTOM_GAP_PX;
+    /* So does a card that starts at the very top of the screen (a kiosk
+       view, the companion app in full screen): it is the whole screen, and
+       the few pixels short left Home Assistant's background as a strip under
+       it. */
+    const atTop = natural - bleed <= BLEED_SLACK_PX;
+    const gap = bleed > 0 || safeBottom > 0 || atTop ? 0 : BOTTOM_GAP_PX;
+    this.toggleAttribute("data-screen", atTop);
     this.style.marginBottom = safeBottom > 0 ? `${-safeBottom}px` : "";
-    this.style.setProperty("--room-board-fit", `${Math.max(420, Math.floor(viewport - (natural - bleed) - gap))}px`);
+    this.style.setProperty("--room-board-fit", `${Math.max(420, Math.round(viewport - (natural - bleed) - gap))}px`);
   };
   private bleedTop = 0;
 
