@@ -224,7 +224,9 @@ export function applyMosaic(grid: HTMLElement, on: boolean, ordered?: HTMLElemen
   plan.forEach(({ index, shape }, position) => {
     const card = cards[index]!;
     setStyle(card, "order", String(position));
-    setStyle(card, "grid-column", shape === "wide" ? "1 / -1" : "auto");
+    /* Two columns, not the whole row: on a phone that is the row, and on a
+       wider portrait screen two figures sit side by side. */
+    setStyle(card, "grid-column", shape === "wide" ? "span 2" : "auto");
     setStyle(card, "grid-row", shape === "portrait" ? "span 2" : "auto");
     /* Said on the card as well, for the cards that have more to show when
        they are given the room — the vacuum puts its map in a portrait. */

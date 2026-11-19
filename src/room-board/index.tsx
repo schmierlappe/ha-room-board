@@ -1037,7 +1037,23 @@ function RoomBoard(props: { config: Config }) {
 
   /* A memo, so a board that only changes height (a card taken off, a panel
      opened) leaves everything that asks "is this a phone?" alone. */
-  const narrow = createMemo(() => size().w > 0 && size().w < 560);
+  /* A portrait wall screen (the Shelly Wall Display, a tablet on its side)
+     is a tall phone, not a short desktop: the photo across the top and the
+     cards in two columns under it read far better than three panels
+     squeezed side by side. */
+  const narrow = createMemo(() => {
+    const { w, h } = size();
+    return w > 0 && (w < 560 || (w < 1000 && h > w * 1.15));
+  });
+
+  /* How many columns the narrow board's tiles take: two on a phone, and on
+     a wider portrait screen as many as keep a tile about a phone's size —
+     two columns across a wall display made every tile a third of the
+     screen. */
+  const columns = createMemo(() => {
+    const w = size().w;
+    return w < 560 ? 2 : Math.min(4, Math.max(3, Math.round(w / 190)));
+  });
 
   /* The person overlay: its tab, whether it has anything to map, and home
      for "how far away". */
@@ -1328,6 +1344,8 @@ function RoomBoard(props: { config: Config }) {
             }}
             class="rb-board"
             data-narrow={narrow()}
+            data-cols={columns()}
+            style={{ "--rb-cols": String(columns()) }}
             data-overlay={panel() !== undefined}
             data-scheme={themeVars()["color-scheme"]}
           >

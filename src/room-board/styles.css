@@ -12926,6 +12926,10 @@
 }
 .rb-board[data-narrow="true"] .rb-panel-body {
   position: relative;
+  /* One column whatever the width: a portrait wall screen is wider than a
+     phone, and by width alone it kept the desktop's feed column beside the
+     tiles. */
+  grid-template-columns: minmax(0, 1fr);
 }
 .rb-board[data-narrow="true"] .rb-panel-body > :is(.rb-act-bar, .rb-dock) {
   /* Over the tiles' arranging keys too (z-index 30), which otherwise showed
@@ -12964,10 +12968,13 @@
    tile beside a tall one grew into a rectangle, and a wide one with little
    in it into a band of empty space. */
 .rb-board[data-narrow="true"] .rb-grid {
-  --rb-cell: calc((100cqw - 2 * var(--rb-pad) - 0.65rem) / 2);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  --rb-cell: calc((100cqw - 2 * var(--rb-pad) - (var(--rb-cols, 2) - 1) * 0.65rem) / var(--rb-cols, 2));
+  grid-template-columns: repeat(var(--rb-cols, 2), minmax(0, 1fr));
   grid-auto-rows: var(--rb-cell);
 }
+/* More than two columns: the mosaic's two-column figures sit side by side,
+   and dense packing closes what they leave between them. */
+.rb-board[data-narrow="true"]:not([data-cols="2"]) .rb-grid { grid-auto-flow: row dense; }
 .rb-board[data-narrow="true"] .rb-grid > .rb-card {
   min-height: 0;
   overflow: hidden;

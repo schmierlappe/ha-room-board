@@ -69,6 +69,10 @@ The board fills the screen below whatever Home Assistant shows above it. For the
   To keep them on the desktop and hide them only on the tablet, use `hide_sidebar` / `hide_header` in kiosk-mode's per-user or per-entity settings instead, or open the dashboard with `?kiosk` in its address on the tablet. Without the sidebar there is no menu on that screen: keep a way back to Home Assistant's settings in mind, such as the address without `?kiosk`.
 - **Android's status and navigation bars:** in the Home Assistant Companion app, Settings → Companion app → turn on **Full screen** (it may sit under *Other settings*, depending on the app's version).
 
+### Portrait screens
+
+On a screen taller than it is wide — a wall display such as the Shelly Wall Display, or a tablet stood upright — the board lays itself out as on a phone: the room's photo across the top, the cards below it, as many columns as keep each tile about a phone's size (three or four), and the activity at the foot. Landscape screens keep the side-by-side layout.
+
 ### Network, servers and monitors
 
 Three cards appear by themselves where they belong:
