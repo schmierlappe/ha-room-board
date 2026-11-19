@@ -462,8 +462,13 @@ export function MiniPlayer(props: {
       {/* The cover and the words open the player; the keys beside them are
           buttons of their own — a button cannot hold other buttons. */}
       <button type="button" class="rb-mini-open" aria-label="Open the player" onClick={props.onOpen}>
-        <span class="rb-mini-art">
-          <Show when={art() && broken() !== art()} fallback={<Icon icon="mdi:music" width="18" />}>
+        <span
+          class="rb-mini-art"
+          data-brand={!(art() && broken() !== art())}
+          style={art() && broken() !== art() ? undefined : brandStyle(placeholderBrand(player()))}
+        >
+          {/* No cover (or a blacked-out screenshot): the app's tile, as on the card. */}
+          <Show when={art() && broken() !== art()} fallback={<Icon icon={placeholderBrand(player()).icon} />}>
             <img
               src={art()}
               alt=""
