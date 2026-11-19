@@ -446,6 +446,17 @@ export function VacuumPanel(props: {
   const [view, setView] = createSignal(0);
   let views: HTMLDivElement | undefined;
   const [sheet, setSheet] = createSignal<"rooms" | "wear" | undefined>();
+  /* On a wide screen the panel beside the machine shows the rooms or the
+     maintenance — the wrench switches it rather than covering the whole
+     overlay, so the robot and its controls stay in view. */
+  const [side, setSide] = createSignal<"rooms" | "wear">("rooms");
+  let sidePanel: HTMLElement | undefined;
+  const besideShown = () => !!sidePanel && sidePanel.offsetParent !== null;
+  const openWear = () => {
+    if (besideShown()) setSide(side() === "wear" ? "rooms" : "wear");
+    else setSheet("wear");
+  };
+  const sideNow = () => (rooms().length ? side() : "wear");
 
   /* The room picker: in its own sheet on a phone, beside everything else
      on a tablet or a desktop. */
@@ -623,16 +634,48 @@ export function VacuumPanel(props: {
             <Icon icon="mdi:map-marker-radius-outline" width="20" />
           </button>
           <Show when={wear().length}>
-            <button class="rb-vacm-key" aria-label="Maintenance" onClick={() => setSheet("wear")}>
+            <button
+              class="rb-vacm-key"
+              aria-label="Maintenance"
+              data-active={sideNow() === "wear" && besideShown()}
+              data-due={wear().some((item) => item.percent < DUE)}
+              onClick={openWear}
+            >
               <Icon icon="mdi:wrench-outline" width="20" />
             </button>
           </Show>
         </div>
       </div>
 
-      {/* Wide: the rooms beside the machine rather than behind a button. */}
-      <Show when={rooms().length}>
-        <section class="rb-vacm-sheet-body rb-vacm-roomside">{roomPicker()}</section>
+      {/* Wide: the rooms beside the machine rather than behind a button,
+          and the maintenance in the same place, a tab away. */}
+      <Show when={rooms().length || wear().length}>
+        <section ref={sidePanel} class="rb-vacm-sheet-body rb-vacm-roomside" data-side={sideNow()}>
+          <Show when={rooms().length && wear().length}>
+            <div class="rb-vac-tabs" role="tablist" data-side={sideNow()}>
+              <span class="rb-vac-tabs-glide" aria-hidden="true" />
+              <button role="tab" aria-selected={sideNow() === "rooms"} onClick={() => setSide("rooms")}>
+                <Icon icon="mdi:floor-plan" width="16" />
+                <span>Rooms</span>
+              </button>
+              <button role="tab" aria-selected={sideNow() === "wear"} onClick={() => setSide("wear")}>
+                <Icon icon="mdi:wrench-outline" width="16" />
+                <span>Maintenance</span>
+                <Show when={wear().some((item) => item.percent < DUE)}>
+                  <i class="rb-vac-tabs-due" />
+                </Show>
+              </button>
+            </div>
+          </Show>
+          <Show
+            when={sideNow() === "wear"}
+            fallback={<div class="rb-vac-pane">{roomPicker()}</div>}
+          >
+            <div class="rb-vac-pane">
+              <Maintenance items={wear()} onReset={pressReset} />
+            </div>
+          </Show>
+        </section>
       </Show>
 
       {/* The rooms and the maintenance, each a sheet over the overlay from
@@ -652,9 +695,7 @@ export function VacuumPanel(props: {
           </Show>
           <Show when={sheet() === "wear"}>
             <div class="rb-vacm-sheet-body">
-              <div class="rb-consumables">
-                <For each={wear()}>{(item) => <ConsumableTile item={item} onReset={pressReset} />}</For>
-              </div>
+              <Maintenance items={wear()} onReset={pressReset} />
             </div>
           </Show>
         </div>
@@ -759,12 +800,44 @@ function FanSlider(props: { levels: string[]; value: string; onPick: (value: str
  * their own. Reset asks twice — on a wall tablet a stray thumb should not tell
  * the robot its brush is new.
  */
-function ConsumableTile(props: { item: Consumable; onReset: (entityId: string) => void }) {
+/** Below this much life left, a part is due: amber in the list, a dot on the wrench. */
+const DUE = 20;
+
+/**
+ * The parts and how much life each has left: the most worn first, each a row
+ * with a slim bar in its own colour on the wear ramp, and a line at the top
+ * that says whether anything needs doing.
+ */
+function Maintenance(props: { items: Consumable[]; onReset: (entityId: string) => void }) {
+  const sorted = () => [...props.items].sort((a, b) => a.percent - b.percent);
+  const due = () => props.items.filter((item) => item.percent < DUE).length;
+  return (
+    <div class="rb-wear">
+      <div class="rb-wear-summary" data-due={due() > 0}>
+        <span class="rb-wear-summary-icon">
+          <Icon icon={due() ? "mdi:alert-circle-outline" : "mdi:check-circle-outline"} width="20" />
+        </span>
+        <span class="rb-wear-summary-text">
+          <b>{due() ? `${due()} ${due() === 1 ? "part needs" : "parts need"} attention` : "All parts in good shape"}</b>
+          <small>
+            {due()
+              ? "Replace or clean it, then reset its counter."
+              : `${props.items.length} parts tracked · the lowest at ${Math.round(sorted()[0]?.percent ?? 100)}%`}
+          </small>
+        </span>
+      </div>
+      <ul class="rb-wear-list">
+        <For each={sorted()}>{(item) => <WearRow item={item} onReset={props.onReset} />}</For>
+      </ul>
+    </div>
+  );
+}
+
+function WearRow(props: { item: Consumable; onReset: (entityId: string) => void }) {
   const [armed, setArmed] = createSignal(false);
   let timer: ReturnType<typeof setTimeout> | undefined;
   onCleanup(() => clearTimeout(timer));
-
-  const color = () => wearColor(props.item.percent);
+  const percent = () => Math.max(0, Math.min(100, props.item.percent));
 
   const reset = (event: MouseEvent) => {
     event.stopPropagation();
@@ -781,34 +854,36 @@ function ConsumableTile(props: { item: Consumable; onReset: (entityId: string) =
   };
 
   return (
-    <div
-      class="rb-consumable"
-      style={{ "--wear": `${props.item.percent}`, "--wear-color": color() }}
+    <li
+      class="rb-wear-row"
+      data-due={percent() < DUE}
+      style={{ "--wear": `${percent()}%`, "--wear-color": wearColor(percent()) }}
     >
-      <span class="rb-consumable-ring">
-        <Icon icon={props.item.icon} width="16" />
+      <span class="rb-wear-icon">
+        <Icon icon={props.item.icon} width="18" />
       </span>
-
-      <span class="rb-consumable-meta">
-        <span class="rb-consumable-name rb-truncate">{props.item.label}</span>
-        <span class="rb-consumable-detail rb-truncate">{props.item.detail}</span>
+      <span class="rb-wear-main">
+        <span class="rb-wear-line">
+          <b class="rb-truncate">{props.item.label}</b>
+          <span class="rb-wear-pct">{Math.round(percent())}%</span>
+        </span>
+        <span class="rb-wear-bar" aria-hidden="true">
+          <i />
+        </span>
+        <span class="rb-wear-detail rb-truncate">{props.item.detail} left</span>
       </span>
-
-      <b class="rb-consumable-pct">{Math.round(props.item.percent)}%</b>
-
       <Show when={props.item.resetId}>
         <button
-          class="rb-consumable-reset"
+          class="rb-wear-reset"
           data-armed={armed()}
           aria-label={armed() ? `Confirm reset of ${props.item.label}` : `Reset ${props.item.label}`}
           onClick={reset}
         >
-          <Icon icon={armed() ? "mdi:check" : "mdi:restart"} width="15" />
-          <Show when={armed()}>
-            <span>Sure?</span>
-          </Show>
+          <Icon icon={armed() ? "mdi:check" : "mdi:restart"} width="14" />
+          <span>{armed() ? "Sure?" : "Reset"}</span>
         </button>
       </Show>
-    </div>
+    </li>
   );
 }
+

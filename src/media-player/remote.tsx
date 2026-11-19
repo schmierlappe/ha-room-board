@@ -1,5 +1,6 @@
 import { For, Show, createSignal, onCleanup } from "solid-js";
-import { Icon, useEntity, useService, type EntityView } from "@glasshome/widget-sdk";
+import { Icon, useEntities, useEntity, useService, type EntityView } from "@glasshome/widget-sdk";
+import { useDomains } from "../domains";
 import {
   REMOTE_PRESETS,
   parseCommandMap,
@@ -99,9 +100,32 @@ export function RemotePanel(props: {
   /* Volume belongs to the profile: a bedroom Fire TV runs through an Echo Sub
      while a living room runs through a receiver, and several can be driven at
      once when the room is grouped. */
+  const domains = useDomains();
+  const players = useEntities(() => domains().media_player ?? []);
+  /* A Music Assistant player for an Echo has no volume of its own — no
+     volume_level, and a volume_set that never reaches the speaker — while
+     Alexa Media Player's entity for the same Echo does. Where a listed
+     player is one of those, the volume goes to its namesake that reports a
+     level, so the profile can name either one and the slider still works. */
+  const withVolume = (id: string) => {
+    const all = players();
+    const listed = all.find((player) => player.id === id);
+    if (!listed || listed.attributes?.volume_level != null) return id;
+    if (!("mass_player_type" in (listed.attributes ?? {}))) return id;
+    const name = (listed.friendlyName ?? "").trim().toLowerCase();
+    if (!name) return id;
+    const twin = all.find(
+      (player) =>
+        player.id !== id &&
+        player.attributes?.volume_level != null &&
+        !("mass_player_type" in (player.attributes ?? {})) &&
+        (player.friendlyName ?? "").trim().toLowerCase() === name,
+    );
+    return twin?.id ?? id;
+  };
   const volumeTargets = () => {
     const listed = profile()?.volumePlayers ?? [];
-    if (listed.length) return listed;
+    if (listed.length) return [...new Set(listed.map(withVolume))];
     return usesAdb() && target() ? [target()] : [];
   };
 
@@ -198,7 +222,7 @@ export function RemotePanel(props: {
     if (!targets.length) return;
     void callService("media_player", "volume_set", { volume_level: pct / 100 }, {
       entity_id: targets,
-    });
+    }).catch((err: unknown) => setError(errorMessage(err, "Could not set the volume")));
   };
 
   /**
@@ -893,6 +917,7 @@ function VolumeCard(props: { value: number; onChange: (value: number) => void })
   const [held, setHeld] = createSignal<number | undefined>();
   const shown = () => held() ?? props.value;
   let last = 0;
+  let sent: number | undefined;
 
   const at = (event: PointerEvent) => {
     const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -904,8 +929,11 @@ function VolumeCard(props: { value: number; onChange: (value: number) => void })
     const value = at(event);
     setHeld(value);
     const now = Date.now();
-    if (final || now - last > 180) {
+    /* Once per value: a tap is a press and a release at the same spot, and
+       sent both times the speaker was told the same level twice. */
+    if ((final || now - last > 180) && value !== sent) {
       last = now;
+      sent = value;
       props.onChange(value);
     }
   };
@@ -923,6 +951,7 @@ function VolumeCard(props: { value: number; onChange: (value: number) => void })
       onPointerDown={(event) => {
         event.stopPropagation();
         (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+        sent = undefined;
         move(event, true);
       }}
       onPointerMove={(event) => {
