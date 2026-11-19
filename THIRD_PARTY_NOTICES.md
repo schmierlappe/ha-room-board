@@ -203,3 +203,7 @@ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
+
+## Simple Icons (app logos in src/media-player/brand-logos.ts) — CC0 1.0
+
+The logos of the apps a media player can show (Netflix, YouTube, Spotify, Apple TV, Twitch, Plex, DAZN, Telekom/MagentaTV, ZDF, RTL, Sky, Paramount+, Max, HBO, Crunchyroll) are taken from [Simple Icons](https://simpleicons.org), released under CC0 1.0 Universal. The logos themselves are trademarks of their respective owners and are used only to identify the app that is playing.
