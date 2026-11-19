@@ -1,4 +1,5 @@
 import { Show, createMemo, createSignal } from "solid-js";
+import { openHomeAssistant, sidebarShown } from "../ha/kiosk";
 import { Icon } from "@glasshome/widget-sdk";
 import type { EntityView } from "@glasshome/widget-sdk";
 import { kindOf } from "./openings";
@@ -179,6 +180,20 @@ export function SetupPanel(props: {
 
   return (
     <div class="rb-setup">
+      {/* The way out of a kiosk: on a wall screen or a full-screen phone
+          there is no sidebar to reach settings by. Only while it is hidden —
+          where it is on screen, it is the way already. */}
+      <Show when={!sidebarShown()}>
+        <button class="rb-setup-ha" onClick={(event) => openHomeAssistant(event.currentTarget)}>
+          <span class="rb-setup-ha-icon"><Icon icon="mdi:home-assistant" width="20" /></span>
+          <span class="rb-setup-ha-text">
+            <b>Home Assistant</b>
+            <small>Open the sidebar and settings</small>
+          </span>
+          <Icon icon="mdi:chevron-right" width="18" />
+        </button>
+      </Show>
+
       <header class="rb-setup-head">
         <span class="rb-setup-count">
           {shownCount()} of {props.entities.length} shown

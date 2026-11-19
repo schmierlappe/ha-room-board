@@ -66,7 +66,7 @@ The board fills the screen below whatever Home Assistant shows above it. For the
     kiosk: true
   ```
 
-  To keep them on the desktop and hide them only on the tablet, use `hide_sidebar` / `hide_header` in kiosk-mode's per-user or per-entity settings instead, or open the dashboard with `?kiosk` in its address on the tablet. Without the sidebar there is no menu on that screen: keep a way back to Home Assistant's settings in mind, such as the address without `?kiosk`.
+  To keep them on the desktop and hide them only on the tablet, use `hide_sidebar` / `hide_header` in kiosk-mode's per-user or per-entity settings instead, or open the dashboard with `?kiosk` in its address on the tablet. Without the sidebar the board keeps a way back: open the board's menu (☰ on the photo), and **Home Assistant** at its top opens the sidebar — under kiosk-mode it reloads the page with `?disable_km`, which shows the header and sidebar until the next reload.
 - **Android's status and navigation bars:** in the Home Assistant Companion app, Settings → Companion app → turn on **Full screen** (it may sit under *Other settings*, depending on the app's version).
 
 ### Portrait screens
