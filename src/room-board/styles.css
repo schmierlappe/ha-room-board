@@ -12925,6 +12925,9 @@
   position: relative;
 }
 .rb-board[data-narrow="true"] .rb-panel-body > :is(.rb-act-bar, .rb-dock) {
+  /* Over the tiles' arranging keys too (z-index 30), which otherwise showed
+     through the bar where a tile passed under it. */
+  z-index: 40;
   position: absolute;
   left: calc(var(--rb-pad) * -1);
   right: calc(var(--rb-pad) * -1);
@@ -12965,4 +12968,45 @@
 .rb-board[data-narrow="true"] .rb-grid > .rb-card {
   min-height: 0;
   overflow: hidden;
+}
+
+/* Off the board, with many cards taken off: the strip keeps to a corner of
+   the board and scrolls by itself, so the tiles under it keep their room.
+   Grown to its full length, the list pushed the tiles — the only part that
+   scrolls — off the screen, and on a phone nothing could be reached. On a
+   phone the chips are one row, swiped sideways. */
+.rb-removed {
+  flex: none;
+  max-height: 10rem;
+  min-height: 0;
+  overflow: hidden;
+}
+.rb-removed-list {
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.rb-board[data-narrow="true"] .rb-removed {
+  flex-wrap: nowrap;
+  flex-direction: column;
+  align-items: stretch;
+  max-height: none;
+  gap: 0.45rem;
+}
+.rb-board[data-narrow="true"] .rb-removed-list {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.1rem;
+}
+.rb-board[data-narrow="true"] .rb-removed-list::-webkit-scrollbar { display: none; }
+.rb-board[data-narrow="true"] .rb-removed-list > button {
+  flex: none;
+  max-width: 12rem;
+  scroll-snap-align: start;
 }
