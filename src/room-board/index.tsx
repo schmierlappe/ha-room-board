@@ -109,6 +109,7 @@ import { attr, classOf, metricsOf, numeric, safeIcon, themeVars } from "./util";
 import { Keyed } from "./keyed";
 import { errorMessage } from "../errors";
 import { CLOCK_STYLES, SceneClock } from "./clock";
+import { UpdatesPanel, UpdatesPill, pending as updatePending } from "./updates";
 
 /**
  * The players a stand-in player names: a universal media player the one in
@@ -205,6 +206,11 @@ const configSchema = defineConfig({
      settings that widget has. They are repeated here rather than read from
      that card: two widgets on a dashboard are independent, and a board should
      not stop working because a media player card was moved or removed. */
+  updates: field.toggle({
+    title: "Update notifications",
+    default: true,
+    description: "A pill on the room's photo when Home Assistant has updates, with a list to install them.",
+  }),
   musicAssistant: field.toggle({
     title: "Music Assistant features",
     default: true,
@@ -520,6 +526,12 @@ function RoomBoard(props: { config: Config }) {
   });
   const ofDomain = (domain: string): EntityView[] => inRoom()[domain] ?? NONE;
 
+  /* Updates are the house's, like the lists: Home Assistant, its add-ons,
+     HACS and device firmware sit in no room. Only the waiting ones are
+     watched closely; the rest are filtered out here. */
+  const updateAll = useEntities(() => (props.config.updates === false ? [] : (domains().update ?? [])));
+  const updates = createMemo(() => updateAll().filter(updatePending), NONE, SAME_ITEMS);
+
   /* Shopping and to-do lists are the household's, not a room's — Bring's
      list sits in no area — so they are offered in every room's list of what
      it shows, under a group of their own, and shown on the agenda while
@@ -805,6 +817,7 @@ function RoomBoard(props: { config: Config }) {
     | "proxmox"
     | "activity"
     | "match"
+    | "updates"
     | "setup";
   const [panel, setPanel] = createSignal<Panel | undefined>();
 
@@ -830,6 +843,7 @@ function RoomBoard(props: { config: Config }) {
     proxmox: "Proxmox",
     activity: "Activity",
     match: "Matchday",
+    updates: "Updates",
     setup: "Shown in this room",
   };
 
@@ -1418,6 +1432,14 @@ function RoomBoard(props: { config: Config }) {
               </div>
 
 
+              {/* Waiting updates, under the clock: seen from across the room,
+                  and out of the way of everything the room itself shows. */}
+              <Show when={updates().length}>
+                <div class="rb-scene-updates">
+                  <UpdatesPill updates={updates()} onOpen={() => openPanel("updates")} />
+                </div>
+              </Show>
+
               {/* One button rather than a row of them: a strip of chips is a
                   menu left permanently open across the photograph, and with
                   more than four rooms it either wrapped or scrolled. The
@@ -1953,6 +1975,10 @@ function RoomBoard(props: { config: Config }) {
                             home={homeCoord()}
                           />
                         </div>
+                      </Show>
+
+                      <Show when={panel() === "updates"}>
+                        <UpdatesPanel updates={updates()} />
                       </Show>
 
                       <Show when={panel() === "activity"}>
