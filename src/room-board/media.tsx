@@ -1,6 +1,6 @@
 import { artSrc } from "../artwork";
 import { pictureOf, usePlexPlayers, withPlexTwin } from "../media-player/plex-twin";
-import { brandOf, brandStyle } from "../media-player/brand";
+import { brandStyle, placeholderBrand } from "../media-player/brand";
 import { Show, createMemo, createSignal, onCleanup } from "solid-js";
 import { Icon, useService, type EntityView } from "@glasshome/widget-sdk";
 /* The media player widget's own resolver: it already knows the three shapes
@@ -242,13 +242,13 @@ export function MediaCard(props: {
             fallback={
               <span
                 class="rb-media-art rb-media-art--empty"
-                data-brand={!!brandOf(player())}
-                style={brandOf(player()) ? brandStyle(brandOf(player())!) : undefined}
+                data-brand="true"
+                style={brandStyle(placeholderBrand(player()))}
               >
                 {/* No cover, but a known app: its logo on its own ground. */}
                 <Icon
-                  icon={brandOf(player())?.icon ?? "mdi:music"}
-                  width={brandOf(player()) ? undefined : "22"}
+                  icon={placeholderBrand(player()).icon}
+                  width={undefined}
                 />
               </span>
             }

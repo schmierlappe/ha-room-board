@@ -30,6 +30,7 @@ import {
 import { createStore } from "solid-js/store";
 import { z } from "zod";
 import { entity, entityIds, hasEntity, hass, hasHass, state as store, type HassEntity } from "./store";
+import { BRAND_PATHS } from "../media-player/brand-logos";
 
 export { z };
 export type Infer<T extends z.ZodType> = z.infer<T>;
@@ -740,6 +741,11 @@ function loadShape(name: string, set: (shape: Shape) => void): void {
 
 function shapeOf(name: string): Shape | undefined {
   if (!name) return null;
+  /* An app's logo, carried in the card (media-player/brand-logos.ts). */
+  if (name.startsWith("brand:")) {
+    const path = BRAND_PATHS[name.slice("brand:".length)];
+    return path ? { path, viewBox: "0 0 24 24" } : null;
+  }
   let found = shapes.get(name);
   if (!found) {
     const [get, set] = createSignal<Shape | undefined>(undefined);
@@ -776,7 +782,24 @@ export function Icon(props: {
       height={height()}
       {...rest}
     >
-      <Show when={shape()}>{(found) => <path d={found().path} />}</Show>
+      <Show
+        when={own.icon.startsWith("wordmark:")}
+        fallback={<Show when={shape()}>{(found) => <path d={found().path} />}</Show>}
+      >
+        {/* An app with no logo here: its name, set as a wordmark. */}
+        <text
+          x="12"
+          y="12.6"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          font-size="5.2"
+          font-weight="800"
+          letter-spacing="-0.15"
+          font-family="inherit"
+        >
+          {own.icon.slice("wordmark:".length)}
+        </text>
+      </Show>
     </svg>
   );
 }
