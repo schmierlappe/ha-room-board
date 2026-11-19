@@ -67,7 +67,7 @@ import { WasteCard, WastePanel, looksLikeWaste } from "./waste";
 import { MatchBar, MatchPanel, SportCard, barMatch, isFootball, looksLikeTeamTracker } from "./sport";
 import { state as haStore } from "../ha/store";
 import { sameIds } from "../domains";
-import { WeatherCard, WeatherPanel } from "./weather";
+import { WeatherCard, WeatherPanel, WeatherSky } from "./weather";
 import { UptimeBar, UptimeCard, UptimeBoardPanel } from "./uptime";
 import { UnifiBoardPanel, UnifiCard, usePingList } from "./unifi";
 import { ProxmoxBoardPanel, ProxmoxCard } from "./proxmox";
@@ -1931,7 +1931,11 @@ function RoomBoard(props: { config: Config }) {
                 <div class="rb-overlay" onPointerDown={swallow}>
                   <button type="button" class="rb-overlay-scrim" tabIndex={-1} aria-label="Close" onClick={closePanel} />
 
-                  <section class="rb-sheet">
+                  <section class="rb-sheet" data-panel={panel()}>
+                    {/* The weather's own sky behind the top of its sheet. */}
+                    <Show when={panel() === "weather" && weathers().length}>
+                      <WeatherSky entityId={weathers()[0]?.id ?? ""} />
+                    </Show>
                     <header class="rb-sheet-head">
                       <button
                         class="rb-sheet-back"
