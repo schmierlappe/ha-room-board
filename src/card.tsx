@@ -32,6 +32,32 @@ const BLEED_SLACK_PX = 6;
 /** The board's own changes to its config, kept per user. */
 const USER_KEYS = ["hidden", "layout"] as const;
 
+/**
+ * This browser's own name for itself, kept in its local storage.
+ *
+ * Home Assistant's user data is per user, not per screen, so a phone, a tablet
+ * and a wall display signed in as the same person shared one arrangement —
+ * and what fits a phone does not fit a tablet. Each screen keeps its layout
+ * under this id instead. Lost with the browser's storage, the screen simply
+ * starts again from the shared layout.
+ */
+function deviceId(): string {
+  const KEY = "ha-room-board-device";
+  try {
+    const found = localStorage.getItem(KEY);
+    if (found) return found;
+    const made =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(KEY, made);
+    return made;
+  } catch {
+    /* No storage (a private window): one shared layout, as before. */
+    return "";
+  }
+}
+
 /* The widgets' typeface, Geist (SIL Open Font License 1.1). A font face has
    to be declared on the page: one in a shadow root is not used. */
 function addFont(): void {
@@ -179,6 +205,18 @@ class RoomBoardCard extends HTMLElement {
   private readonly overridesSignal = createSignal<Record<string, unknown>>({});
   private dispose?: () => void;
   private overridesLoaded = false;
+  /** Whether this screen has saved a layout of its own. */
+  private readonly ownLayoutSignal = createSignal(false);
+  private readonly device = deviceId();
+
+  /** Each screen its own layout, unless the card says to share one. */
+  private get perDevice(): boolean {
+    return this.configSignal[0]().layout_per_device !== false && this.device !== "";
+  }
+
+  private get deviceKey(): string {
+    return `${this.storageKey}-device-${this.device}`;
+  }
 
   /** Where this card's own changes are kept: one per board, by its key. */
   private get storageKey(): string {
@@ -298,13 +336,29 @@ class RoomBoardCard extends HTMLElement {
     return { rooms: [] };
   }
 
+  private async readUserData(key: string): Promise<Record<string, unknown> | undefined> {
+    const reply = await hass().connection.sendMessagePromise<{ value?: Record<string, unknown> | null }>({
+      type: "frontend/get_user_data",
+      key,
+    });
+    return reply?.value ?? undefined;
+  }
+
+  private writeUserData(key: string, value: Record<string, unknown> | null): void {
+    void hass()
+      .connection.sendMessagePromise({ type: "frontend/set_user_data", key, value })
+      .catch((error) => console.warn("room-board-card: could not save the layout", error));
+  }
+
+  /* The screen's own layout where it has one, the shared one otherwise —
+     which is where every screen starts, and what the board had before
+     layouts were kept per screen. */
   private async loadOverrides(): Promise<void> {
     try {
-      const reply = await hass().connection.sendMessagePromise<{ value?: Record<string, unknown> | null }>({
-        type: "frontend/get_user_data",
-        key: this.storageKey,
-      });
-      if (reply?.value) this.overridesSignal[1](reply.value);
+      const own = this.perDevice ? await this.readUserData(this.deviceKey) : undefined;
+      this.ownLayoutSignal[1](!!own);
+      const value = own ?? (await this.readUserData(this.storageKey));
+      this.overridesSignal[1](value ?? {});
     } catch (error) {
       console.warn("room-board-card: could not read the saved layout", error);
     }
@@ -314,9 +368,25 @@ class RoomBoardCard extends HTMLElement {
     const value: Record<string, unknown> = {};
     for (const key of USER_KEYS) if (key in config) value[key] = config[key];
     this.overridesSignal[1](value);
-    void hass()
-      .connection.sendMessagePromise({ type: "frontend/set_user_data", key: this.storageKey, value })
-      .catch((error) => console.warn("room-board-card: could not save the layout", error));
+    if (this.perDevice) {
+      this.ownLayoutSignal[1](true);
+      this.writeUserData(this.deviceKey, value);
+    } else {
+      this.writeUserData(this.storageKey, value);
+    }
+  }
+
+  /** Back to the shared layout: this screen's own is forgotten. */
+  private resetDeviceLayout(): void {
+    if (!this.perDevice) return;
+    this.writeUserData(this.deviceKey, null);
+    this.ownLayoutSignal[1](false);
+    void this.loadOverrides();
+  }
+
+  /** This screen's layout becomes the one new screens start from. */
+  private shareDeviceLayout(): void {
+    this.writeUserData(this.storageKey, this.overridesSignal[0]());
   }
 
   private mount(): void {
@@ -342,6 +412,12 @@ class RoomBoardCard extends HTMLElement {
     const Board = widget.component;
     const context = {
       updateConfig: (next: Record<string, unknown>) => this.saveOverrides(next),
+      layout: {
+        perDevice: () => this.perDevice,
+        own: () => this.ownLayoutSignal[0](),
+        reset: () => this.resetDeviceLayout(),
+        share: () => this.shareDeviceLayout(),
+      },
       get storageKey() {
         return storageKey();
       },

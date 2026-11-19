@@ -570,6 +570,16 @@ export type WidgetContextValue = {
   updateConfig: (config: Record<string, unknown>) => void;
   /** Where the card keeps small things of its own (useWidgetState). */
   storageKey: string;
+  /** Where the layout is kept: per screen, or shared by every screen. */
+  layout?: {
+    perDevice: () => boolean;
+    /** This screen has saved a layout of its own. */
+    own: () => boolean;
+    /** Forget this screen's layout and go back to the shared one. */
+    reset: () => void;
+    /** Make this screen's layout the one new screens start from. */
+    share: () => void;
+  };
 };
 
 export const WidgetContext = createContext<WidgetContextValue>();

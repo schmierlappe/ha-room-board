@@ -84,6 +84,15 @@ export function Spark(props: {
   /** The comfortable range in the reading's own units. Capsules outside it are
    *  drawn warm, which is what turns a chart into a verdict. */
   band?: [number, number];
+  /** A chart to read rather than glance at: a caption with the window's low
+   *  and high over it, a clock under it, and a finger or pointer on it shows
+   *  the reading at that moment. */
+  interactive?: boolean;
+  /** Heading of an interactive chart, e.g. "Last 6 h". */
+  caption?: string;
+  /** A level to draw across the chart — the thermostat's target. Left out when
+   *  it is so far from the readings that showing it would flatten the line. */
+  target?: number;
 }) {
   /* The chart is drawn from Home Assistant's statistics, its 5-minute
      means, rather than from the raw history.
@@ -195,7 +204,7 @@ export function Spark(props: {
     return history()?.timeline ?? [];
   });
 
-  const points = createMemo(() => {
+  const frame = createMemo(() => {
     const cutoff = Date.now() / 1000 - props.hours * 3600;
 
     const values = timeline()
@@ -203,7 +212,7 @@ export function Spark(props: {
       .map((point) => ({ t: point.timestamp, v: Number(point.state) }))
       .filter((point) => Number.isFinite(point.v));
 
-    if (values.length < 2) return [];
+    if (values.length < 2) return { points: [], target: undefined };
 
     /* Thinned to a fixed count rather than plotted in full: a six-hour window
        can hold thousands of points, and a path with one node per pixel column
@@ -213,7 +222,9 @@ export function Spark(props: {
      * points of noisy sensor data still shows every wobble, because it is
      * faithfully drawing every wobble; halving the nodes and averaging what
      * falls between them is what turns a reading into a trend. */
-    const COLUMNS = 24;
+    /* An interactive chart is read point by point, so it keeps a few more:
+       ten minutes a column over six hours rather than fifteen. */
+    const COLUMNS = props.interactive ? 36 : 24;
     const first = values[0]!.t;
     const span = Math.max(1, values.at(-1)!.t - first);
     const buckets: number[][] = Array.from({ length: COLUMNS }, () => []);
@@ -249,7 +260,17 @@ export function Spark(props: {
        the window opens part-way through a change — drew its capsule straight
        through the floor of the chart and off the bottom of the card. */
     const capsules = props.kind === "capsules";
-    const extent = capsules ? [...smooth, ...spans.flat()] : smooth;
+    const extent = capsules ? [...smooth, ...spans.flat()] : [...smooth];
+    /* The target joins the scale only when it is near the readings: a room at
+       21° with the heating off and a target of 7° would otherwise be a flat
+       line along the top. */
+    const lowest = Math.min(...extent);
+    const highest = Math.max(...extent);
+    const target =
+      props.target !== undefined && props.target >= lowest - 2 && props.target <= highest + 2
+        ? props.target
+        : undefined;
+    if (target !== undefined) extent.push(target);
     const min = Math.min(...extent);
     const max = Math.max(...extent);
     // A flat reading would divide by zero and, worse, draw a line along the
@@ -265,13 +286,18 @@ export function Spark(props: {
        always has — its fill closes to the corners. */
     const inset = capsules ? 2.5 : 0;
 
-    return smooth.map((value, index) => {
+    const points = smooth.map((value, index) => {
       const [low, high] = spans[index] ?? [value, value];
       const band = props.band;
       return {
         x: inset + (index / (COLUMNS - 1)) * (100 - inset * 2),
         y: place(value),
         v: value,
+        /* What the reading was there, for the readout: the column's own
+           average rather than the smoothed curve, and the moment that column
+           stands for on the clock under the chart. */
+        raw: filled[index]!,
+        t: first + (index / (COLUMNS - 1)) * span,
         // The capsule's own ends, with a floor so a still reading is a mark
         // rather than nothing at all.
         top: Math.min(place(high), place(value) - 1.5),
@@ -279,7 +305,60 @@ export function Spark(props: {
         out: !!band && (value < band[0] || value > band[1]),
       };
     });
+    return { points, target: target === undefined ? undefined : place(target) };
   });
+  const points = () => frame().points;
+
+  /* The window's low and high, from the readings themselves. */
+  const range = createMemo(() => {
+    const values = points().map((point) => point.raw);
+    return values.length ? { low: Math.min(...values), high: Math.max(...values) } : undefined;
+  });
+  const unit = () => {
+    const found = live()?.attributes?.unit_of_measurement;
+    return typeof found === "string" ? found : "";
+  };
+  const reading = (value: number) => `${value.toFixed(1)}${unit().startsWith("°") ? "°" : ` ${unit()}`}`.trim();
+  const clock = (seconds: number) =>
+    new Date(seconds * 1000).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+
+  /* The column under the pointer or finger. A mouse shows it while it is
+     over the chart; a finger leaves it up for a moment after letting go, so
+     there is time to read it. A vertical swipe is the sheet scrolling
+     (touch-action: pan-y), which cancels the pointer and takes it away. */
+  const [hovered, setHovered] = createSignal<number>();
+  let plot: HTMLDivElement | undefined;
+  let fade: ReturnType<typeof setTimeout> | undefined;
+  onCleanup(() => clearTimeout(fade));
+  const scrub = (event: PointerEvent) => {
+    const count = points().length;
+    if (!plot || count < 2) return;
+    clearTimeout(fade);
+    const rect = plot.getBoundingClientRect();
+    const at = Math.min(1, Math.max(0, (event.clientX - rect.left) / Math.max(1, rect.width)));
+    setHovered(Math.round(at * (count - 1)));
+  };
+  const letGo = (event: PointerEvent, delay: number) => {
+    clearTimeout(fade);
+    if (event.pointerType === "mouse") {
+      /* A click leaves the mouse where it was; it goes when the mouse does. */
+      if (event.type !== "pointerup") setHovered(undefined);
+    } else fade = setTimeout(() => setHovered(undefined), delay);
+  };
+  /* A point's own colour on the warm–cool ramp the line is drawn in, so the
+     dot and the bubble match the stretch of line they sit on. */
+  const tint = (y: number) => {
+    const found = points();
+    const ys = found.map((point) => point.y);
+    const top = Math.min(...ys);
+    const bottom = Math.max(...ys);
+    const warm = bottom === top ? 0.5 : (bottom - y) / (bottom - top);
+    return `color-mix(in srgb, var(--rb-hot) ${Math.round(warm * 100)}%, var(--rb-cold))`;
+  };
+  const active = () => {
+    const index = hovered();
+    return index === undefined ? undefined : points()[index];
+  };
 
   const path = createMemo(() => monotoneCubicPath(points().map((p) => ({ x: p.x, y: p.y }))));
 
@@ -287,6 +366,11 @@ export function Spark(props: {
      setting: a sensor that only started reporting an hour ago should not be
      labelled as though it had been going all six. */
   const stamps = createMemo(() => {
+    if (props.interactive) {
+      const found = points();
+      if (found.length < 2) return [];
+      return [0, 1, 2, 3].map((index) => clock(found[0]!.t + ((found.at(-1)!.t - found[0]!.t) * index) / 3));
+    }
     const cutoff = Date.now() / 1000 - props.hours * 3600;
     const within = timeline().filter((point) => point.timestamp >= cutoff);
     if (within.length < 2) return [];
@@ -314,7 +398,8 @@ export function Spark(props: {
     <div
       ref={box}
       class="rb-spark"
-      data-rich={props.rich === true}
+      data-rich={props.rich === true || props.interactive === true}
+      data-interactive={props.interactive === true}
       data-tone={props.warmth === undefined ? "health" : "temp"}
       style={{
         "--rb-health": `${props.health ?? 1}`,
@@ -322,8 +407,62 @@ export function Spark(props: {
         ...(props.tone ? { "--rb-chart": props.tone } : {}),
       }}
     >
+      <Show when={props.interactive}>
+        {/* While a moment is picked out the heading reads it: the value,
+            when, and how it compares with the reading now. In the heading
+            rather than in a bubble at the cursor, where a finger covers it. */}
+        <div class="rb-spark-head-row" data-reading={active() !== undefined}>
+          <Show
+            when={active()}
+            fallback={<span class="rb-spark-caption">{props.caption}</span>}
+          >
+            {(point) => (
+              <span class="rb-spark-read" style={{ "--rb-chart": tint(point().y) }}>
+                <b>{reading(point().raw)}</b>
+                <span>{clock(point().t)}</span>
+              </span>
+            )}
+          </Show>
+          <Show when={active()}>
+            {(point) => {
+              const delta = () => point().raw - (points().at(-1)?.raw ?? point().raw);
+              return (
+                <span class="rb-spark-delta">
+                  {Math.abs(delta()) < 0.05
+                    ? "same as now"
+                    : `${delta() > 0 ? "+" : "−"}${reading(Math.abs(delta()))} vs now`}
+                </span>
+              );
+            }}
+          </Show>
+          <Show when={!active() && range()}>
+            {(found) => (
+              <span class="rb-spark-range">
+                <span data-end="low">↓ {reading(found().low)}</span>
+                <span data-end="high">↑ {reading(found().high)}</span>
+              </span>
+            )}
+          </Show>
+        </div>
+      </Show>
+
       <Show when={points().length > 1} fallback={<div class="rb-spark-empty">No history yet</div>}>
-        <div class="rb-spark-plot">
+        <div
+          class="rb-spark-plot"
+          ref={plot}
+          data-scrubbing={hovered() !== undefined}
+          onPointerDown={(event) => {
+            if (!props.interactive) return;
+            scrub(event);
+          }}
+          onPointerMove={(event) => {
+            if (!props.interactive) return;
+            if (event.pointerType === "mouse" || event.buttons) scrub(event);
+          }}
+          onPointerUp={(event) => props.interactive && letGo(event, 2500)}
+          onPointerCancel={(event) => props.interactive && letGo(event, 0)}
+          onPointerLeave={(event) => props.interactive && event.pointerType === "mouse" && letGo(event, 0)}
+        >
         <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
@@ -335,7 +474,15 @@ export function Spark(props: {
                 cool end of the scale and arrives at whatever the reading is
                 now, which is what makes a temperature trace read as a
                 journey rather than as a shape. */}
-            <linearGradient id={strokeId} x1="0" y1="0" x2="1" y2="0">
+            {/* An interactive chart runs its colour up the chart instead:
+                the peaks warm, the dips cool, matching the ↑ and ↓ over it. */}
+            <linearGradient
+              id={strokeId}
+              x1="0"
+              y1="0"
+              x2={props.interactive ? "0" : "1"}
+              y2={props.interactive ? "1" : "0"}
+            >
               <stop class="rb-stop-from" offset="0%" />
               <stop class="rb-stop-to" offset="100%" />
             </linearGradient>
@@ -343,7 +490,7 @@ export function Spark(props: {
 
           {/* Uprights behind the line, so the eye has something to read the
               curve against without a box around it. */}
-          <Show when={props.rich}>
+          <Show when={props.rich && !props.interactive}>
             <g class="rb-grid-lines">
               <For each={[0, 25, 50, 75, 100]}>
                 {(at) => <line x1={at} y1="0" x2={at} y2="40" />}
@@ -404,7 +551,9 @@ export function Spark(props: {
             <path
               class="rb-line"
               d={path()}
-              stroke={props.rich ? `url(#${strokeId})` : undefined}
+              /* As a style: the stylesheet's own stroke outranks an
+                 attribute, and the gradient never showed. */
+              style={props.rich || props.interactive ? { stroke: `url(#${strokeId})` } : undefined}
             />
           </Show>
         </svg>
@@ -420,13 +569,37 @@ export function Spark(props: {
             style={{
               left: `${points().at(-1)!.x}%`,
               top: `${(points().at(-1)!.y / 40) * 100}%`,
+              ...(props.interactive ? { "--rb-chart": tint(points().at(-1)!.y) } : {}),
             }}
           />
+        </Show>
+
+        <Show when={props.interactive && frame().target !== undefined}>
+          <div class="rb-spark-target" style={{ top: `${(frame().target! / 40) * 100}%` }}>
+            <span>{reading(props.target!)}</span>
+          </div>
+        </Show>
+
+        <Show when={active()}>
+          {(point) => (
+            <>
+              <span
+                class="rb-spark-cursor"
+                aria-hidden="true"
+                style={{ left: `${point().x}%`, "--rb-chart": tint(point().y) }}
+              />
+              <span
+                class="rb-spark-dot"
+                aria-hidden="true"
+                style={{ left: `${point().x}%`, top: `${(point().y / 40) * 100}%`, "--rb-chart": tint(point().y) }}
+              />
+            </>
+          )}
         </Show>
         </div>
       </Show>
 
-      <Show when={props.rich && stamps().length}>
+      <Show when={(props.rich || props.interactive) && stamps().length}>
         <div class="rb-spark-axis" aria-hidden="true">
           <For each={stamps()}>{(stamp) => <span>{stamp}</span>}</For>
         </div>

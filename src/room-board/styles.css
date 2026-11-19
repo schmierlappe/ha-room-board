@@ -3913,6 +3913,7 @@
 .rb-clim-read,
 .rb-clim-side { min-width: 0; }
 .rb-clim-history .rb-spark { min-height: 3.4rem; }
+.rb-clim-history { width: min(26rem, 100%); }
 
 /* ---------- the thermostat on a phone ----------
  *
@@ -4206,14 +4207,6 @@
   gap: 0.15rem;
   width: min(22rem, 100%);
   margin-top: 0.2rem;
-}
-
-.rb-clim-history-note {
-  align-self: center;
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  opacity: 0.35;
 }
 
 .rb-switch {
@@ -4610,7 +4603,6 @@
   margin: 0;
 }
 
-.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-history-note { display: none; }
 
 /* The tiles, compact: the badge on the left, the value over its label, the
    caret at the end — one row a tile instead of a tall stack. */
@@ -13364,20 +13356,359 @@
 .rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-history {
   grid-column: 1 / -1;
   order: 5;
-  position: relative;
-  height: 6.5rem;
+  height: auto;
   margin-top: 0.3rem;
-  padding: 1.6rem 0 0;
+  padding: 0.7rem 0.85rem 0.6rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--rb-ink) 5%, transparent);
+  box-shadow: inset 0 0 0 1px var(--rb-edge);
+}
+.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-history .rb-spark { height: auto; }
+
+/* ---------- the interactive chart ----------
+ *
+ * The thermostat's history, to be read rather than glanced at: the window's
+ * low and high over it, the target as a dashed level, a clock under it, and a
+ * finger or pointer on it lifts the reading at that moment into a bubble. */
+.rb-spark[data-interactive="true"] {
+  flex: none;
+  margin: 0;
+  gap: 0.35rem;
+  color: var(--rb-ink);
+}
+.rb-spark[data-interactive="true"] .rb-spark-plot {
+  flex: none;
+  height: 5.4rem;
+  touch-action: pan-y;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Three faint levels behind the line instead of uprights: across is the
+     direction a temperature is read in. */
+  background:
+    linear-gradient(var(--rb-edge), var(--rb-edge)) 0 10% / 100% 1px no-repeat,
+    linear-gradient(var(--rb-edge), var(--rb-edge)) 0 50% / 100% 1px no-repeat,
+    linear-gradient(var(--rb-edge), var(--rb-edge)) 0 95% / 100% 1px no-repeat;
+}
+.rb-spark[data-interactive="true"] .rb-line { stroke-width: 2.6; }
+.rb-spark[data-interactive="true"] .rb-stop-from { stop-color: var(--rb-hot); stop-opacity: 1; }
+.rb-spark[data-interactive="true"] .rb-stop-to { stop-color: var(--rb-cold); }
+.rb-spark[data-interactive="true"] .rb-stop-top { stop-color: var(--rb-hot); stop-opacity: 0.26; }
+.rb-spark[data-interactive="true"] .rb-stop-bottom { stop-color: var(--rb-cold); stop-opacity: 0; }
+.rb-spark[data-interactive="true"] .rb-spark-axis { margin-top: 0.1rem; opacity: 0.5; }
+
+.rb-spark-head-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+}
+.rb-spark-caption {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rb-dim);
+}
+.rb-spark-range {
+  display: flex;
+  gap: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.rb-spark-range [data-end="low"] { color: color-mix(in srgb, var(--rb-cold) 80%, var(--rb-ink)); }
+.rb-spark-range [data-end="high"] { color: color-mix(in srgb, var(--rb-hot) 80%, var(--rb-ink)); }
+
+/* The target, as a dashed level with its value at the end. */
+.rb-spark-target {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1.5px dashed color-mix(in srgb, var(--rb-ink) 38%, transparent);
+  pointer-events: none;
+}
+.rb-spark-target > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translateY(-50%);
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--rb-ink);
+  background: color-mix(in srgb, var(--rb-ink) 14%, var(--rb-card, #14161c));
+  box-shadow: 0 0 0 1px var(--rb-edge);
+}
+
+/* While a moment is picked out the "now" ring steps back for it. */
+.rb-spark-plot[data-scrubbing="true"] .rb-spark-head { opacity: 0.35; }
+.rb-spark-plot[data-scrubbing="true"] .rb-spark-target > span { opacity: 0; }
+
+.rb-spark-cursor {
+  position: absolute;
+  top: -0.2rem;
+  bottom: 0;
+  width: 0;
+  border-left: 1px solid color-mix(in srgb, var(--rb-chart) 70%, transparent);
+  pointer-events: none;
+}
+.rb-spark-dot {
+  position: absolute;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--rb-chart);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rb-chart) 28%, transparent), 0 0 12px var(--rb-chart);
+  pointer-events: none;
+}
+.rb-spark-head-row { min-height: 1.35rem; align-items: center; }
+.rb-spark-read { display: flex; align-items: baseline; gap: 0.45rem; font-variant-numeric: tabular-nums; }
+.rb-spark-read > b { font-size: 1.05rem; font-weight: 700; color: var(--rb-chart); }
+.rb-spark-read > span { color: var(--rb-dim); }
+.rb-spark-delta { color: var(--rb-dim); font-variant-numeric: tabular-nums; }
+:where(.rb-board[data-scheme="light"]) .rb-spark-range [data-end="low"] { color: #2563eb; }
+:where(.rb-board[data-scheme="light"]) .rb-spark-range [data-end="high"] { color: #c2410c; }
+
+/* Which layout this screen shows: its own, or the shared one. */
+.rb-setup-device {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--rb-ink) 6%, transparent);
+  box-shadow: inset 0 0 0 1px var(--rb-edge);
+}
+.rb-setup-device .rb-setup-ha-icon { background: color-mix(in srgb, var(--rb-ink) 14%, transparent); color: var(--rb-ink); }
+.rb-setup-device .rb-setup-ha-icon[data-own="true"] { background: var(--rb-primary, #7c6cf0); color: #fff; }
+.rb-setup-device-actions { display: flex; gap: 0.35rem; flex: none; }
+.rb-setup-device-btn {
+  padding: 0.35rem 0.65rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--rb-ink);
+  cursor: pointer;
+  background: color-mix(in srgb, var(--rb-ink) 10%, transparent);
+  transition: background 0.2s ease;
+}
+.rb-setup-device-btn:hover { background: color-mix(in srgb, var(--rb-ink) 16%, transparent); }
+.rb-setup-device-btn[data-asking="true"] { background: #f59e0b; color: #14161c; }
+/* Where there is no room beside the words, the buttons go under them
+   rather than squeezing them into a column. */
+.rb-setup-device { flex-wrap: wrap; row-gap: 0.5rem; }
+.rb-setup-device > .rb-setup-ha-text { flex: 1 1 13rem; }
+.rb-setup-device-actions { margin-left: auto; }
+
+/* ---------- updates ----------
+ *
+ * A glass pill under the clock on the room's photo while Home Assistant has
+ * updates waiting, and the overlay it opens: one row an update, the versions
+ * and the button on the row, the notes and the lesser actions under it. */
+.rb-scene-updates {
+  position: relative;
+  z-index: 2;
+  margin-top: 0.7rem;
+  align-self: flex-start;
+}
+.rb-board[data-narrow="true"] .rb-scene-updates { margin-top: 0.45rem; }
+.rb-updates-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem 0.3rem 0.32rem;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 999px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgb(0 0 0 / 0.42);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transition: transform 0.12s ease, background 0.2s ease;
+}
+.rb-updates-pill:hover { background: rgb(0 0 0 / 0.55); }
+.rb-updates-pill:active { transform: scale(0.96); }
+.rb-updates-pill-icon {
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  color: #fff;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgb(34 197 94 / 0.55);
+  animation: rb-updates-ping 2.6s ease-out infinite;
+}
+.rb-updates-pill[data-busy="true"] .rb-updates-pill-icon { background: #3b82f6; animation: none; }
+@keyframes rb-updates-ping {
+  0% { box-shadow: 0 0 0 0 rgb(34 197 94 / 0.55); }
+  70%, 100% { box-shadow: 0 0 0 0.5rem rgb(34 197 94 / 0); }
+}
+@media (prefers-reduced-motion: reduce) { .rb-updates-pill-icon { animation: none; } }
+
+.rb-updates { display: flex; flex-direction: column; gap: 0.75rem; }
+.rb-updates-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--rb-dim);
+}
+.rb-updates-head b { color: var(--rb-ink); font-size: 1.05rem; }
+.rb-updates-all,
+.rb-update-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: none;
+  padding: 0.45rem 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  white-space: nowrap;
+  text-decoration: none;
+  color: #fff;
+  cursor: pointer;
+  background: var(--rb-primary, #7c6cf0);
+  transition: transform 0.12s ease, filter 0.2s ease, background 0.2s ease;
+}
+.rb-updates-all:hover, .rb-update-btn:hover { filter: brightness(1.1); }
+.rb-updates-all:active, .rb-update-btn:active { transform: scale(0.96); }
+.rb-update-btn[data-quiet="true"] { color: var(--rb-ink); background: color-mix(in srgb, var(--rb-ink) 10%, transparent); }
+:is(.rb-updates-all, .rb-update-btn)[data-asking="true"] { background: #f59e0b; color: #14161c; }
+
+.rb-updates-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  align-items: start;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rb-update {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.75rem 0.8rem 0.65rem;
   border-radius: 1rem;
   overflow: hidden;
   background: color-mix(in srgb, var(--rb-ink) 5%, transparent);
   box-shadow: inset 0 0 0 1px var(--rb-edge);
 }
-.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-history-note {
-  display: block;
+.rb-update[data-busy="true"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, #3b82f6 55%, transparent); }
+.rb-update-main { display: flex; align-items: center; gap: 0.7rem; min-width: 0; }
+.rb-update-pic {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  color: var(--rb-ink);
+  background: color-mix(in srgb, var(--rb-ink) 9%, transparent);
+}
+.rb-update-pic > img { width: 72%; height: 72%; object-fit: contain; }
+.rb-update-text { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; min-width: 0; }
+.rb-update-text > b { font-size: 0.92rem; font-weight: 620; }
+.rb-update-versions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--rb-dim);
+  min-width: 0;
+}
+.rb-update-versions > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rb-update-to {
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-weight: 650;
+  color: #16a34a;
+  background: rgb(34 197 94 / 0.14);
+}
+.rb-board:not([data-scheme="light"]) .rb-update-to { color: #4ade80; }
+.rb-update-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #3b82f6;
+}
+.rb-spin { animation: rb-spin 0.9s linear infinite; }
+.rb-update-bar {
   position: absolute;
-  top: 0.55rem;
-  left: 0.8rem;
-  font-size: 0.7rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6 var(--rb-progress), transparent var(--rb-progress));
+  transition: background 0.4s ease;
+}
+.rb-update-extras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding-left: 3.2rem;
+}
+.rb-update-extras:empty { display: none; }
+.rb-update-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.22rem 0.55rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 560;
+  text-decoration: none;
+  color: var(--rb-dim);
+  cursor: pointer;
+  background: color-mix(in srgb, var(--rb-ink) 6%, transparent);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.rb-update-link:hover { color: var(--rb-ink); background: color-mix(in srgb, var(--rb-ink) 11%, transparent); }
+.rb-update-link[data-on="true"] { color: var(--rb-ink); }
+.rb-update-link[data-on="true"] > svg { color: #22c55e; }
+.rb-update-skip[data-asking="true"] { color: #14161c; background: #f59e0b; }
+.rb-update-notes {
+  max-height: 14rem;
+  overflow-y: auto;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.7rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--rb-dim);
+  background: color-mix(in srgb, var(--rb-ink) 4%, transparent);
+}
+.rb-update-loading { opacity: 0.6; }
+.rb-updates-none {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  padding: 3rem 1rem;
   color: var(--rb-dim);
 }
+.rb-updates-none-badge { color: #22c55e; }
+.rb-board[data-narrow="true"] .rb-update-extras { padding-left: 0; }
