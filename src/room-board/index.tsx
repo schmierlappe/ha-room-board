@@ -78,6 +78,7 @@ import { VacuumCard, VacuumPanel } from "./vacuum";
 import { HeroMetric, Metric } from "./metrics";
 import {
   applyLayout,
+  refitCinema,
   attachControls,
   cardKey,
   detachControls,
@@ -1322,6 +1323,19 @@ function RoomBoard(props: { config: Config }) {
       else detachControls(grid);
     };
     lay();
+    /* A 16:9 card's width follows the grid's column count, which changes
+       with the window rather than with the cards. */
+    if (typeof ResizeObserver !== "undefined") {
+      let columns = "";
+      const watcher = new ResizeObserver(() => {
+        const now = String(Math.round(grid.clientWidth / 50));
+        if (now === columns) return;
+        columns = now;
+        refitCinema(grid);
+      });
+      watcher.observe(grid);
+      onCleanup(() => watcher.disconnect());
+    }
     /* The cards as elements, so a card replaced by a new one of the same
        kind (the player and Plex's shelf share a place) is laid as well. */
     const cardsOf = () => [...grid.children];

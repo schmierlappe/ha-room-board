@@ -73,6 +73,15 @@ The board fills the screen below whatever Home Assistant shows above it. For the
 
 On a screen taller than it is wide — a wall display such as the Shelly Wall Display, or a tablet stood upright — the board lays itself out as on a phone: the room's photo across the top, the cards below it, as many columns as keep each tile about a phone's size (three or four), and the activity at the foot. Landscape screens keep the side-by-side layout.
 
+### Arranging cards
+
+**Arrange** in the Overview line lets you move cards earlier or later, remove them, and pick a size for each:
+
+- **Small** (1×1), **Wide** (2×1), **Tall** (1×2), **Big** (2×2).
+- **16:9** (3×2): bigger than the big square, in a picture's shape. Good for the player, a camera, the weather or the reading that matters most.
+
+On a two-column phone, 16:9 takes the full width and is drawn like Big.
+
 ### A layout for each screen
 
 Each screen keeps its own layout: arrange or hide cards on your phone and the tablet and wall display stay as they are. A screen you haven't changed shows the shared layout (on a board from before this, the layout you already had). The ☰ menu says which one a screen is showing, and once it has its own:

@@ -13882,3 +13882,23 @@
 }
 .rb-card:not(.rb-card--hero) > .rb-spark:not([data-interactive="true"]) .rb-spark-plot { min-height: 3.2rem; }
 .rb-card:not(.rb-card--hero) > .rb-spark .rb-spark-head { width: 0.5rem; height: 0.5rem; }
+
+/* ---------- the 16:9 card ----------
+ *
+ * Three columns by two rows, a picture's shape: bigger than the big square,
+ * for the player, a camera, the weather or the reading that matters most.
+ * Held to 16:9 on a wide screen, the rows growing to it if they must. On a
+ * two-column phone it takes the whole width and two rows. */
+.rb-arrange-sizes > button > i[data-size="cinema"] { width: 1.35rem; height: 0.76rem; }
+.rb-board:not([data-narrow="true"]) .rb-grid > .rb-card[data-size="cinema"] { aspect-ratio: 16 / 9; }
+/* Five sizes now: the row of them kept inside even a small tile. */
+.rb-arrange-sizes { gap: 0.12rem; max-width: calc(100% - 0.5rem); }
+.rb-arrange-sizes > button { width: 1.68rem; height: 1.68rem; }
+
+/* A reading made big or 16:9: its number at a size worth the room. */
+.rb-card:not(.rb-card--hero)[data-shape="big"] > .rb-read { gap: 0.6rem; margin-top: 0.3rem; }
+.rb-card:not(.rb-card--hero)[data-shape="big"] .rb-read-value { font-size: clamp(2.6rem, 9cqi, 4.2rem); }
+.rb-card:not(.rb-card--hero)[data-shape="big"] .rb-read-unit { font-size: 1.1rem; }
+.rb-card:not(.rb-card--hero)[data-shape="big"] .rb-read-badge { transform: scale(1.35); margin-right: 0.3rem; }
+.rb-card:not(.rb-card--hero)[data-shape="big"] .rb-card-name { font-size: 1.05rem; }
+.rb-card:not(.rb-card--hero)[data-shape="big"]:has(> .rb-spark) { container-type: inline-size; }

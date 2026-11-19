@@ -10,7 +10,7 @@
  * Kept in the widget's config as plain strings, per room, in order:
  *
  *   "<room>@<card>"         a card, in the position it was put in
- *   "<room>@=<size>:<card>" its size: compact, wide, portrait or big
+ *   "<room>@=<size>:<card>" its size: compact, wide, portrait, big or cinema
  *   "<room>@!<card>"        (older) the same as size big
  *
  * A room with no entries is laid out the board's own way.
@@ -67,16 +67,18 @@ export function cardKey(el: HTMLElement): string {
   return name === "plex" ? "media" : name;
 }
 
-/** The four sizes: one tile, two across, two down, two by two. */
-export type Size = "compact" | "wide" | "portrait" | "big";
+/** The five sizes: one tile, two across, two down, two by two, and a
+    16:9 picture three across and two down — bigger than the big square. */
+export type Size = "compact" | "wide" | "portrait" | "big" | "cinema";
 
-export const SIZES: Size[] = ["compact", "wide", "portrait", "big"];
+export const SIZES: Size[] = ["compact", "wide", "portrait", "big", "cinema"];
 
 const SIZE_LABEL: Record<Size, string> = {
   compact: "Small (1×1)",
   wide: "Wide (2×1)",
   portrait: "Tall (1×2)",
   big: "Big (2×2)",
+  cinema: "Cinema (16:9, 3×2)",
 };
 
 const SPANS: Record<Size, [number, number]> = {
@@ -84,6 +86,7 @@ const SPANS: Record<Size, [number, number]> = {
   wide: [2, 1],
   portrait: [1, 2],
   big: [2, 2],
+  cinema: [3, 2],
 };
 
 /* What each size tells the card about its shape, in the mosaic's words, so
@@ -93,6 +96,8 @@ const SHAPES: Record<Size, string> = {
   wide: "wide",
   portrait: "portrait",
   big: "big",
+  /* Drawn as its big design, given more room: every card has one. */
+  cinema: "big",
 };
 
 export type RoomLayout = {
@@ -170,6 +175,24 @@ export function sizeOf(el: HTMLElement, layout: RoomLayout, narrow = false): Siz
 }
 
 /**
+ * How wide a 16:9 card is: three columns where the grid has them, the whole
+ * row where it has fewer — a span of three in a grid of two made a third
+ * column out of nothing and pushed everything sideways.
+ */
+function cinemaColumns(grid: HTMLElement): string {
+  const columns = getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length;
+  return columns >= 3 ? "span 3" : "1 / -1";
+}
+
+/** The 16:9 cards fitted again to the grid's columns, after it was resized. */
+export function refitCinema(grid: HTMLElement): void {
+  const cards = grid.querySelectorAll<HTMLElement>(':scope > .rb-card[data-size="cinema"]');
+  if (!cards.length) return;
+  const span = cinemaColumns(grid);
+  for (const card of cards) setStyle(card, "grid-column", span);
+}
+
+/**
  * Put the cards where the arrangement says.
  *
  * Each card is placed by its order, and once the room has been arranged
@@ -194,7 +217,7 @@ export function applyLayout(grid: HTMLElement, narrow: boolean, layout: RoomLayo
     if (layout.sizes) {
       const size = sizeOf(card, layout);
       const [across, down] = SPANS[size];
-      setStyle(card, "grid-column", `span ${across}`);
+      setStyle(card, "grid-column", size === "cinema" ? cinemaColumns(grid) : `span ${across}`);
       setStyle(card, "grid-row", `span ${down}`);
       setData(card, "size", size);
       setData(card, "shape", SHAPES[size]);
