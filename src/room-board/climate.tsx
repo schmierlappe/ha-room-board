@@ -346,6 +346,20 @@ export function ClimatePanel(props: {
   onCleanup(() => clearTimeout(sentTimer));
   const shown = () => dragging() ?? sent() ?? targetOf(props.climate) ?? min();
 
+  const send = (value: number) => {
+    setSent(value);
+    clearTimeout(sentTimer);
+    sentTimer = setTimeout(() => setSent(undefined), 8000);
+    apply(value);
+  };
+  /* One step either way, from what is shown: tapped twice quickly, the second
+     tap goes on from the first rather than from what the thermostat had. */
+  const nudge = (direction: number) => {
+    const by = step() > 0 ? step() : 0.5;
+    const next = Math.min(max(), Math.max(min(), Math.round((shown() + direction * by) / by) * by));
+    send(Number(next.toFixed(2)));
+  };
+
   const apply = (value: number) =>
     void callService(
       "climate",
@@ -425,10 +439,20 @@ export function ClimatePanel(props: {
 
         {/* Middle: the number. */}
         <div class="rb-clim-read" style={{ "--rb-warmth": `${warmth(shown())}` }}>
-          <span class="rb-clim-value">
-            {shown().toFixed(shown() % 1 ? 1 : 0)}
-            <i>°C</i>
-          </span>
+          {/* The number between a step down and a step up — the buttons
+              show on a phone, where a thumb taps more surely than it drags. */}
+          <div class="rb-clim-setter">
+            <button class="rb-clim-step" aria-label="Lower" onClick={() => nudge(-1)}>
+              <Icon icon="mdi:minus" width="22" />
+            </button>
+            <span class="rb-clim-value">
+              {shown().toFixed(shown() % 1 ? 1 : 0)}
+              <i>°C</i>
+            </span>
+            <button class="rb-clim-step" aria-label="Raise" onClick={() => nudge(1)}>
+              <Icon icon="mdi:plus" width="22" />
+            </button>
+          </div>
 
           <Show when={currentOf(props.climate) !== undefined}>
             <span class="rb-clim-feels">
@@ -537,11 +561,8 @@ export function ClimatePanel(props: {
         label="Target temperature"
         onPreview={setDragging}
         onCommit={(value) => {
-          setSent(value);
-          clearTimeout(sentTimer);
-          sentTimer = setTimeout(() => setSent(undefined), 8000);
           setDragging(undefined);
-          apply(value);
+          send(value);
         }}
       />
     </div>

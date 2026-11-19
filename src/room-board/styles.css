@@ -13275,3 +13275,109 @@
   margin: 0;
 }
 .rb-board[data-narrow="true"] .rb-card--media[data-shape="small"] .rb-media-bar { background: rgb(255 255 255 / 0.18); }
+
+/* ---------- the thermostat on a phone ----------
+ *
+ * One column of what a thumb needs, in the order it needs it: the number
+ * large in the middle between a step down and a step up, how the room is
+ * beside that, the dial right under the number it sets, then the tiles, and
+ * the room's history last. Spread over the panel's own two columns rather
+ * than nested, so the dial — outside the body in the markup — can sit
+ * between the number and the tiles. */
+.rb-clim-setter { display: contents; }
+.rb-clim-step { display: none; }
+
+.rb-board[data-narrow="true"] .rb-sheet-body:has(> .rb-clim-panel) { overflow-y: auto; }
+.rb-board[data-narrow="true"] .rb-clim-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 0.6rem;
+}
+.rb-board[data-narrow="true"] .rb-clim-panel :is(.rb-clim-body, .rb-clim-read) { display: contents; }
+.rb-board[data-narrow="true"] .rb-clim-panel > .rb-clim-head {
+  grid-column: 1 / -1;
+  order: 0;
+  justify-content: center;
+}
+.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-title {
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 520;
+  color: var(--rb-dim);
+  text-align: center;
+}
+
+.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-setter {
+  grid-column: 1 / -1;
+  order: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-value {
+  font-size: 4.8rem;
+  line-height: 1;
+  text-align: center;
+  color: color-mix(in oklab, var(--rb-ink) 80%, rgb(var(--rb-warmth-rgb, 255 160 90)) 20%);
+}
+.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-step {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 3.2rem;
+  height: 3.2rem;
+  border: 0;
+  border-radius: 50%;
+  color: var(--rb-ink);
+  cursor: pointer;
+  background: color-mix(in srgb, var(--rb-ink) 8%, transparent);
+  box-shadow: inset 0 0 0 1px var(--rb-edge);
+  transition: transform 0.12s ease, background 0.2s ease;
+}
+.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-step:active {
+  transform: scale(0.92);
+  background: color-mix(in srgb, var(--rb-ink) 16%, transparent);
+}
+
+.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-feels {
+  grid-column: 1 / -1;
+  order: 2;
+  justify-content: center;
+  margin: -0.2rem 0 0;
+}
+.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-feels > b { flex-basis: auto; }
+
+.rb-board[data-narrow="true"] .rb-clim-panel > .rb-dial {
+  grid-column: 1 / -1;
+  order: 3;
+  width: 100%;
+  margin: 0.2rem 0 0.4rem;
+}
+
+.rb-board[data-narrow="true"] .rb-clim-panel :is(.rb-mode-wrap, .rb-clim-tile) { order: 4; }
+/* A tile on its own takes the whole row. */
+.rb-board[data-narrow="true"] .rb-clim-panel:not(:has(.rb-clim-side > *)) .rb-clim-modes > :only-child { grid-column: 1 / -1; }
+
+.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-history {
+  grid-column: 1 / -1;
+  order: 5;
+  position: relative;
+  height: 6.5rem;
+  margin-top: 0.3rem;
+  padding: 1.6rem 0 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--rb-ink) 5%, transparent);
+  box-shadow: inset 0 0 0 1px var(--rb-edge);
+}
+.rb-board[data-narrow="true"] .rb-clim-panel .rb-clim-history-note {
+  display: block;
+  position: absolute;
+  top: 0.55rem;
+  left: 0.8rem;
+  font-size: 0.7rem;
+  color: var(--rb-dim);
+}
