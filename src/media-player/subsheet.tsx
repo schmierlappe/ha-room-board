@@ -79,6 +79,8 @@ export function Choice(props: {
   active?: boolean;
   lit?: boolean;
   danger?: boolean;
+  /** The icon is a picture of its own (a channel's logo): no tile behind it. */
+  bare?: boolean;
   onClick: () => void;
 }) {
   return (
@@ -90,7 +92,7 @@ export function Choice(props: {
       style={props.look ? { "--mp-look": props.look } : undefined}
       onClick={props.onClick}
     >
-      <span class="mp-speaker-icon" data-look={!!props.look}>
+      <span class="mp-speaker-icon" data-look={!!props.look} data-bare={!!props.bare}>
         {props.icon}
       </span>
       <span class="mp-speaker-text">

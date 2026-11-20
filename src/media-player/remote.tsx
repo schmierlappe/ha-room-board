@@ -899,7 +899,8 @@ export function RemotePanel(props: {
               {(source) => (
                 <Choice
                   icon={<SourceIcon name={source} size="20" />}
-                  look={sourceLogo(source) ? "#0f1218" : sourceLook(source).color}
+                  look={sourceLogo(source) ? undefined : sourceLook(source).color}
+                  bare={!!sourceLogo(source)}
                   name={source}
                   active={currentSource() === source}
                   sub={currentSource() === source ? "On now" : undefined}

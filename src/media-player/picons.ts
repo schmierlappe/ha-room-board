@@ -1,4 +1,5 @@
 import { createSignal } from "solid-js";
+import { isDarkTheme } from "../theme";
 
 /**
  * Channel logos from the picons project, for a receiver's channels.
@@ -88,5 +89,8 @@ export function picon(name: string | undefined): string | undefined {
     load();
     return undefined;
   }
-  return table[piconKey(name)]?.[0] || undefined;
+  const row = table[piconKey(name)];
+  if (!row) return undefined;
+  /* Drawn on the card itself, so the version for the theme's background. */
+  return (isDarkTheme() ? row[0] : row[1] || row[0]) || undefined;
 }

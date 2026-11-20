@@ -7,6 +7,10 @@ import { inOrder } from "../async";
 import { brandStyle } from "./brand";
 import { channelBrand } from "./channels";
 import { picon } from "./picons";
+
+/* A channel without a picon, drawn bare like the picons: its logo or name in
+   the channel's own colour, the first one its tile was painted in. */
+const brandColour = (bg: string) => /#[0-9a-f]{3,8}/i.exec(bg)?.[0] ?? "currentColor";
 import { errorMessage } from "../errors";
 
 /**
@@ -358,7 +362,10 @@ export function FavouritesPanel(props: {
                   >
                     {(channel) => (
                       /* A receiver's channel: its logo on its colour. */
-                      <span class="mp-fav-art mp-fav-channel" style={brandStyle(channel())}>
+                      <span
+                        class="mp-fav-art mp-fav-channel mp-picon-tile mp-fav-bare"
+                        style={{ ...brandStyle(channel()), "--brand-fg": brandColour(channel().bg) }}
+                      >
                         <Icon icon={channel().icon} />
                       </span>
                     )}
