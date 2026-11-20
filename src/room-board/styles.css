@@ -12963,7 +12963,9 @@
 .rb-board[data-narrow="true"] .rb-grid {
   --rb-cell: calc((100cqw - 2 * var(--rb-pad) - (var(--rb-cols, 2) - 1) * 0.65rem) / var(--rb-cols, 2));
   grid-template-columns: repeat(var(--rb-cols, 2), minmax(0, 1fr));
-  grid-auto-rows: var(--rb-cell);
+  /* Half a tile a row: a tile is two of them (mosaic.ts, arrange.ts), and a
+     half-height card one. */
+  grid-auto-rows: calc((var(--rb-cell) - 0.65rem) / 2);
 }
 /* More than two columns: the mosaic's two-column figures sit side by side,
    and dense packing closes what they leave between them. */
@@ -15047,3 +15049,41 @@
 .rb-mtile > .mp-tile { border-radius: inherit; }
 .rb-mtile > .mp-backdrop, .rb-mtile > .mp-scrim { z-index: 0; }
 :where(.rb-board[data-scheme="light"]) .rb-card.rb-mtile { background: var(--rb-card, #fff); }
+
+/* ---------- half height, on a phone ----------
+ *
+ * A card half a tile high across the whole row: one line — its name and
+ * what it says on the left, its one control or reading on the right, and
+ * nothing else. The media card has a layout of its own for this (the media
+ * widget's strip, media-tile.tsx). */
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0.75rem !important;
+  padding: 0.5rem 0.9rem !important;
+  overflow: hidden;
+}
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) > :not(:is(
+  .rb-card-head, .rb-lock-top, .rb-read, .rb-hero-read, .rb-light-row, .rb-light-fill, .rb-arrange,
+  .rb-sw-list, .rb-wx-sky, .rb-wx-scrim, .rb-cal-head, .rb-sport-head
+)) { display: none !important; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > :is(.rb-card-head, .rb-lock-top, .rb-cal-head, .rb-sport-head) {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0 !important;
+  position: relative;
+  z-index: 1;
+}
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > :is(.rb-read, .rb-hero-read, .rb-light-row, .rb-sw-list) {
+  flex: none;
+  margin: 0 !important;
+  position: relative;
+  z-index: 1;
+}
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-hero-value { font-size: 1.8rem; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-hero-badge { display: none; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > .rb-sw-list > :not(:first-child) { display: none; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-card-name { font-size: 0.92rem; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] :is(.rb-wx-sky, .rb-wx-scrim, .rb-light-fill) { position: absolute; inset: 0; }
