@@ -22,6 +22,9 @@ import { cardCss } from "./ha/css";
 import { setThemeHost } from "./theme";
 
 const CARD_VERSION = "0.1.0";
+/* For what the card loads beside itself (the channel logos, src/media-player/picons.ts),
+   which falls back to this release's copy when the file is not next to the card. */
+(globalThis as { __ROOM_BOARD_VERSION__?: string }).__ROOM_BOARD_VERSION__ = CARD_VERSION;
 
 /** Room left under the board at the bottom of the screen. */
 const BOTTOM_GAP_PX = 8;

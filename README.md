@@ -97,7 +97,7 @@ On a phone, on the day a team you follow with [TeamTracker](https://github.com/v
 
 ### TV channel logos
 
-A receiver's channels (a Vu+ or any Enigma2 box) show their logos in the favourites, the remote's channel list and on the player while a channel is on. They come from the [picons project](https://github.com/picons/picons) in a separate file, `room-board-picons.js` (GPL-3.0), that sits beside the card and is loaded only when a channel is shown. Channels without a picon keep a logo or their name on the channel's colour. See `picons/README.md` to add more.
+A receiver's channels (a Vu+ or any Enigma2 box) show their logos in the favourites, the remote's channel list and on the player while a channel is on. They come from the [picons project](https://github.com/picons/picons) in a separate file, `room-board-picons.js` (GPL-3.0), that HACS installs beside the card and that is loaded only when a channel is shown. Where it is missing beside the card, the card loads the same file for its version from this repository through jsDelivr. Channels without a picon keep a logo or their name on the channel's colour. See `picons/README.md` to add more.
 
 ### Guest Wi-Fi on a tablet
 

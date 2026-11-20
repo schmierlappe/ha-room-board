@@ -16,22 +16,40 @@ let table: Table | undefined;
 let asked = false;
 const [loaded, setLoaded] = createSignal(0);
 
+/* Where the file is looked for: beside the card first, where the release puts
+   it; else this release's copy in the card's repository, through jsDelivr — an
+   install that has only the card file (HACS took only that from a release
+   without the logos attached) still gets them. */
+const REPO = "https://cdn.jsdelivr.net/gh/schmierlappe/ha-room-board";
+function sources(): string[] {
+  const out: string[] = [];
+  try {
+    out.push(new URL(/* @vite-ignore */ "./room-board-picons.js", import.meta.url).href);
+  } catch {
+    /* No address of its own (a test page): only the copy online. */
+  }
+  const version = (globalThis as { __ROOM_BOARD_VERSION__?: string }).__ROOM_BOARD_VERSION__;
+  out.push(`${REPO}@${version && version !== "0.1.0" ? `v${version}` : "main"}/dist/room-board-picons.js`);
+  return out;
+}
+
 function load() {
   if (asked) return;
   asked = true;
-  try {
-    const url = new URL(/* @vite-ignore */ "./room-board-picons.js", import.meta.url).href;
+  const tryFrom = (list: string[]) => {
+    const url = list[0];
+    if (!url) {
+      table = {};
+      return;
+    }
     void import(/* @vite-ignore */ url)
       .then((module: { default?: Table }) => {
         table = module.default ?? {};
         setLoaded((n) => n + 1);
       })
-      .catch(() => {
-        table = {};
-      });
-  } catch {
-    table = {};
-  }
+      .catch(() => tryFrom(list.slice(1)));
+  };
+  tryFrom(sources());
 }
 
 /** The picons' own names for some channels a receiver calls otherwise. */

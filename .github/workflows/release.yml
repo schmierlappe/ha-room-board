@@ -30,4 +30,6 @@ jobs:
       - name: Attach card to release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/room-board-card.js
+          files: |
+            dist/room-board-card.js
+            dist/room-board-picons.js
