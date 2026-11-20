@@ -13890,7 +13890,11 @@
  * Held to 16:9 on a wide screen, the rows growing to it if they must. On a
  * two-column phone it takes the whole width and two rows. */
 .rb-arrange-sizes > button > i[data-size="cinema"] { width: 1.35rem; height: 0.76rem; }
-.rb-board:not([data-narrow="true"]) .rb-grid > .rb-card[data-size="cinema"] { aspect-ratio: 16 / 9; }
+/* 16:9 at the least, and never short of its two rows: on a narrower screen
+   three columns at 16:9 came out lower than the rows' own minimum, and the
+   card left a strip of board under it. Stretched, it fills them; the ratio
+   still grows the rows where it is the taller of the two. */
+.rb-board:not([data-narrow="true"]) .rb-grid > .rb-card[data-size="cinema"] { aspect-ratio: 16 / 9; align-self: stretch; justify-self: stretch; width: auto; min-width: 0; }
 /* Five sizes now: the row of them kept inside even a small tile. */
 .rb-arrange-sizes { gap: 0.12rem; max-width: calc(100% - 0.5rem); }
 .rb-arrange-sizes > button { width: 1.68rem; height: 1.68rem; }
