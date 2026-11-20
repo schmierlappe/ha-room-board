@@ -71,9 +71,9 @@ export function cardKey(el: HTMLElement): string {
 
 /** The five sizes: one tile, two across, two down, two by two, and a
     16:9 picture three across and two down — bigger than the big square. */
-export type Size = "compact" | "wide" | "portrait" | "big" | "cinema";
+export type Size = "compact" | "wide" | "portrait" | "big" | "cinema" | "half";
 
-export const SIZES: Size[] = ["compact", "wide", "portrait", "big", "cinema"];
+export const SIZES: Size[] = ["compact", "wide", "portrait", "big", "cinema", "half"];
 
 const SIZE_LABEL: Record<Size, string> = {
   compact: "Small (1×1)",
@@ -81,6 +81,7 @@ const SIZE_LABEL: Record<Size, string> = {
   portrait: "Tall (1×2)",
   big: "Big (2×2)",
   cinema: "Cinema (16:9, 3×2)",
+  half: "Half height (full width)",
 };
 
 const SPANS: Record<Size, [number, number]> = {
@@ -89,6 +90,7 @@ const SPANS: Record<Size, [number, number]> = {
   portrait: [1, 2],
   big: [2, 2],
   cinema: [3, 2],
+  half: [2, 1],
 };
 
 /* What each size tells the card about its shape, in the mosaic's words, so
@@ -100,6 +102,7 @@ const SHAPES: Record<Size, string> = {
   big: "big",
   /* Drawn as its big design, given more room: every card has one. */
   cinema: "big",
+  half: "half",
 };
 
 export type RoomLayout = {
@@ -167,7 +170,7 @@ const sizeByDefault = (el: HTMLElement): Size =>
     : "compact";
 
 /** The mosaic's shapes, in the arrangement's words. */
-const FROM_SHAPE: Record<string, Size> = { small: "compact", wide: "wide", portrait: "portrait", big: "big" };
+const FROM_SHAPE: Record<string, Size> = { small: "compact", wide: "wide", portrait: "portrait", big: "big", half: "half" };
 
 export function sizeOf(el: HTMLElement, layout: RoomLayout, narrow = false): Size {
   if (layout.sizes) return layout.sizes.get(cardKey(el)) ?? "compact";
@@ -219,8 +222,12 @@ export function applyLayout(grid: HTMLElement, narrow: boolean, layout: RoomLayo
     if (layout.sizes) {
       const size = sizeOf(card, layout);
       const [across, down] = SPANS[size];
-      setStyle(card, "grid-column", size === "cinema" ? cinemaColumns(grid) : `span ${across}`);
-      setStyle(card, "grid-row", `span ${down}`);
+      /* On a phone the rows are half a tile high (styles.css), so every size
+         takes twice its rows there — and half height takes one, across the
+         whole row. On a wide screen half height is a wide tile. */
+      const rows = narrow ? (size === "half" ? 1 : down * 2) : size === "half" ? 1 : down;
+      setStyle(card, "grid-column", size === "cinema" ? cinemaColumns(grid) : size === "half" && narrow ? "1 / -1" : `span ${across}`);
+      setStyle(card, "grid-row", `span ${rows}`);
       setData(card, "size", size);
       setData(card, "shape", SHAPES[size]);
     } else {
@@ -284,6 +291,7 @@ export function attachControls(
       const sizes = document.createElement("div");
       sizes.className = "rb-arrange-sizes";
       for (const size of SIZES) {
+        if (size === "half" && !narrow) continue;
         const button = document.createElement("button");
         button.type = "button";
         button.dataset.action = "size";
