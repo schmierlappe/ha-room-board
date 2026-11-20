@@ -55,7 +55,8 @@ import { LightCard, LightPanel } from "./lights";
 import { LockCard, LockPanel } from "./locks";
 import { PlexCard, PlexPanel, looksLikePlex, mediaOf } from "./plex";
 import { OpeningsCard, OpeningsPanel, openingsOf } from "./openings";
-import { MediaCard, MiniPlayer, artworkOf, isPlaying, pickPlayer } from "./media";
+import { MiniPlayer, artworkOf, isPlaying, pickPlayer } from "./media";
+import { MediaTile } from "./media-tile";
 import { usePlexPlayers, withPlexTwin } from "../media-player/plex-twin";
 import { PeoplePanel, PersonRow, usePeople, useZones } from "./people";
 /* The vacuum widget's own guesser rather than a second table that would drift
@@ -1761,11 +1762,12 @@ function RoomBoard(props: { config: Config }) {
                   </Show>
 
                   <Show when={players().length && (playing() || !plex()) && !homeDock()}>
-                    <Guard name="Media"><MediaCard
+                    <Guard name="Media"><MediaTile
                       players={cardPlayers()}
                       haBaseUrl={NO_ADDRESS}
                       artworkProxy={NO_ADDRESS}
                       chosen={chosenPlayer()}
+                      onSelect={setChosenPlayer}
                       onOpen={() => openPanel("media")}
                     /></Guard>
                   </Show>

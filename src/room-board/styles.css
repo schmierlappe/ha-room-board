@@ -15028,3 +15028,22 @@
   .syn-bays { gap: 0.16rem; padding: 0.2rem 0.24rem; }
   .syn-unit-top > b { font-size: 0.76rem; }
 }
+
+/* ---------- the media card, as the media widget's tile ----------
+ *
+ * src/room-board/media-tile.tsx draws the GlassHome media widget's own tile,
+ * with its stylesheet (src/media-player/styles.css); the card is only the
+ * frame round it: no padding of its own, the widget's glass for a ground,
+ * and the size its grid area gives it rather than the size of its content. */
+.rb-card.rb-mtile {
+  display: block !important;
+  padding: 0 !important;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--mp-fg, var(--rb-ink));
+  background: color-mix(in srgb, var(--rb-ink) 6%, var(--rb-card, #14161c));
+}
+.rb-board:not([data-narrow="true"]) .rb-grid > .rb-card.rb-mtile { contain: size; }
+.rb-mtile > .mp-tile { border-radius: inherit; }
+.rb-mtile > .mp-backdrop, .rb-mtile > .mp-scrim { z-index: 0; }
+:where(.rb-board[data-scheme="light"]) .rb-card.rb-mtile { background: var(--rb-card, #fff); }
