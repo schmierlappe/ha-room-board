@@ -10,6 +10,7 @@
  */
 import { readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { siProsieben, siSat1, siVox } from "simple-icons";
 
 const dir = join(import.meta.dir, "..", "picons", "logos");
 const table: Record<string, [string, string?]> = {};
@@ -45,6 +46,18 @@ for (const file of files) {
 for (const [key, row] of byKey) {
   const dark = row.light ?? row.default!;
   table[key] = row.light && row.default ? [uri(dark), uri(row.default)] : [uri(dark)];
+}
+
+/* SAT.1 and VOX: the picons' own files are a 370 KB picture and a 300 KB
+   drawing, too heavy for a dashboard, so these two come from Simple Icons
+   instead (CC0) — the same logos the card already draws, in the channel's own
+   colour, which reads on a dark and a light background alike. */
+const simple = (icon: { path: string; hex: string }) =>
+  `data:image/svg+xml;base64,${Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#${icon.hex}" d="${icon.path}"/></svg>`,
+  ).toString("base64")}`;
+for (const [key, icon] of [["sat1", siSat1], ["vox", siVox], ["prosieben", siProsieben]] as const) {
+  if (!table[key]) table[key] = [simple(icon)];
 }
 
 const banner =
