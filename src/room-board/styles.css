@@ -14278,3 +14278,19 @@
 .rb-sheet:has(> .rb-sky) .rb-wx-hero { padding: 0.6rem 0 1.4rem; }
 .rb-sheet:has(> .rb-sky) .rb-wx-hero-temp { font-size: clamp(3.4rem, 12cqw, 5rem); }
 .rb-sheet:has(> .rb-sky) .rb-wx-hero-name { opacity: 0.9; font-size: 0.95rem; }
+
+/* ---------- the room picker, sized to what it says ----------
+ *
+ * A fixed 16rem cut every chip after the first to a letter or two once the
+ * photo column got narrower (the companion app zoomed in, a smaller tablet).
+ * The list now takes the width its rows ask for, within reason, and a room
+ * with more going on than one line holds wraps its chips to a second line
+ * instead of clipping them. */
+.rb-roommenu:has(.rb-rs-row) { width: max-content; min-width: 15rem; max-width: min(21rem, 86vw); }
+.rb-board[data-narrow="true"] .rb-roommenu:has(.rb-rs-row) { width: max-content; min-width: min(15rem, calc(100vw - 3rem)); max-width: min(20rem, calc(100vw - 3rem)); }
+.rb-roommenu .rb-rs-chips { flex-wrap: wrap; overflow: visible; row-gap: 0.22rem; }
+.rb-roommenu .rb-rs-chip { flex-shrink: 0; }
+.rb-roommenu .rb-rs-chip > span { overflow: visible; }
+/* The room showing: dark words on its white row, whatever the theme's card
+   colour is — a translucent one left them grey on white. */
+.rb-board:not([data-scheme="light"]) .rb-roommenu-item[data-active="true"] { color: #14161c; }
