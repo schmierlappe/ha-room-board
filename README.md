@@ -75,7 +75,7 @@ On a screen taller than it is wide — a wall display such as the Shelly Wall Di
 
 ### Arranging cards
 
-**Arrange** in the Overview line lets you move cards earlier or later, remove them, and pick a size for each:
+**Arrange** in the Overview line lets you move cards, remove them, and pick a size for each. Drag a card onto another to put it there: with a mouse just drag it, on a touch screen hold it for a moment and then drag (a quick swipe still scrolls). The arrows move a card one place at a time. Sizes:
 
 - **Small** (1×1), **Wide** (2×1), **Tall** (1×2), **Big** (2×2).
 - **16:9** (3×2): bigger than the big square, in a picture's shape. Good for the player, a camera, the weather or the reading that matters most.

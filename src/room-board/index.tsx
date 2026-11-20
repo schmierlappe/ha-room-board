@@ -1202,6 +1202,18 @@ function RoomBoard(props: { config: Config }) {
     change({ order: keys, sizes: currentSizes() });
   };
 
+  /* Dragged and dropped: the card takes the other one's place, and the
+     cards between move along by one. */
+  const placeCard = (key: string, onto: string) => {
+    const keys = shownKeys();
+    const from = keys.indexOf(key);
+    const to = keys.indexOf(onto);
+    if (from < 0 || to < 0 || from === to) return;
+    keys.splice(from, 1);
+    keys.splice(to, 0, key);
+    change({ order: keys, sizes: currentSizes() });
+  };
+
   const resizeCard = (key: string, size: Size) => {
     const sizes = currentSizes();
     sizes.set(key, size);
@@ -1341,7 +1353,7 @@ function RoomBoard(props: { config: Config }) {
       const current = layout();
       applyLayout(grid, narrow(), current);
       if (arranging())
-        attachControls(grid, current, narrow(), { move: moveCard, resize: resizeCard, remove: removeCard });
+        attachControls(grid, current, narrow(), { move: moveCard, resize: resizeCard, remove: removeCard, place: placeCard });
       else detachControls(grid);
     };
     lay();

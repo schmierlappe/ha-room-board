@@ -14713,3 +14713,40 @@
   line-height: 1.2;
 }
 .rb-wifi-kicker { white-space: nowrap; letter-spacing: 0.06em; }
+
+/* ---------- arranging by drag and drop ---------- */
+.rb-grid > .rb-card > .rb-arrange { cursor: grab; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+.rb-arrange-grip {
+  /* A handle bar at the top of the card, clear of its name. */
+  position: absolute;
+  top: 0.4rem;
+  left: 50%;
+  translate: -50% 0;
+  display: block;
+  width: 2.2rem;
+  height: 0.3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rb-ink) 55%, transparent);
+  opacity: 0.8;
+  pointer-events: none;
+}
+.rb-arrange-grip > svg { display: none; }
+/* The card picked up: lifted over the others, following the pointer. */
+.rb-grid > .rb-card[data-dragging] {
+  z-index: 60;
+  scale: 1.04;
+  opacity: 0.94;
+  box-shadow: 0 24px 50px -16px rgb(0 0 0 / 0.75), 0 0 0 2px var(--rb-primary, #7c6cf0);
+  transition: scale 0.15s ease, box-shadow 0.15s ease;
+  animation: none !important;
+}
+.rb-grid > .rb-card[data-dragging] > .rb-arrange { cursor: grabbing; }
+.rb-grid[data-dragging] { scroll-behavior: auto; }
+/* Where it will go. */
+.rb-grid > .rb-card[data-drop-target] {
+  outline: 2.5px solid var(--rb-primary, #7c6cf0) !important;
+  outline-offset: -2px;
+  scale: 0.97;
+  transition: scale 0.15s ease;
+}
+.rb-grid > .rb-card[data-drop-target] > .rb-arrange { background: color-mix(in srgb, var(--rb-primary, #7c6cf0) 22%, transparent); }
