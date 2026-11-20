@@ -15052,9 +15052,9 @@
 
 /* ---------- half height, on a phone ----------
  *
- * A card half a tile high across the whole row: one line — its name and
- * what it says on the left, its one control or reading on the right, and
- * nothing else. The media card has a layout of its own for this (the media
+ * Half a tile: one column wide and half a tile high, two of them stacked in
+ * the space of one small tile. One line — its name and what it says on the
+ * left, its one control or reading on the right, and nothing else. The media card has a layout of its own for this (the media
  * widget's strip, media-tile.tsx). */
 .rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) {
   display: flex !important;
@@ -15087,3 +15087,14 @@
 .rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > .rb-sw-list > :not(:first-child) { display: none; }
 .rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-card-name { font-size: 0.92rem; }
 .rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] :is(.rb-wx-sky, .rb-wx-scrim, .rb-light-fill) { position: absolute; inset: 0; }
+
+/* Half a tile is narrow: the name over its status, the control beside them. */
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) { gap: 0.45rem !important; padding: 0.45rem 0.7rem !important; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-card-name { font-size: 0.82rem; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-card-verdict { font-size: 0.68rem; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-hero-value { font-size: 1.3rem; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-read-value { font-size: 1.15rem; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] :is(.rb-read-badge, .rb-hero-unit, .rb-read-unit, .rb-light-pct) { display: none; }
+/* A switch shows its toggle alone; the name is the card's. */
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-sw-list > * > :not(:last-child) { display: none; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-sw-list > * { padding: 0.2rem; min-width: 0; }
