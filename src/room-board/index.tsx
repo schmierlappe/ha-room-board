@@ -113,6 +113,7 @@ import { Keyed } from "./keyed";
 import { errorMessage } from "../errors";
 import { CLOCK_STYLES, SceneClock } from "./clock";
 import { UpdatesBar, UpdatesButton, UpdatesPanel, pending as updatePending } from "./updates";
+import { WifiQr, useTablet } from "./wifi";
 
 /**
  * The players a stand-in player names: a universal media player the one in
@@ -243,6 +244,15 @@ const configSchema = defineConfig({
   vacuumMapImage: field.entity("image", {
     title: "Vacuum map (image entity)",
     description: "Optional: the vacuum's map is found by name, the current floor's first.",
+  }),
+  wifiQr: field.entity("image", {
+    title: "Guest Wi-Fi QR code",
+    description:
+      "An image entity with the network's QR code, shown on tablets above the room picker. Left empty, UniFi's guest QR code is found by itself.",
+  }),
+  wifiQrShow: field.toggle({
+    title: "Show the Wi-Fi QR code on tablets",
+    default: true,
   }),
   vacuumMapCamera: field.entity("camera", { title: "Vacuum map (camera entity)", description: "Optional, for integrations that publish the map as a camera." }),
   vacuumRooms: field.stringList({
@@ -1092,6 +1102,18 @@ function RoomBoard(props: { config: Config }) {
     return w > 0 && (w < 560 || (w < 1000 && h > w * 1.15));
   });
 
+  /* The guest Wi-Fi's QR code: the one chosen, or UniFi's guest code found
+     by its name. Tablets only — touch, and the side-by-side layout with a
+     photo column tall enough to hold it. */
+  const tablet = useTablet();
+  const wifiQrId = createMemo(() => {
+    if (props.config.wifiQrShow === false || narrow() || !tablet()) return "";
+    const chosen = props.config.wifiQr?.[0];
+    if (chosen) return chosen;
+    const images = domains().image ?? [];
+    return images.find((id) => /guest_qr_code/.test(id)) ?? images.find((id) => /qr_code/.test(id)) ?? "";
+  });
+
   /* The match docked at the foot on a phone, on game day (sport.tsx). */
   const matchToday = createMemo(() =>
     narrow() && props.config.matchBar !== false
@@ -1488,6 +1510,14 @@ function RoomBoard(props: { config: Config }) {
                   menu left permanently open across the photograph, and with
                   more than four rooms it either wrapped or scrolled. The
                   button says where you are; the list says where else. */}
+              {/* The guest Wi-Fi, on a tablet: over the floor of the photo,
+                  above the room picker. */}
+              <Show when={wifiQrId()}>
+                <div class="rb-scene-wifi">
+                  <WifiQr entityId={wifiQrId()} />
+                </div>
+              </Show>
+
               <Show when={rooms().length > 1}>
                 <div class="rb-roompick" onPointerDown={swallow}>
                   <Show when={roomsOpen()}>

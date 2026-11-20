@@ -95,6 +95,10 @@ Each is kept in Home Assistant under your user, and the screen is recognised by 
 
 On a phone, on the day a team you follow with [TeamTracker](https://github.com/vasqued2/ha-teamtracker) plays, the match is docked at the foot of the screen in every room, above the activity line. It shows the kick-off time before the match, the live score and minute during it (the score flashes when a goal goes in), and the result afterwards until midnight. Tap it for the matchday, table and news. If two teams play on the same day, a live match comes first. Set `matchBar: false` to leave it out.
 
+### Guest Wi-Fi on a tablet
+
+On a tablet (a touch screen with the photo beside the cards), the guest Wi-Fi's QR code sits on the room photo above the room picker, with the network's name. Guests scan it with their phone to join; a tap makes it bigger. It uses UniFi's guest QR code image (`image.…_guest_qr_code`) by itself; pick another image with `wifiQr`, or turn it off with `wifiQrShow: false`. Phones and desktops don't show it.
+
 ### Updates
 
 When Home Assistant has updates waiting (Home Assistant itself, add-ons, HACS, integrations, device firmware), an **Updates** button with their number appears in the Overview line beside Arrange. On a phone it's a row in the bar at the foot, above the activity line, naming what is waiting. Either opens a list with each one's installed and new version, its release notes ("What's new"), and an **Update** button. Updates that can make a backup first (Home Assistant and its add-ons) do so unless you switch it off for that one. **Skip** hides that version, and **Update all** installs every one. Update, Update all and Skip each need a second tap. A running install shows its progress. Set `updates: false` to leave it out.
@@ -127,6 +131,8 @@ They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/inte
 | `theme` | `aurora` | `aurora`: the board's own look — soft glows of colour drifting behind frosted glass, in dark and light following Home Assistant's dark-mode setting. `home_assistant`: the colours of your Home Assistant theme. |
 | `statusBar` | `visible` | `hidden` when the phone shows no status bar (the Home Assistant app's full-screen mode): the clock, date and temperature move up to the very top of the screen. |
 | `height` | full screen | The board's height, e.g. `800px`. On a panel view it fills the screen. |
+| `wifiQr` | auto | The image entity with the Wi-Fi QR code; empty finds UniFi's guest QR code. |
+| `wifiQrShow` | `true` | Show the Wi-Fi QR code on tablets. |
 | `matchBar` | `true` | On a phone, a TeamTracker team's match docked at the foot on game day, with the live score. |
 | `updates` | `true` | An Updates button beside Arrange (on a phone, a row in the bar at the foot) when updates are waiting, with a list to install them. |
 | `layout_per_device` | `true` | Each screen keeps its own arrangement and hidden cards. `false`: one layout for every screen. |
