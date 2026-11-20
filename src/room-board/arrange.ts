@@ -33,6 +33,8 @@ import { applyMosaic } from "./mosaic";
 const GLYPHS = {
   "mdi:chevron-left": "M15.41 16.58L10.83 12l4.58-4.59L14 6l-6 6l6 6z",
   "mdi:chevron-right": "M8.59 16.58L13.17 12L8.59 7.41L10 6l6 6l-6 6z",
+  "mdi:drag":
+    "M7 19v-2h2v2H7m4 0v-2h2v2h-2m4 0v-2h2v2h-2m-8-4v-2h2v2H7m4 0v-2h2v2h-2m4 0v-2h2v2h-2m-8-4V9h2v2H7m4 0V9h2v2h-2m4 0V9h2v2h-2M7 7V5h2v2H7m4 0V5h2v2h-2m4 0V5h2v2h-2Z",
   "mdi:close":
     "M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z",
 } as const;
@@ -243,6 +245,8 @@ export function attachControls(
   actions: {
     move: (key: string, by: -1 | 1) => void;
     resize: (key: string, size: Size) => void;
+    /** Put the card where another one is (dragged and dropped on it). */
+    place: (key: string, onto: string) => void;
     /** Take the card off the board. */
     remove: (key: string) => void;
   },
@@ -302,7 +306,14 @@ export function attachControls(
       remove.title = "Remove from the board";
       remove.append(glyph("mdi:close", 16));
 
-      cover.append(remove, moves, sizes);
+      /* A grip in the corner, saying the card can be picked up. */
+      const grip = document.createElement("span");
+      grip.className = "rb-arrange-grip";
+      grip.setAttribute("aria-hidden", "true");
+      grip.append(glyph("mdi:drag", 16));
+
+      cover.append(grip, remove, moves, sizes);
+      dragToPlace(grid, card, cover, (onto) => actions.place(cardKey(card), onto));
 
       /* Nothing on the card underneath may answer while arranging. */
       cover.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -331,4 +342,141 @@ export function attachControls(
 
 export function detachControls(grid: HTMLElement) {
   for (const cover of grid.querySelectorAll(".rb-card > .rb-arrange")) cover.remove();
+}
+
+/**
+ * Drag and drop, on the arranging cover of a card.
+ *
+ * A mouse picks the card up as soon as it moves; a finger has to hold it for
+ * a moment first, so that a swipe still scrolls the board. Picked up, the
+ * card follows the pointer, lifted over the others; the card under it is
+ * outlined as where it will go, and near the top or the foot of the board
+ * the board scrolls. Let go over a card and the dragged one takes its place —
+ * one config write, the same as the arrows make.
+ *
+ * Plain DOM, like the rest of the controls: the cover belongs to no Solid
+ * component, and the card it lies on can be any of a dozen.
+ */
+function dragToPlace(grid: HTMLElement, card: HTMLElement, cover: HTMLElement, drop: (onto: string) => void) {
+  const HOLD_MS = 320;
+  const SLOP = 7;
+  let start: { x: number; y: number; id: number; touch: boolean } | undefined;
+  let dragging = false;
+  let holdTimer: ReturnType<typeof setTimeout> | undefined;
+  let target: HTMLElement | undefined;
+  let scrollTimer: ReturnType<typeof setInterval> | undefined;
+  let last = { x: 0, y: 0 };
+
+  const root = () => grid.getRootNode() as Document | ShadowRoot;
+
+  const cardAt = (x: number, y: number): HTMLElement | undefined => {
+    for (const el of root().elementsFromPoint(x, y)) {
+      const other = (el as HTMLElement).closest?.(".rb-card") as HTMLElement | null;
+      if (other && other !== card && other.parentElement === grid && other.dataset.removed === undefined) return other;
+    }
+    return undefined;
+  };
+
+  const mark = (next: HTMLElement | undefined) => {
+    if (next === target) return;
+    if (target) delete target.dataset.dropTarget;
+    target = next;
+    if (target) target.dataset.dropTarget = "";
+  };
+
+  const follow = (x: number, y: number) => {
+    last = { x, y };
+    card.style.translate = `${x - start!.x}px ${y - start!.y + grid.scrollTop - scrollStart}px`;
+    mark(cardAt(x, y));
+  };
+  let scrollStart = 0;
+
+  const pickUp = () => {
+    if (!start) return;
+    dragging = true;
+    scrollStart = grid.scrollTop;
+    card.dataset.dragging = "";
+    grid.dataset.dragging = "";
+    try {
+      cover.setPointerCapture(start.id);
+    } catch {
+      /* The pointer has gone; the drag simply ends on the next move. */
+    }
+    if (start.touch && "vibrate" in navigator) navigator.vibrate?.(12);
+    /* Near the edges the board scrolls, so a card can go further than the
+       screen shows. */
+    scrollTimer = setInterval(() => {
+      const box = grid.getBoundingClientRect();
+      const edge = 56;
+      let by = 0;
+      if (last.y < box.top + edge) by = -Math.ceil((box.top + edge - last.y) / 4);
+      else if (last.y > box.bottom - edge) by = Math.ceil((last.y - (box.bottom - edge)) / 4);
+      if (by) {
+        grid.scrollTop += by;
+        follow(last.x, last.y);
+      }
+    }, 16);
+  };
+
+  const finish = (commit: boolean) => {
+    clearTimeout(holdTimer);
+    clearInterval(scrollTimer);
+    const onto = target ? cardKey(target) : "";
+    mark(undefined);
+    if (dragging) {
+      card.style.translate = "";
+      delete card.dataset.dragging;
+      delete grid.dataset.dragging;
+    }
+    const was = dragging;
+    dragging = false;
+    start = undefined;
+    if (was && commit && onto) drop(onto);
+  };
+
+  cover.addEventListener("pointerdown", (event) => {
+    if ((event.target as Element).closest("button")) return;
+    if (event.button !== undefined && event.button > 0) return;
+    start = { x: event.clientX, y: event.clientY, id: event.pointerId, touch: event.pointerType !== "mouse" };
+    last = { x: event.clientX, y: event.clientY };
+    if (start.touch) holdTimer = setTimeout(pickUp, HOLD_MS);
+  });
+
+  cover.addEventListener("pointermove", (event) => {
+    if (!start || event.pointerId !== start.id) return;
+    const moved = Math.hypot(event.clientX - start.x, event.clientY - start.y);
+    if (!dragging) {
+      if (start.touch) {
+        /* Moved before the hold: a swipe, the board's to scroll. */
+        if (moved > SLOP) {
+          clearTimeout(holdTimer);
+          start = undefined;
+        }
+        return;
+      }
+      if (moved < SLOP) return;
+      pickUp();
+    }
+    follow(event.clientX, event.clientY);
+  });
+
+  /* Once a finger has picked the card up, its moves are the drag's and not
+     the page's: the first move after the hold is still cancellable. */
+  cover.addEventListener(
+    "touchmove",
+    (event) => {
+      if (dragging) event.preventDefault();
+    },
+    { passive: false },
+  );
+
+  cover.addEventListener("pointerup", () => finish(true));
+  cover.addEventListener("pointercancel", () => finish(false));
+  cover.addEventListener("lostpointercapture", () => {
+    if (dragging) finish(true);
+  });
+  /* A long press on a phone opens the system's menu over a picture; not here. */
+  cover.addEventListener("contextmenu", (event) => {
+    if (start || dragging) event.preventDefault();
+  });
 }

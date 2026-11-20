@@ -615,7 +615,7 @@ export function DiscoverPanel(props: {
         {/* Titled the way a shelf is, so opening one does not drop you into a
             differently-styled view: the container's name is the heading, with
             its type above it and Play all beside it. */}
-        <div class="mp-crumb">
+        <div class="mp-crumb mp-sticky-head">
           <button
             class="mp-btn mp-btn--ghost mp-btn--sm"
             aria-label="Back"
