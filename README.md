@@ -113,7 +113,7 @@ Four cards appear by themselves where they belong:
 
 - **Synology:** in a room whose area holds a Synology NAS, or whose name says *server*, *rack*, *nas* or *storage*. Each NAS as a small front panel: its drive bays with a light each, its volume's fill and its load; tap for the volumes, every drive's temperature and health, and Restart, Shut down and the fan mode.
 
-They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/integrations/unifi/), [Proxmox VE](https://www.home-assistant.io/integrations/proxmoxve/) and [Uptime Kuma](https://www.home-assistant.io/integrations/uptime_kuma/) and [Synology DSM](https://www.home-assistant.io/integrations/synology_dsm/) integrations; nothing to configure on the card.
+They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/integrations/unifi/), [Proxmox VE](https://www.home-assistant.io/integrations/proxmoxve/), [Uptime Kuma](https://www.home-assistant.io/integrations/uptime_kuma/) and [Synology DSM](https://www.home-assistant.io/integrations/synology_dsm/) integrations; nothing to configure on the card.
 
 ## Options
 
