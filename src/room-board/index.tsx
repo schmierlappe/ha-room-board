@@ -71,6 +71,8 @@ import { WeatherCard, WeatherPanel, WeatherSky } from "./weather";
 import { UptimeBar, UptimeCard, UptimeBoardPanel } from "./uptime";
 import { UnifiBoardPanel, UnifiCard, usePingList } from "./unifi";
 import { ProxmoxBoardPanel, ProxmoxCard } from "./proxmox";
+import { SynologyCard, SynologyPanel } from "./synology";
+import { useSynology } from "./synology-model";
 import { useCluster } from "../proxmox/model";
 import { useNetwork, usePings } from "../unifi/model";
 import { groupMonitors, isMonitor, tagGroups, useMonitors } from "../uptime/model";
@@ -857,6 +859,7 @@ function RoomBoard(props: { config: Config }) {
     | "uptime"
     | "unifi"
     | "proxmox"
+    | "synology"
     | "activity"
     | "match"
     | "updates"
@@ -883,6 +886,7 @@ function RoomBoard(props: { config: Config }) {
     uptime: "Uptime Kuma",
     unifi: "Network",
     proxmox: "Proxmox",
+    synology: "Synology",
     activity: "Activity",
     match: "Matchday",
     updates: "Updates",
@@ -985,6 +989,7 @@ function RoomBoard(props: { config: Config }) {
     (state.entityRegistry?.[id] as { platform?: string } | undefined)?.platform;
   const isUnifi = (id: string) => platformOf(id) === "unifi";
   const isProxmox = (id: string) => platformOf(id) === "proxmoxve";
+  const isSynology = (id: string) => platformOf(id) === "synology_dsm";
 
   /* The UniFi network, in the room that holds it: one whose area has UniFi
      devices in it, or whose name says it is where the network lives — the
@@ -1013,6 +1018,15 @@ function RoomBoard(props: { config: Config }) {
   );
   const cluster = useCluster(() => ({ off: !proxmoxRoom() }));
   const hasCluster = () => proxmoxRoom() && (cluster().nodes.length > 0 || cluster().guests.length > 0);
+  /* Synology, the same way: where its entities are, or in the room whose
+     name says it holds the servers or the NAS. */
+  const synologyRoom = createMemo(
+    () =>
+      entities().some((entity) => isSynology(entity.id)) ||
+      /server|rack|nas|synology|storage/i.test(current()?.label || area()?.name || current()?.area || ""),
+  );
+  const nasList = useSynology(() => ({ off: !synologyRoom() }));
+  const hasNas = () => synologyRoom() && nasList().length > 0;
 
   const metrics = createMemo(() =>
     metricsOf(
@@ -1022,7 +1036,8 @@ function RoomBoard(props: { config: Config }) {
           !uptimeIds().has(entity.id) &&
           !rateIds().has(entity.id) &&
           !isUnifi(entity.id) &&
-          !isProxmox(entity.id),
+          !isProxmox(entity.id) &&
+          !isSynology(entity.id),
       ),
     ),
   );
@@ -1684,6 +1699,7 @@ function RoomBoard(props: { config: Config }) {
                   climates().length ||
                   hasNetwork() ||
                   hasCluster() ||
+                  hasNas() ||
                   monitors().length > 0
                 }
                 fallback={
@@ -1867,6 +1883,12 @@ function RoomBoard(props: { config: Config }) {
                   <Show when={hasCluster()}>
                     <Guard name="Proxmox">
                       <ProxmoxCard cluster={cluster()} onOpen={() => openPanel("proxmox")} />
+                    </Guard>
+                  </Show>
+
+                  <Show when={hasNas()}>
+                    <Guard name="Synology">
+                      <SynologyCard list={nasList()} onOpen={() => openPanel("synology")} />
                     </Guard>
                   </Show>
 
@@ -2088,6 +2110,10 @@ function RoomBoard(props: { config: Config }) {
 
                       <Show when={panel() === "unifi" && hasNetwork()}>
                         <UnifiBoardPanel network={network()} pings={unifiPings()} />
+                      </Show>
+
+                      <Show when={panel() === "synology" && hasNas()}>
+                        <SynologyPanel list={nasList()} />
                       </Show>
 
                       <Show when={panel() === "proxmox" && hasCluster()}>

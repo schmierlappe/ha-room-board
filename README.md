@@ -105,13 +105,15 @@ When Home Assistant has updates waiting (Home Assistant itself, add-ons, HACS, i
 
 ### Network, servers and monitors
 
-Three cards appear by themselves where they belong:
+Four cards appear by themselves where they belong:
 
 - **Network (UniFi):** in a room whose area holds UniFi devices, or whose name says *server*, *rack*, *network* or *unifi*. The gateway's throughput (or your speed test's), its load, clients and latency; tap for every device and Wi-Fi network.
 - **Proxmox:** in a room whose area holds Proxmox VE devices, or whose name says *server*, *rack* or *proxmox*. The nodes and their guests; tap for the whole cluster.
 - **Uptime Kuma:** the monitors in the room's area. A room with *server* in its name shows every monitor in the house in the activity column (on a phone, as a bar at the foot), the trouble first; tap for all of them, grouped by their Uptime Kuma tags.
 
-They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/integrations/unifi/), [Proxmox VE](https://www.home-assistant.io/integrations/proxmoxve/) and [Uptime Kuma](https://www.home-assistant.io/integrations/uptime_kuma/) integrations; nothing to configure on the card.
+- **Synology:** in a room whose area holds a Synology NAS, or whose name says *server*, *rack*, *nas* or *storage*. Each NAS as a small front panel: its drive bays with a light each, its volume's fill and its load; tap for the volumes, every drive's temperature and health, and Restart, Shut down and the fan mode.
+
+They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/integrations/unifi/), [Proxmox VE](https://www.home-assistant.io/integrations/proxmoxve/) and [Uptime Kuma](https://www.home-assistant.io/integrations/uptime_kuma/) and [Synology DSM](https://www.home-assistant.io/integrations/synology_dsm/) integrations; nothing to configure on the card.
 
 ## Options
 
