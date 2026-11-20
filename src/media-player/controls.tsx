@@ -12,6 +12,7 @@ import { favouriteButtonFor } from "./favourite";
 import { SubSheet } from "./subsheet";
 import { StableImg, holdLast } from "./stable-img";
 import { LyricsView, fetchLyrics, type Lyrics } from "./lyrics";
+import { picon } from "./picons";
 import { brandStyle, placeholderBrand } from "./brand";
 import { keyStep } from "../keys";
 import { errorMessage } from "../errors";
@@ -537,6 +538,9 @@ export function NowPlaying(props: {
             <Show
               when={artOk()}
               fallback={
+                <Show
+                  when={picon(props.player()?.attributes?.source)}
+                  fallback={
                 <div
                   class="mp-pnow-art mp-art-placeholder"
                   data-brand="true"
@@ -548,6 +552,14 @@ export function NowPlaying(props: {
                     width={undefined}
                   />
                 </div>
+                  }
+                >
+                  {(logo) => (
+                    <div class="mp-pnow-art mp-art-placeholder mp-picon-tile" data-brand="true">
+                      <img class="mp-picon" src={logo()} alt="" draggable={false} />
+                    </div>
+                  )}
+                </Show>
               }
             >
               <StableImg
@@ -791,17 +803,28 @@ export function NowPlaying(props: {
               <Show
                 when={artOk()}
                 fallback={
-                  <div
-                    class="mp-snow-art mp-art-placeholder"
-                    data-brand="true"
-                    style={brandStyle(placeholderBrand(props.player()))}
+                  <Show
+                    when={picon(props.player()?.attributes?.source)}
+                    fallback={
+                      <div
+                        class="mp-snow-art mp-art-placeholder"
+                        data-brand="true"
+                        style={brandStyle(placeholderBrand(props.player()))}
+                      >
+                        {/* No cover, but a known app: its logo on its own ground. */}
+                        <Icon
+                          icon={placeholderBrand(props.player()).icon}
+                          width={undefined}
+                        />
+                      </div>
+                    }
                   >
-                    {/* No cover, but a known app: its logo on its own ground. */}
-                    <Icon
-                      icon={placeholderBrand(props.player()).icon}
-                      width={undefined}
-                    />
-                  </div>
+                    {(logo) => (
+                      <div class="mp-snow-art mp-art-placeholder mp-picon-tile" data-brand="true">
+                        <img class="mp-picon" src={logo()} alt="" draggable={false} />
+                      </div>
+                    )}
+                  </Show>
                 }
               >
                 <StableImg

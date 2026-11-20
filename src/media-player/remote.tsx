@@ -10,6 +10,7 @@ import {
 } from "./remote-commands";
 import { activityLook, appLook, channelLook } from "./app-icons";
 import { haptic } from "./util";
+import { picon } from "./picons";
 import { Choice, SubSheet } from "./subsheet";
 import { errorMessage } from "../errors";
 
@@ -197,6 +198,13 @@ export function RemotePanel(props: {
      bouquet. Same menu, different vocabulary — and a different icon table,
      since "Sky" as an app and "Sky Sport" as a channel are not the same row. */
   const sourceLook = (name: string) => (usesAdb() ? appLook(name) : channelLook(name));
+  /* A receiver's channel with a picon shows the logo itself. */
+  const sourceLogo = (name: string) => (usesAdb() ? undefined : picon(name));
+  const SourceIcon = (p: { name: string; size: string }) => (
+    <Show when={sourceLogo(p.name)} fallback={<Icon icon={sourceLook(p.name).icon} width={p.size} />}>
+      {(logo) => <img class="mp-picon mp-picon--icon" src={logo()} alt="" draggable={false} />}
+    </Show>
+  );
   const sourceLabel = () => (usesAdb() ? "Apps" : "Channels");
   const sourceIcon = () => (usesAdb() ? "mdi:apps" : "mdi:television-guide");
 
@@ -526,9 +534,10 @@ export function RemotePanel(props: {
                 <button class="mp-rem-menu-item" onClick={() => launch(source)}>
                   <span
                     class="mp-rem-menu-icon"
+                    data-picon={!!sourceLogo(source)}
                     style={{ "--mp-look": sourceLook(source).color }}
                   >
-                    <Icon icon={sourceLook(source).icon} width="16" />
+                    <SourceIcon name={source} size="16" />
                   </span>
                   <span class="mp-truncate">{source}</span>
                 </button>
@@ -686,11 +695,10 @@ export function RemotePanel(props: {
               }}
               onClick={() => openSheet("sources")}
             >
-              <span class="mp-rem-chip-icon">
-                <Icon
-                  icon={currentSource() ? sourceLook(currentSource()).icon : sourceIcon()}
-                  width="18"
-                />
+              <span class="mp-rem-chip-icon" data-picon={!!(currentSource() && sourceLogo(currentSource()))}>
+                <Show when={currentSource()} fallback={<Icon icon={sourceIcon()} width="18" />}>
+                  <SourceIcon name={currentSource()} size="18" />
+                </Show>
               </span>
               <span class="mp-rem-chip-text">
                 <span class="mp-rem-chip-label">{usesAdb() ? "App" : "Source"}</span>
@@ -890,8 +898,8 @@ export function RemotePanel(props: {
             <For each={filteredApps()}>
               {(source) => (
                 <Choice
-                  icon={<Icon icon={sourceLook(source).icon} width="20" />}
-                  look={sourceLook(source).color}
+                  icon={<SourceIcon name={source} size="20" />}
+                  look={sourceLogo(source) ? "#0f1218" : sourceLook(source).color}
                   name={source}
                   active={currentSource() === source}
                   sub={currentSource() === source ? "On now" : undefined}

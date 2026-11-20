@@ -1,5 +1,6 @@
 import { artSrc } from "../artwork";
 import { pictureOf, usePlexPlayers, withPlexTwin } from "../media-player/plex-twin";
+import { picon } from "../media-player/picons";
 import { brandStyle, placeholderBrand } from "../media-player/brand";
 import { Show, createMemo, createSignal, onCleanup } from "solid-js";
 import { Icon, useService, type EntityView } from "@glasshome/widget-sdk";
@@ -240,6 +241,9 @@ export function MediaCard(props: {
           <Show
             when={art()}
             fallback={
+              <Show
+                when={picon(player()?.attributes?.source)}
+                fallback={
               <span
                 class="rb-media-art rb-media-art--empty"
                 data-brand="true"
@@ -251,6 +255,15 @@ export function MediaCard(props: {
                   width={undefined}
                 />
               </span>
+                }
+              >
+                {/* A receiver on a channel: the channel's picon. */}
+                {(logo) => (
+                  <span class="rb-media-art rb-media-art--empty mp-picon-tile" data-brand="true">
+                    <img class="mp-picon" src={logo()} alt="" draggable={false} />
+                  </span>
+                )}
+              </Show>
             }
           >
             <img

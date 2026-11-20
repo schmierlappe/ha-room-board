@@ -95,6 +95,10 @@ Each is kept in Home Assistant under your user, and the screen is recognised by 
 
 On a phone, on the day a team you follow with [TeamTracker](https://github.com/vasqued2/ha-teamtracker) plays, the match is docked at the foot of the screen in every room, above the activity line. It shows the kick-off time before the match, the live score and minute during it (the score flashes when a goal goes in), and the result afterwards until midnight. Tap it for the matchday, table and news. If two teams play on the same day, a live match comes first. Set `matchBar: false` to leave it out.
 
+### TV channel logos
+
+A receiver's channels (a Vu+ or any Enigma2 box) show their logos in the favourites, the remote's channel list and on the player while a channel is on. They come from the [picons project](https://github.com/picons/picons) in a separate file, `room-board-picons.js` (GPL-3.0), that sits beside the card and is loaded only when a channel is shown. Channels without a picon keep a logo or their name on the channel's colour. See `picons/README.md` to add more.
+
 ### Guest Wi-Fi on a tablet
 
 On a tablet (a touch screen with the photo beside the cards), the guest Wi-Fi's QR code sits on the room photo above the room picker, with the network's name. Guests scan it with their phone to join; a tap makes it bigger. It uses UniFi's guest QR code image (`image.…_guest_qr_code`) by itself; pick another image with `wifiQr`, or turn it off with `wifiQrShow: false`. Phones and desktops don't show it.
