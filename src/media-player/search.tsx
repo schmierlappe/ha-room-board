@@ -218,61 +218,67 @@ export function SearchPanel(props: {
 
   return (
     <div class="mp-panel">
-      <div class="mp-search-row">
-        <div class="mp-input-wrap">
-          <Icon icon="mdi:magnify" width="17" />
-          <input
-            class="mp-input"
-            type="search"
-            placeholder="Search artists, albums, tracks…"
-            value={query()}
-            onInput={(e) => setQuery(e.currentTarget.value)}
-            onKeyDown={(e) => e.key === "Enter" && search()}
-            /* The sheet resizes around the keyboard, and the field can end up
-               above the fold of the new, shorter panel. Scrolling after the
-               resize settles keeps what you are typing in view. */
-            onFocus={(e) => {
-              const field = e.currentTarget;
-              setTimeout(() => field.scrollIntoView({ block: "center", behavior: "smooth" }), 320);
-            }}
-          />
+      {/* The field, the filters and where you are, pinned to the top while
+          the results scroll under them. */}
+      <div class="mp-sticky-head">
+        <div class="mp-search-row">
+          <div class="mp-input-wrap">
+            <Icon icon="mdi:magnify" width="17" />
+            <input
+              class="mp-input"
+              type="search"
+              placeholder="Search artists, albums, tracks…"
+              value={query()}
+              onInput={(e) => setQuery(e.currentTarget.value)}
+              onKeyDown={(e) => e.key === "Enter" && search()}
+              /* The sheet resizes around the keyboard, and the field can end up
+                 above the fold of the new, shorter panel. Scrolling after the
+                 resize settles keeps what you are typing in view. */
+              onFocus={(e) => {
+                const field = e.currentTarget;
+                setTimeout(() => field.scrollIntoView({ block: "center", behavior: "smooth" }), 320);
+              }}
+            />
+          </div>
+          <button class="mp-go" disabled={!query().trim() || searching()} onClick={search}>
+            {searching() ? "…" : "Search"}
+          </button>
         </div>
-        <button class="mp-go" disabled={!query().trim() || searching()} onClick={search}>
-          {searching() ? "…" : "Search"}
-        </button>
-      </div>
 
-      <div class="mp-chips">
-        <button class="mp-chip" data-active={filter() === "all"} onClick={() => setFilter("all")}>
-          all
-        </button>
-        <For each={MEDIA_TYPES}>
-          {(t) => (
-            <button class="mp-chip" data-active={filter() === t} onClick={() => setFilter(t)}>
-              {t}
+        <div class="mp-chips">
+          <button class="mp-chip" data-active={filter() === "all"} onClick={() => setFilter("all")}>
+            all
+          </button>
+          <For each={MEDIA_TYPES}>
+            {(t) => (
+              <button class="mp-chip" data-active={filter() === t} onClick={() => setFilter(t)}>
+                {t}
+              </button>
+            )}
+          </For>
+        </div>
+        <Show when={trail().length}>
+          <div class="mp-crumb">
+            <button
+              class="mp-btn mp-btn--ghost mp-btn--sm"
+              onClick={() => setTrail((t) => t.slice(0, -1))}
+            >
+              <Icon icon="mdi:arrow-left" width="18" />
             </button>
-          )}
-        </For>
+            <div class="mp-flex1">
+              <div class="mp-label">{current()!.parent?.mediaType ?? "Browsing"}</div>
+              <div class="mp-crumb-title mp-truncate">{current()!.title}</div>
+            </div>
+            <Show when={current()!.parent}>
+              <button class="mp-pill" onClick={() => run(current()!.parent!, "play")}>
+                Play all
+              </button>
+            </Show>
+          </div>
+        </Show>
       </div>
 
       <Show when={trail().length}>
-        <div class="mp-crumb">
-          <button
-            class="mp-btn mp-btn--ghost mp-btn--sm"
-            onClick={() => setTrail((t) => t.slice(0, -1))}
-          >
-            <Icon icon="mdi:arrow-left" width="18" />
-          </button>
-          <div class="mp-flex1">
-            <div class="mp-label">{current()!.parent?.mediaType ?? "Browsing"}</div>
-            <div class="mp-crumb-title mp-truncate">{current()!.title}</div>
-          </div>
-          <Show when={current()!.parent}>
-            <button class="mp-pill" onClick={() => run(current()!.parent!, "play")}>
-              Play all
-            </button>
-          </Show>
-        </div>
 
         <Show
           when={current()!.items.every((i) => i.mediaType === "track")}
