@@ -14294,3 +14294,16 @@
 /* The room showing: dark words on its white row, whatever the theme's card
    colour is — a translucent one left them grey on white. */
 .rb-board:not([data-scheme="light"]) .rb-roommenu-item[data-active="true"] { color: #14161c; }
+
+/* ---------- cards that fit themselves to their tiles ----------
+ *
+ * Proxmox and the network draw to whatever size they are given, but in a
+ * grid of auto rows they were also asked how tall they would like to be —
+ * and a cluster of eight nodes said "taller than two rows", so every row on
+ * the board grew and the square tiles beside it became tall rectangles.
+ * Contained, they take the area their size gives them and nothing more. */
+.rb-board:not([data-narrow="true"]) .rb-grid > :is(.rb-card--proxmox, .rb-card--unifi) { contain: size; }
+/* And a long list of nodes shares that height, a row each, rather than
+   running off the foot of the card. */
+.rb-card--proxmox .px-ngrid[data-compact="true"] { flex: 1 1 auto; grid-auto-rows: minmax(1.25rem, 1fr); gap: 0.2rem; }
+.rb-card--proxmox .px-ngrid[data-compact="true"] .px-ncard { padding-block: 0.1rem; min-height: 0; }
