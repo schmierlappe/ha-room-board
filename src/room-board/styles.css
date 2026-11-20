@@ -14307,3 +14307,333 @@
    running off the foot of the card. */
 .rb-card--proxmox .px-ngrid[data-compact="true"] { flex: 1 1 auto; grid-auto-rows: minmax(1.25rem, 1fr); gap: 0.2rem; }
 .rb-card--proxmox .px-ngrid[data-compact="true"] .px-ncard { padding-block: 0.1rem; min-height: 0; }
+
+/* ---------- Proxmox, the board's own card and overlay ---------- */
+.pxb, .pxb-panel {
+  --pxb-cpu: #3d8bff;
+  --pxb-mem: #a78bfa;
+  --pxb-disk: #2dd4bf;
+  --pxb-warn: #f59e0b;
+  --pxb-alarm: #ef4444;
+  --pxb-ok: #22c55e;
+  --pxb-orange: #e57000;
+}
+.rb-card--proxmox.pxb-card { padding: 0; }
+.pxb {
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 100%;
+  height: 100%;
+  min-height: 9.5rem;
+  padding: 0.85rem 0.9rem 0.9rem;
+  color: var(--rb-ink);
+  background:
+    radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--pxb-orange) 14%, transparent), transparent 60%);
+}
+.pxb[data-state="alarm"] { background: radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--pxb-alarm) 18%, transparent), transparent 60%); }
+
+.pxb-head { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+.pxb-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.65rem;
+  color: #fff;
+  background: linear-gradient(135deg, #ff8a1f, var(--pxb-orange));
+  box-shadow: 0 6px 14px -6px var(--pxb-orange);
+}
+.pxb-mark--big { width: 3rem; height: 3rem; border-radius: 0.95rem; }
+.pxb-titles { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.15; }
+.pxb-titles > small { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pxb-orange); }
+.pxb-titles > b { font-size: 1.02rem; font-weight: 650; }
+.pxb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: none;
+  padding: 0.25rem 0.55rem 0.25rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  white-space: nowrap;
+  color: var(--pxb-ok);
+  background: color-mix(in srgb, var(--pxb-ok) 14%, transparent);
+}
+.pxb-pill[data-tone="warn"] { color: var(--pxb-warn); background: color-mix(in srgb, var(--pxb-warn) 15%, transparent); }
+.pxb-pill[data-tone="alarm"] { color: var(--pxb-alarm); background: color-mix(in srgb, var(--pxb-alarm) 15%, transparent); }
+.pxb-pill[data-tone="calm"] { color: var(--rb-dim); background: color-mix(in srgb, var(--rb-ink) 8%, transparent); }
+
+/* The two rings and the counts. */
+.pxb-summary { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }
+.pxb-ring { position: relative; display: grid; place-items: center; flex: none; width: 3.6rem; height: 3.6rem; }
+.pxb-ring > svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.pxb-ring-track { fill: none; stroke: color-mix(in srgb, var(--rb-ink) 10%, transparent); stroke-width: 3.2; }
+.pxb-ring-arc { fill: none; stroke: var(--pxb-ring, var(--pxb-cpu)); stroke-width: 3.2; stroke-linecap: round; transition: stroke-dasharray 0.6s ease; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--pxb-ring, var(--pxb-cpu)) 60%, transparent)); }
+.pxb-ring[data-hue="mem"] { --pxb-ring: var(--pxb-mem); }
+.pxb-ring[data-level="warn"] { --pxb-ring: var(--pxb-warn); }
+.pxb-ring[data-level="alarm"] { --pxb-ring: var(--pxb-alarm); }
+.pxb-ring > b { position: relative; margin-top: -0.35rem; font-size: 0.95rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pxb-ring > b > i { font-size: 0.55em; font-style: normal; opacity: 0.6; }
+.pxb-ring > small { position: absolute; bottom: 0.68rem; font-size: 0.52rem; font-weight: 700; letter-spacing: 0.08em; color: var(--rb-dim); }
+.pxb-counts { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 0; }
+.pxb-counts > span:first-child { display: flex; align-items: baseline; gap: 0.35rem; }
+.pxb-counts > span:first-child > b { font-size: 1.6rem; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+.pxb-counts > span:first-child > b > i { font-size: 0.55em; font-style: normal; color: var(--rb-dim); }
+.pxb-counts small { font-size: 0.7rem; color: var(--rb-dim); }
+.pxb-kinds { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.pxb-kinds > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--rb-ink) 7%, transparent);
+}
+.pxb-kinds > span > svg { opacity: 0.7; }
+
+/* A tile per node: its name, how many guests run on it, and two bars. */
+.pxb-nodes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 0.35rem;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.pxb[data-nodes="2"] .pxb-nodes, .pxb[data-nodes="3"] .pxb-nodes, .pxb[data-nodes="4"] .pxb-nodes { grid-auto-rows: minmax(0, 3.2rem); align-content: start; }
+.pxb-node {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.22rem;
+  min-width: 0;
+  min-height: 0;
+  padding: 0.25rem 0.55rem;
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--rb-ink) 5%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rb-ink) 6%, transparent);
+}
+.pxb-node[data-level="warn"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pxb-warn) 55%, transparent); background: color-mix(in srgb, var(--pxb-warn) 8%, transparent); }
+.pxb-node[data-level="alarm"], .pxb-node[data-level="off"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pxb-alarm) 60%, transparent); background: color-mix(in srgb, var(--pxb-alarm) 9%, transparent); }
+.pxb-node-top { display: flex; align-items: center; gap: 0.35rem; min-width: 0; font-size: 0.72rem; }
+.pxb-node-top > b { flex: 1; min-width: 0; font-weight: 620; }
+.pxb-node-top > em { font-style: normal; font-size: 0.64rem; font-weight: 650; color: var(--rb-dim); font-variant-numeric: tabular-nums; }
+.pxb-dot { flex: none; width: 0.42rem; height: 0.42rem; border-radius: 50%; background: var(--pxb-ok); box-shadow: 0 0 6px color-mix(in srgb, var(--pxb-ok) 70%, transparent); }
+[data-level="off"] .pxb-dot { background: var(--pxb-alarm); box-shadow: 0 0 6px var(--pxb-alarm); }
+.pxb-bar { position: relative; display: block; height: 3px; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--rb-ink) 10%, transparent); }
+.pxb-bar > i { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--pxb-bar, var(--pxb-cpu)); transition: width 0.6s ease; }
+.pxb-bar[data-hue="mem"] { --pxb-bar: var(--pxb-mem); }
+.pxb-bar[data-hue="disk"] { --pxb-bar: var(--pxb-disk); }
+.pxb-bar[data-level="warn"] { --pxb-bar: var(--pxb-warn); }
+.pxb-bar[data-level="alarm"] { --pxb-bar: var(--pxb-alarm); }
+
+/* By the card's own size: three columns of nodes where there is the width,
+   one where it is narrow, and only the summary on a card a tile high. */
+@container (min-width: 32rem) {
+  .pxb-nodes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container (max-width: 15rem) {
+  .pxb-nodes { grid-template-columns: minmax(0, 1fr); }
+  .pxb-summary { gap: 0.5rem; }
+  .pxb-ring { width: 3rem; height: 3rem; }
+  .pxb-kinds > span:nth-child(n + 3) { display: none; }
+}
+@container (max-height: 12rem) {
+  .pxb-nodes { display: none; }
+  .pxb { justify-content: space-between; }
+}
+@container (max-height: 12rem) and (max-width: 15rem) {
+  .pxb-titles > small, .pxb-pill > span { display: none; }
+  .pxb-counts { display: none; }
+  .pxb-summary { justify-content: space-around; }
+}
+@container (max-height: 12rem) and (min-width: 20rem) {
+  .pxb-summary { gap: 1.1rem; }
+}
+
+/* ---------- the overlay ---------- */
+.pxb-panel { display: flex; flex-direction: column; gap: 1.2rem; padding: 0.2rem 0 1rem; color: var(--rb-ink); }
+.pxb-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.1rem 1.2rem;
+  border-radius: 1.3rem;
+  background:
+    radial-gradient(90% 120% at 0% 0%, color-mix(in srgb, var(--pxb-orange) 16%, transparent), transparent 60%),
+    color-mix(in srgb, var(--rb-ink) 4%, transparent);
+  box-shadow: inset 0 0 0 1px var(--rb-edge);
+}
+.pxb-hero-id { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }
+.pxb-hero-id .pxb-titles > b { font-size: 1.35rem; }
+.pxb-hero-id .pxb-pill { font-size: 0.78rem; padding: 0.35rem 0.7rem 0.35rem 0.5rem; }
+.pxb-hero-stats { display: flex; flex-wrap: wrap; align-items: center; gap: 0.8rem 1.2rem; }
+.pxb-hero-stats .pxb-ring { width: 4.4rem; height: 4.4rem; }
+.pxb-hero-stats .pxb-ring > b { font-size: 1.1rem; }
+.pxb-hero-stats .pxb-ring > small { bottom: 0.9rem; }
+.pxb-stat {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 0.4rem;
+  min-width: 5.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--rb-ink) 6%, transparent);
+}
+.pxb-stat > svg { grid-row: span 2; color: var(--rb-dim); }
+.pxb-stat > b { font-size: 1.2rem; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.pxb-stat > b > i { font-size: 0.65em; font-style: normal; color: var(--rb-dim); }
+.pxb-stat > small { font-size: 0.7rem; color: var(--rb-dim); }
+
+.pxb-section { display: flex; flex-direction: column; gap: 0.7rem; }
+.pxb-section-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rb-dim);
+}
+.pxb-section-title > small { font-size: 0.72rem; font-weight: 500; letter-spacing: 0; text-transform: none; opacity: 0.8; }
+.pxb-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #fff;
+  cursor: pointer;
+  background: var(--rb-primary, #7c6cf0);
+}
+
+.pxb-ncards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: 0.6rem; }
+.pxb-ncard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.8rem 0.9rem;
+  border: 0;
+  border-radius: 1rem;
+  font: inherit;
+  text-align: left;
+  color: var(--rb-ink);
+  cursor: pointer;
+  background: color-mix(in srgb, var(--rb-ink) 4.5%, transparent);
+  box-shadow: inset 0 0 0 1px var(--rb-edge);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
+}
+.pxb-ncard:hover { background: color-mix(in srgb, var(--rb-ink) 7%, transparent); }
+.pxb-ncard:active { transform: scale(0.985); }
+.pxb-ncard[data-level="warn"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pxb-warn) 50%, transparent); }
+.pxb-ncard[data-level="alarm"], .pxb-ncard[data-level="off"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pxb-alarm) 55%, transparent); }
+.pxb-ncard[data-picked="true"] { box-shadow: inset 0 0 0 2px var(--rb-primary, #7c6cf0); background: color-mix(in srgb, var(--rb-primary, #7c6cf0) 10%, transparent); }
+.pxb-ncard-head { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+.pxb-ncard-titles { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.2; }
+.pxb-ncard-titles > b { font-size: 0.92rem; font-weight: 650; }
+.pxb-ncard-titles > small { font-size: 0.72rem; color: var(--rb-dim); }
+.pxb-tag { display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; color: var(--rb-primary, #7c6cf0); background: color-mix(in srgb, var(--rb-primary, #7c6cf0) 15%, transparent); }
+.pxb-tag[data-tone="bad"] { color: var(--pxb-alarm); background: color-mix(in srgb, var(--pxb-alarm) 15%, transparent); }
+.pxb-meters { display: flex; flex-direction: column; gap: 0.4rem; }
+.pxb-meter { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) 2.6rem; align-items: center; gap: 0.5rem; }
+.pxb-meter > small { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; color: var(--rb-dim); }
+.pxb-meter > .pxb-bar { height: 6px; }
+.pxb-meter > b, .pxb-store > b { font-size: 0.78rem; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.pxb-meter > b[data-level="warn"], .pxb-store > b[data-level="warn"] { color: var(--pxb-warn); }
+.pxb-meter > b[data-level="alarm"], .pxb-store > b[data-level="alarm"] { color: var(--pxb-alarm); }
+.pxb-stores { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.pxb-store {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 100%;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  background: color-mix(in srgb, var(--rb-ink) 6%, transparent);
+}
+.pxb-store > svg { flex: none; color: var(--pxb-disk); }
+.pxb-store > b { font-size: 0.7rem; }
+
+.pxb-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.pxb-tabs { display: flex; gap: 0.25rem; padding: 0.22rem; border-radius: 999px; background: color-mix(in srgb, var(--rb-ink) 6%, transparent); }
+.pxb-tabs > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--rb-dim);
+  cursor: pointer;
+  background: transparent;
+}
+.pxb-tabs > button > em { font-style: normal; font-size: 0.7rem; opacity: 0.7; font-variant-numeric: tabular-nums; }
+.pxb-tabs > button[aria-selected="true"] { color: var(--rb-ink); background: var(--rb-card, #14161c); box-shadow: 0 1px 2px rgb(0 0 0 / 0.2), inset 0 0 0 1px var(--rb-edge); }
+.pxb-search {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1 1 12rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  color: var(--rb-dim);
+  background: color-mix(in srgb, var(--rb-ink) 6%, transparent);
+}
+.pxb-search > input { flex: 1; min-width: 0; border: 0; outline: 0; font: inherit; font-size: 0.82rem; color: var(--rb-ink); background: transparent; }
+.pxb-guests { padding: 0; }
+.pxb-empty { margin: 0; font-size: 0.82rem; color: var(--rb-dim); }
+:where(.rb-board[data-scheme="light"]) .pxb-tabs > button[aria-selected="true"] { background: #fff; }
+/* On a phone the tabs scroll sideways rather than wrapping into two rows. */
+.rb-board[data-narrow="true"] .pxb-tabs { overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+.rb-board[data-narrow="true"] .pxb-hero { padding: 0.9rem; }
+.rb-board[data-narrow="true"] .pxb-hero-stats { gap: 0.6rem; }
+.rb-board[data-narrow="true"] .pxb-stat { min-width: 0; flex: 1 1 5rem; padding: 0.5rem 0.6rem; }
+.pxb-node-top > em[data-level="warn"] { color: var(--pxb-warn); }
+.pxb-node-top > em[data-level="alarm"], .pxb-node[data-level="off"] .pxb-node-top > em { color: var(--pxb-alarm); }
+/* The dots stand in for the tiles only where the tiles do not fit. */
+.pxb-dots { display: none; flex-wrap: wrap; align-items: center; gap: 0.3rem; }
+.pxb-dots > .pxb-dot { width: 0.55rem; height: 0.55rem; }
+.pxb-dots > .pxb-dot[data-level="warn"] { background: var(--pxb-warn); box-shadow: 0 0 6px var(--pxb-warn); }
+.pxb-dots > .pxb-dot[data-level="alarm"], .pxb-dots > .pxb-dot[data-level="off"] { background: var(--pxb-alarm); box-shadow: 0 0 6px var(--pxb-alarm); }
+.pxb-dots > span { margin-left: auto; font-size: 0.68rem; font-weight: 600; color: var(--rb-dim); font-variant-numeric: tabular-nums; }
+@container (max-height: 12rem) {
+  .pxb-dots { display: flex; }
+  .pxb-summary { flex: 1; }
+}
+@container (max-height: 12rem) and (max-width: 15rem) {
+  .pxb { gap: 0.5rem; padding: 0.75rem; }
+  .pxb-dots > span { flex-basis: 100%; margin-left: 0; text-align: center; }
+  .pxb-dots { justify-content: center; }
+}
+
+/* The overlay on a phone: the rings side by side, the three counts in an
+   even row under them; the nodes two to a row. */
+.rb-board[data-narrow="true"] .pxb-hero-stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.rb-board[data-narrow="true"] .pxb-hero-stats > .pxb-ring { grid-column: span 3; justify-self: center; }
+.rb-board[data-narrow="true"] .pxb-hero-stats > .pxb-stat { grid-column: span 2; grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 0.5rem 0.3rem; }
+.rb-board[data-narrow="true"] .pxb-hero-stats > .pxb-stat > svg { grid-row: auto; }
+.rb-board[data-narrow="true"] .pxb-ncards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr)); gap: 0.5rem; }
+.rb-board[data-narrow="true"] .pxb-ncard { padding: 0.7rem; gap: 0.5rem; }
+.rb-board[data-narrow="true"] .pxb-meter { grid-template-columns: 2rem minmax(0, 1fr) 2.2rem; gap: 0.35rem; }

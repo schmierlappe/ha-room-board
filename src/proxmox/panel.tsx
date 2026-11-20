@@ -249,7 +249,7 @@ function NodeCard(props: { node: ProxNode; storages: Cluster["storages"] }) {
 
 const tone = toneOf;
 
-function GuestRow(props: { guest: Guest; nodeName?: string }) {
+export function GuestRow(props: { guest: Guest; nodeName?: string }) {
   const { callService } = useService();
   const [busy, setBusy] = createSignal(false);
   const press = async (action: GuestAction) => {
