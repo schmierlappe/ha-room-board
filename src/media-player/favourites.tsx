@@ -6,6 +6,7 @@ import { attr } from "./util";
 import { inOrder } from "../async";
 import { brandStyle } from "./brand";
 import { channelBrand } from "./channels";
+import { picon } from "./picons";
 import { errorMessage } from "../errors";
 
 /**
@@ -338,6 +339,9 @@ export function FavouritesPanel(props: {
                   onClick={() => play(name)}
                 >
                   <Show
+                    when={!coverFor(name) && picon(name)}
+                    fallback={
+                  <Show
                     when={!coverFor(name) && channelBrand(name)}
                     fallback={
                       <span class="mp-fav-art">
@@ -356,6 +360,15 @@ export function FavouritesPanel(props: {
                       /* A receiver's channel: its logo on its colour. */
                       <span class="mp-fav-art mp-fav-channel" style={brandStyle(channel())}>
                         <Icon icon={channel().icon} />
+                      </span>
+                    )}
+                  </Show>
+                    }
+                  >
+                    {(logo) => (
+                      /* The channel's own picon, on a screen-dark tile. */
+                      <span class="mp-fav-art mp-fav-channel mp-picon-tile">
+                        <img class="mp-picon" src={logo()} alt="" draggable={false} />
                       </span>
                     )}
                   </Show>

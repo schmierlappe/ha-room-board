@@ -2,6 +2,8 @@
 
 The card file (`dist/room-board-card.js`) contains the following software and font. Their notices and licences follow.
 
+The channel logos are a separate file, `dist/room-board-picons.js`, which the card loads at runtime: logos from the [picons project](https://github.com/picons/picons) under the GNU General Public License v3.0 (full text in `picons/LICENSE`). They are not part of the card's MIT-licensed code, and the logos are the trademarks of their channels.
+
 ## SolidJS — MIT
 
 ```

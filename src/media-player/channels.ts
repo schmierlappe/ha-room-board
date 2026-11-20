@@ -22,6 +22,7 @@ const CHANNELS: [RegExp, Omit<Brand, "name">][] = [
   [/^tele ?5$/, { icon: "brand:tele5", fg: "#ffffff", bg: "#ff00ff" }],
   [/^sky( .+)?$/, { icon: "brand:sky", fg: "#ffffff", bg: "linear-gradient(150deg, #0072c9, #00287a)" }],
   [/^dazn( .+)?$/, { icon: "brand:dazn", fg: "#f5f5f5", bg: "#0c161c" }],
+  [/^kraichgau ?tv$/, { icon: "wordmark:Kraichgau TV", fg: "#ffffff", bg: "linear-gradient(150deg, #1d6fb8, #0b3d73)" }],
   [/^kabel ?(eins|1)$/, { icon: "wordmark:kabel eins", fg: "#ffffff", bg: "#0b4fa1" }],
   [/^kabel ?(eins|1) doku$/, { icon: "wordmark:k1 doku", fg: "#ffffff", bg: "#0b4fa1" }],
   [/^super ?rtl$/, { icon: "wordmark:SUPER RTL", fg: "#ffffff", bg: "#e4002b" }],

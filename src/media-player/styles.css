@@ -5621,3 +5621,14 @@
    spilling past it, and the head went with it; grown to its results, the
    head stays for all of them. */
 .mp-panel:has(> .mp-sticky-head) { flex: 0 0 auto; height: auto; min-height: 100%; }
+
+/* A channel's picon: the logo on a screen-dark tile, as a receiver shows it,
+   whatever the theme — the picons are drawn for a dark background. */
+.mp-picon-tile {
+  display: grid !important;
+  place-items: center;
+  background: radial-gradient(120% 90% at 50% 0%, #2a2f3a, #0f1218 70%) !important;
+}
+.mp-picon { width: 72%; height: 72%; object-fit: contain; filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.5)); pointer-events: none; }
+.mp-picon--icon { width: 100%; height: 100%; filter: none; }
+.mp-rem-menu-icon[data-picon="true"], .mp-rem-chip-icon[data-picon="true"] { padding: 0.18rem; background: #0f1218 !important; }
