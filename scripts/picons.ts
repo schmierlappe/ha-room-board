@@ -30,17 +30,22 @@ const uri = (file: string) => {
   return `data:image/png;base64,${data.toString("base64")}`;
 };
 /* The picons' "light" logo is the light-coloured one, made for a dark
-   background — which is what the card puts them on; "default" is for a light
-   one. The light one where there is one, else the default. Only one goes in:
-   the card draws every logo on the same screen-dark tile. */
-const chosen = new Map<string, string>();
+   background; "default" is for a light one. The card draws them straight on
+   its own background, so both go in where there are two: the first for a dark
+   theme (light, else default), the second for a light theme (default, where it
+   differs). */
+const byKey = new Map<string, { default?: string; light?: string }>();
 for (const file of files) {
   const match = /^(.+)\.(default|light)\.(svg|png)$/.exec(file);
   if (!match) continue;
-  const key = match[1]!;
-  if (match[2] === "light" || !chosen.has(key)) chosen.set(key, file);
+  const row = byKey.get(match[1]!) ?? {};
+  row[match[2] as "default" | "light"] ??= file;
+  byKey.set(match[1]!, row);
 }
-for (const [key, file] of chosen) table[key] = [uri(file)];
+for (const [key, row] of byKey) {
+  const dark = row.light ?? row.default!;
+  table[key] = row.light && row.default ? [uri(dark), uri(row.default)] : [uri(dark)];
+}
 
 const banner =
   "/*! TV channel logos from the picons project, https://github.com/picons/picons — GPL-3.0 " +
