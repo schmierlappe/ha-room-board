@@ -114,23 +114,22 @@ export function WasteCard(props: { entityId: string; onOpen: () => void }) {
           </For>
         </div>
       </Show>
-      {/* Half a tile: which bin, its day, and how far off — "Tomorrow",
-          "In 3 days" — as the reading at the right. */}
+      {/* Half a tile: which bin and its day, with how many days off as
+          the big figure at the right, in the bin's colour. */}
       <Half
-        art={<span class="rb-half-bin" style={{ "--bin": look().color }}><Icon icon={look().icon} /></span>}
+        art={
+          next() ? (
+            <span class="rb-half-days" style={{ "--bin": look().color }}>
+              <b>{daysUntil(next()!.date) <= 0 ? "!" : daysUntil(next()!.date)}</b>
+              <small>{daysUntil(next()!.date) <= 0 ? "today" : daysUntil(next()!.date) === 1 ? "day" : "days"}</small>
+            </span>
+          ) : undefined
+        }
         icon={look().icon}
         name={next() ? shortTypeLabel(next()!.type) : "Waste"}
         status={next() ? next()!.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) : "Nothing planned"}
         tone={look().color}
         lit={soon()}
-        value={
-          next() ? (
-            <>
-              <span class="rb-half-long">{relativeLabel(next()!.date)}</span>
-              <span class="rb-half-short">{daysUntil(next()!.date) <= 0 ? "Today" : `${daysUntil(next()!.date)}d`}</span>
-            </>
-          ) : undefined
-        }
       />
     </article>
   );
