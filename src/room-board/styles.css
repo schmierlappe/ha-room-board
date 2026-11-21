@@ -15327,3 +15327,22 @@
   background: var(--brand-bg, var(--rb-primary, #7c6cf0));
 }
 .rb-half-mediabrand > svg { width: 60%; height: 60%; }
+
+/* The lights at half a tile: the switch in the bottom right corner, the lamp
+   hanging above it — the words keep the left to themselves. */
+.rb-card--light > .rb-half > .rb-half-toggle {
+  position: absolute !important;
+  right: 0.7rem;
+  bottom: 0.6rem;
+  z-index: 2;
+}
+.rb-card--light > .rb-half > .rb-half-art { align-items: start; }
+.rb-card--light > .rb-half > .rb-half-art > * { margin-top: -1.3rem; }
+@container (min-height: 5.5rem) {
+  .rb-card--light > .rb-half { grid-template-areas: "icon . ." "text text text" !important; }
+}
+.rb-card--light > .rb-half > .rb-half-art { --half-art-scale: 1; }
+.rb-card--light > .rb-half > .rb-half-art > * { margin-top: -0.55rem; }
+@container (min-height: 5.5rem) {
+  .rb-card--light > .rb-half > .rb-half-art > * { margin-top: -0.35rem; }
+}
