@@ -45,6 +45,19 @@ const ACTIVITIES: [RegExp, AppLook][] = [
   [/android\s*tv/i, { icon: "cbi:androidtv", color: "#3ddc84" }],
   [/kodi/i, { icon: "cbi:kodi", color: "#22b1e6" }],
   [/plex/i, { icon: "cbi:plex", color: "#e5a00d" }],
+  /* The streaming services a Shield or Fire TV activity is often named after.
+     Simple Icons has no Prime Video or Disney+ logo, so those two are their
+     names set in their colours, as the channels without a logo are. */
+  [/prime\s*video|amazon\s*(video|prime)/i, { icon: "wordmark:prime video", color: "#00a8e1" }],
+  [/disney/i, { icon: "wordmark:Disney+", color: "#113ccf" }],
+  [/dazn/i, { icon: "brand:dazn", color: "#f2f70b" }],
+  [/paramount/i, { icon: "brand:paramountplus", color: "#0064ff" }],
+  [/hbo|\bmax\b/i, { icon: "brand:max", color: "#002be7" }],
+  [/magenta/i, { icon: "wordmark:MagentaTV", color: "#e20074" }],
+  [/joyn/i, { icon: "wordmark:joyn", color: "#1f1f1f" }],
+  [/waipu/i, { icon: "wordmark:waipu.tv", color: "#f4c51d" }],
+  [/rtl\s*\+|rtl\s*plus/i, { icon: "wordmark:RTL+", color: "#ff0000" }],
+  [/\bwow\b/i, { icon: "wordmark:WOW", color: "#1b1b1b" }],
   [/netflix/i, { icon: "cbi:netflix", color: "#e50914" }],
   [/youtube/i, { icon: "cbi:youtube", color: "#ff0033" }],
   [/spotify/i, { icon: "cbi:spotify", color: "#1db954" }],

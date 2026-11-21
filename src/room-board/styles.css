@@ -15589,3 +15589,25 @@
    the cover card, absolutely, and would otherwise go to the sheet's corner. */
 .rb-cov2-chip-art { position: relative; }
 .rb-cov2-chip-art > .rb-cov-art { position: relative !important; inset: auto !important; top: auto !important; right: auto !important; flex: none; }
+
+/* The lights at half a tile: the lamp and its switch on one row at the right,
+   the switch at the edge and the lamp beside it, both on the card's middle. */
+.rb-card--light > .rb-half > .rb-half-toggle {
+  top: 50% !important;
+  bottom: auto !important;
+  right: 0.7rem !important;
+  translate: 0 -50%;
+}
+.rb-card--light > .rb-half > .rb-half-art {
+  right: 3.3rem;
+  width: 30%;
+  align-items: center;
+}
+.rb-card--light > .rb-half > .rb-half-art > * { margin-top: 0 !important; --half-art-scale: 0.72; }
+.rb-card--light > .rb-half[data-art="true"] { padding-right: calc(30% + 3.4rem) !important; }
+@container (min-height: 5.5rem) {
+  .rb-card--light > .rb-half > .rb-half-art { width: 34%; }
+  .rb-card--light > .rb-half > .rb-half-art > * { --half-art-scale: 1.05; }
+  .rb-card--light > .rb-half[data-art="true"] { padding-right: calc(34% + 3.4rem) !important; }
+}
+.rb-card--light > .rb-half > .rb-half-art { overflow: visible; }
