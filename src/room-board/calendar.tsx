@@ -121,7 +121,7 @@ export function CalendarCard(props: { ids: string[]; todoIds?: string[]; onOpen:
           </p>
         </Show>
       </div>
-      <Half icon="mdi:calendar-today" name={today.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" })} status={countLine()} tone="#8b7cf6" lit={todayCount() > 0} />
+      <Half art={<span class="rb-half-date"><small>{today.toLocaleDateString(undefined, { month: "short" })}</small><b>{today.getDate()}</b></span>} icon="mdi:calendar-today" name={today.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" })} status={countLine()} tone="#8b7cf6" lit={todayCount() > 0} />
     </article>
   );
 }

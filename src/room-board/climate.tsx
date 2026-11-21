@@ -307,7 +307,9 @@ export function ClimateCard(props: { climate: EntityView; onOpen: () => void }) 
         on={active()}
         action={action()}
       />
-      <Half icon="mdi:thermostat" name={props.climate.friendlyName ?? "Climate"} status={room() !== undefined ? `${word()} · room ${room()}°` : word()} tone={running() ? "#ff8a3d" : "#94a3b8"} lit={running()} value={target() === undefined ? undefined : `${target()}°`} />
+      <Half
+        art={<Thermostat target={target()} current={room()} min={min()} max={max()} tone={toneOf(props.climate)} running={running()} on={active()} action={action()} />}
+        icon="mdi:thermostat" name={props.climate.friendlyName ?? "Climate"} status={room() !== undefined ? `${word()} · room ${room()}°` : word()} tone={running() ? "#ff8a3d" : "#94a3b8"} lit={running()} value={target() === undefined ? undefined : `${target()}°`} />
     </article>
   );
 }

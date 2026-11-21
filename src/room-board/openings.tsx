@@ -187,7 +187,7 @@ export function OpeningsCard(props: { openings: Opening[]; onOpen: () => void })
           {open().length > 3 ? ` · +${open().length - 3}` : ""}
         </span>
       </Show>
-      <Half icon={open().length ? "mdi:door-open" : "mdi:door-closed"} name="Doors & windows" status={open().length ? verdict() : "All closed"} tone="#38bdf8" lit={open().length > 0} value={open().length ? String(open().length) : undefined} />
+      <Half art={<Sash open={open().length > 0} kind={lead()?.kind ?? "window"} />} icon={open().length ? "mdi:door-open" : "mdi:door-closed"} name="Doors & windows" status={open().length ? verdict() : "All closed"} tone="#38bdf8" lit={open().length > 0} value={open().length ? String(open().length) : undefined} />
     </article>
   );
 }

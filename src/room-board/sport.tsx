@@ -222,7 +222,7 @@ export function SportCard(props: {
           </span>
         </Show>
       </Show>
-      <Half icon="mdi:soccer" name={us().name || props.entity.friendlyName} status={live() ? `Live · ${clock()}` : pre() ? `${when().day} ${when().time}` : done() ? "Full time" : chip()} tone={live() ? "#ef4444" : "#22c55e"} lit={live()} value={pre() ? undefined : `${left().score ?? 0}:${right().score ?? 0}`} />
+      <Half art={<Crest side={them()} proxy={props.proxy} haBase={props.haBase} />} icon="mdi:soccer" name={us().name || props.entity.friendlyName} status={live() ? `Live · ${clock()}` : pre() ? `${when().day} ${when().time}` : done() ? "Full time" : chip()} tone={live() ? "#ef4444" : "#22c55e"} lit={live()} value={pre() ? undefined : `${left().score ?? 0}:${right().score ?? 0}`} />
     </article>
   );
 }

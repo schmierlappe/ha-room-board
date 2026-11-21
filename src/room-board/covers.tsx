@@ -330,7 +330,7 @@ export function CoverCard(props: { covers: EntityView[]; onOpen: () => void }) {
         moving={moving(cover())}
       />
 
-      <Half icon={(position() ?? 0) <= 1 ? "mdi:window-shutter" : "mdi:window-shutter-open"} name={cover()?.friendlyName ?? "Shutters"} status={bigLabel()} tone="#38bdf8" value={position() === undefined ? undefined : `${Math.round(position()!)}%`} />
+      <Half art={cover() ? <CoverArt kind={coverKind(cover()!)} at={position() ?? 0} tilt={tiltOf(cover())} moving={moving(cover())} /> : undefined} icon={(position() ?? 0) <= 1 ? "mdi:window-shutter" : "mdi:window-shutter-open"} name={cover()?.friendlyName ?? "Shutters"} status={bigLabel()} tone="#38bdf8" value={position() === undefined ? undefined : `${Math.round(position()!)}%`} />
     </article>
   );
 }

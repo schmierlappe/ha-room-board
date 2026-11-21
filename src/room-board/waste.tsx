@@ -117,6 +117,7 @@ export function WasteCard(props: { entityId: string; onOpen: () => void }) {
       {/* Half a tile: which bin, its day, and how far off — "Tomorrow",
           "In 3 days" — as the reading at the right. */}
       <Half
+        art={<span class="rb-half-bin" style={{ "--bin": look().color }}><Icon icon={look().icon} /></span>}
         icon={look().icon}
         name={next() ? shortTypeLabel(next()!.type) : "Waste"}
         status={next() ? next()!.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) : "Nothing planned"}

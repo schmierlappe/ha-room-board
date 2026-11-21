@@ -1,4 +1,4 @@
-import { Show, type JSX } from "solid-js";
+import { Show, createSignal, onCleanup, onMount, type JSX } from "solid-js";
 import { Icon } from "@glasshome/widget-sdk";
 
 /**
@@ -20,9 +20,38 @@ export function Half(props: {
   onToggle?: () => void;
   /** Lit: the badge filled rather than tinted (something is on or wrong). */
   lit?: boolean;
+  /** The card's own drawing — its lamp, shutter, lock, robot — at the right. */
+  art?: JSX.Element;
 }) {
+  /* Drawn only while the card is set to half: a hidden half face that still
+     drew its picture would be a second lamp, a second robot, a second chart
+     loading its history — for every card on the board. The card's own
+     data-shape says (arrange.ts writes it). */
+  let el: HTMLDivElement | undefined;
+  const [shown, setShown] = createSignal(false);
+  onMount(() => {
+    const card = el?.closest<HTMLElement>(".rb-card");
+    if (!card) return;
+    const read = () => setShown(card.dataset.shape === "half");
+    read();
+    if (typeof MutationObserver === "undefined") return;
+    const watch = new MutationObserver(read);
+    watch.observe(card, { attributes: true, attributeFilter: ["data-shape"] });
+    onCleanup(() => watch.disconnect());
+  });
   return (
-    <div class="rb-half" data-lit={props.lit === true} style={props.tone ? { "--rb-half-tone": props.tone } : undefined}>
+    <div
+      ref={el}
+      class="rb-half"
+      data-lit={props.lit === true}
+      data-art={"art" in props}
+      style={props.tone ? { "--rb-half-tone": props.tone } : undefined}
+    >
+      <Show when={shown() && props.art}>
+        <span class="rb-half-art" aria-hidden="true">
+          {props.art}
+        </span>
+      </Show>
       <span class="rb-half-icon">
         <Icon icon={props.icon} width="18" />
       </span>

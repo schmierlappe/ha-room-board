@@ -376,7 +376,7 @@ export function ApplianceCard(props: { machine: Appliance; onOpen: () => void })
       <Show when={program()}>
         <span class="rb-wash-line rb-truncate">{program()}</span>
       </Show>
-      <Half icon={/dry/i.test(machine().name ?? "") ? "mdi:tumble-dryer" : "mdi:washing-machine"} name={machine().name ?? "Appliance"} status={verdict() || state()} tone="#a78bfa" lit={running() || done()} value={running() && percent() !== undefined ? `${Math.round(percent()!)}%` : undefined} />
+      <Half art={<Washer kind={kindOf(machine())} running={running()} spinning={spinning()} done={done()} progress={percent()} />} icon={/dry/i.test(machine().name ?? "") ? "mdi:tumble-dryer" : "mdi:washing-machine"} name={machine().name ?? "Appliance"} status={verdict() || state()} tone="#a78bfa" lit={running() || done()} value={running() && percent() !== undefined ? `${Math.round(percent()!)}%` : undefined} />
     </article>
   );
 }

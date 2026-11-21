@@ -157,7 +157,7 @@ export function PlexCard(props: { entity: EntityView; items: Media[]; onOpen: ()
           </div>
         </div>
       </Show>
-      <Half icon="mdi:plex" name={lead()?.title ?? "Plex"} status={lead()?.line1 || "Recently added"} tone="#e5a00d" value={props.items.length > 1 ? `+${props.items.length - 1}` : undefined} />
+      <Half art={art() ? <img class="rb-half-poster" src={art()} alt="" /> : undefined} icon="mdi:plex" name={lead()?.title ?? "Plex"} status={lead()?.line1 || "Recently added"} tone="#e5a00d" value={props.items.length > 1 ? `+${props.items.length - 1}` : undefined} />
     </article>
   );
 }

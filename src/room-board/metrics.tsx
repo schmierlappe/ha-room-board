@@ -81,7 +81,7 @@ export function HeroMetric(props: { entity: EntityView; hours: number }) {
           kind() === "temperature" && value() !== undefined ? warmth(value()!) : undefined
         }
       />
-      <Half icon={ICONS[kind()] ?? "mdi:gauge"} name={props.entity.friendlyName ?? props.entity.id} status={value() !== undefined ? verdict(kind(), value()!) || "" : "Unavailable"} tone={tone()} value={value() === undefined ? "—" : `${Math.round(value()! * 10) / 10}${props.entity.unitOfMeasurement ?? ""}`} />
+      <Half art={<Spark entityId={props.entity.id} hours={props.hours} kind="line" tone={tone()} warmth={kind() === "temperature" && value() !== undefined ? warmth(value()!) : undefined} />} icon={ICONS[kind()] ?? "mdi:gauge"} name={props.entity.friendlyName ?? props.entity.id} status={value() !== undefined ? verdict(kind(), value()!) || "" : "Unavailable"} tone={tone()} value={value() === undefined ? "—" : `${Math.round(value()! * 10) / 10}${props.entity.unitOfMeasurement ?? ""}`} />
     </article>
   );
 }
@@ -124,7 +124,7 @@ export function Metric(props: { entity: EntityView; hours: number }) {
           kind() === "temperature" && value() !== undefined ? warmth(value()!) : undefined
         }
       />
-      <Half icon={ICONS[kind()] ?? "mdi:gauge"} name={props.entity.friendlyName ?? props.entity.id} status={value() !== undefined ? verdict(kind(), value()!) || "" : "Unavailable"} tone={tone()} value={value() === undefined ? "—" : `${Math.round(value()! * 10) / 10}${props.entity.unitOfMeasurement ?? ""}`} />
+      <Half art={<Spark entityId={props.entity.id} hours={props.hours} kind="line" tone={tone()} warmth={kind() === "temperature" && value() !== undefined ? warmth(value()!) : undefined} />} icon={ICONS[kind()] ?? "mdi:gauge"} name={props.entity.friendlyName ?? props.entity.id} status={value() !== undefined ? verdict(kind(), value()!) || "" : "Unavailable"} tone={tone()} value={value() === undefined ? "—" : `${Math.round(value()! * 10) / 10}${props.entity.unitOfMeasurement ?? ""}`} />
     </article>
   );
 }
