@@ -81,7 +81,7 @@ const SIZE_LABEL: Record<Size, string> = {
   portrait: "Tall (1×2)",
   big: "Big (2×2)",
   cinema: "Cinema (16:9, 3×2)",
-  half: "Half height (full width)",
+  half: "Half (½ tile: one column, half a tile high)",
 };
 
 const SPANS: Record<Size, [number, number]> = {
@@ -90,7 +90,7 @@ const SPANS: Record<Size, [number, number]> = {
   portrait: [1, 2],
   big: [2, 2],
   cinema: [3, 2],
-  half: [2, 1],
+  half: [1, 1],
 };
 
 /* What each size tells the card about its shape, in the mosaic's words, so
@@ -223,10 +223,10 @@ export function applyLayout(grid: HTMLElement, narrow: boolean, layout: RoomLayo
       const size = sizeOf(card, layout);
       const [across, down] = SPANS[size];
       /* On a phone the rows are half a tile high (styles.css), so every size
-         takes twice its rows there — and half height takes one, across the
-         whole row. On a wide screen half height is a wide tile. */
-      const rows = narrow ? (size === "half" ? 1 : down * 2) : size === "half" ? 1 : down;
-      setStyle(card, "grid-column", size === "cinema" ? cinemaColumns(grid) : size === "half" && narrow ? "1 / -1" : `span ${across}`);
+         takes twice its rows there — and a half tile one: two of them stack
+         in the space of one small tile. */
+      const rows = narrow && size !== "half" ? down * 2 : down;
+      setStyle(card, "grid-column", size === "cinema" ? cinemaColumns(grid) : `span ${across}`);
       setStyle(card, "grid-row", `span ${rows}`);
       setData(card, "size", size);
       setData(card, "shape", SHAPES[size]);
