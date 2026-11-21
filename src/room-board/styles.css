@@ -15167,3 +15167,10 @@
   pointer-events: none;
 }
 .rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > .rb-half { isolation: isolate; }
+/* A reading with a long and a short form ("In 3 days" / "3d"): the short one
+   on the one-line half, the long one on the two-row tile. */
+.rb-half-long { display: none; }
+@container (min-height: 5.5rem) {
+  .rb-half-long { display: inline; }
+  .rb-half-short { display: none; }
+}

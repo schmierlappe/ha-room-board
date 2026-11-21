@@ -8,6 +8,7 @@ import {
   parseStateSummary,
   parseUpcoming,
   relativeLabel,
+  daysUntil,
   shortTypeLabel,
   styleForType,
   type WasteItem,
@@ -113,7 +114,23 @@ export function WasteCard(props: { entityId: string; onOpen: () => void }) {
           </For>
         </div>
       </Show>
-      <Half icon={look().icon} name={next()?.type ?? "Waste"} status={next() ? next()!.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) : "Nothing planned"} tone={look().color} lit={soon()} />
+      {/* Half a tile: which bin, its day, and how far off — "Tomorrow",
+          "In 3 days" — as the reading at the right. */}
+      <Half
+        icon={look().icon}
+        name={next() ? shortTypeLabel(next()!.type) : "Waste"}
+        status={next() ? next()!.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) : "Nothing planned"}
+        tone={look().color}
+        lit={soon()}
+        value={
+          next() ? (
+            <>
+              <span class="rb-half-long">{relativeLabel(next()!.date)}</span>
+              <span class="rb-half-short">{daysUntil(next()!.date) <= 0 ? "Today" : `${daysUntil(next()!.date)}d`}</span>
+            </>
+          ) : undefined
+        }
+      />
     </article>
   );
 }
