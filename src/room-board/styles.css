@@ -15346,3 +15346,24 @@
 @container (min-height: 5.5rem) {
   .rb-card--light > .rb-half > .rb-half-art > * { margin-top: -0.35rem; }
 }
+
+/* Bins in a dark theme: a bin's colour can be very dark — the Wertstoff bag is
+   black — and black on the dark card is nothing at all. The icon, its badge
+   and the days are drawn from the colour lifted towards white. */
+.rb-board:not([data-scheme="light"]) .rb-card--waste > .rb-half {
+  --rb-half-tone-lit: color-mix(in oklab, var(--rb-half-tone) 45%, #e8ecf4);
+}
+.rb-board:not([data-scheme="light"]) .rb-card--waste > .rb-half .rb-half-icon {
+  color: var(--rb-half-tone-lit);
+  background: color-mix(in srgb, var(--rb-half-tone-lit) 16%, transparent);
+}
+.rb-board:not([data-scheme="light"]) .rb-card--waste > .rb-half[data-lit="true"] .rb-half-icon {
+  color: #14161c;
+  background: var(--rb-half-tone-lit);
+}
+.rb-board:not([data-scheme="light"]) .rb-card--waste .rb-half-days {
+  color: color-mix(in oklab, var(--bin) 40%, #f3f5fa);
+}
+.rb-board:not([data-scheme="light"]) .rb-card--waste .rb-half-days > b {
+  text-shadow: 0 6px 18px color-mix(in srgb, color-mix(in oklab, var(--bin) 40%, #f3f5fa) 30%, transparent);
+}
