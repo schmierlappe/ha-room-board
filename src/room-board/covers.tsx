@@ -343,164 +343,215 @@ export function CoverCard(props: { covers: EntityView[]; onOpen: () => void }) {
  * the thing you came to do — move it — on the right as a surface to push
  * rather than a hairline to aim at.
  */
-const PRESET_LABEL: Record<number, string> = { 0: "Shut", 50: "Half", 100: "Open" };
+/* What a device class calls itself, where it says more than the drawing
+   kind does: a roller shade is drawn as a shutter but is not called one. */
+const CLASS_NAME: Record<string, string> = { shade: "Shade", gate: "Gate", damper: "Damper" };
+const kindName = (entity: EntityView | undefined) =>
+  entity ? (CLASS_NAME[entity.deviceClass ?? ""] ?? KIND_NAME[coverKind(entity)]) : "";
+
+/* Rolled down from the top (a shutter, a blind, a garage door) or drawn in
+   from the sides (a curtain). */
+const fromSides = (kind: CoverKind) => kind === "curtain";
+
+/**
+ * The cover as a window you take hold of: the glass with the sky behind it,
+ * and the shutter, the blind or the curtains over it where they stand. Drag
+ * the shutter's edge down to close it, or the curtains in from the sides;
+ * the figure follows the finger, and the cover is told once, on letting go.
+ */
+function CoverWindow(props: {
+  kind: CoverKind;
+  at: number;
+  tilt?: number;
+  moving: boolean;
+  settable: boolean;
+  onSet: (value: number) => void;
+}) {
+  const [held, setHeld] = createSignal<number>();
+  const shown = () => held() ?? props.at;
+  let box: HTMLDivElement | undefined;
+  const valueAt = (event: PointerEvent) => {
+    const r = box!.getBoundingClientRect();
+    if (fromSides(props.kind)) {
+      const half = r.width / 2;
+      const off = Math.abs(event.clientX - (r.left + half));
+      return Math.round(Math.max(0, Math.min(1, off / half)) * 100);
+    }
+    const y = Math.max(0, Math.min(1, (event.clientY - r.top) / r.height));
+    return Math.round((1 - y) * 100);
+  };
+  return (
+    <div
+      ref={box}
+      class="rb-cw"
+      data-kind={props.kind}
+      data-moving={props.moving}
+      data-held={held() !== undefined}
+      data-settable={props.settable}
+      role={props.settable ? "slider" : undefined}
+      aria-label="Position"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(shown())}
+      tabIndex={props.settable ? 0 : undefined}
+      style={{ "--cw-at": `${shown()}`, "--cw-tilt": `${props.tilt ?? 50}` }}
+      onPointerDown={(event) => {
+        if (!props.settable) return;
+        event.stopPropagation();
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setHeld(valueAt(event));
+      }}
+      onPointerMove={(event) => {
+        if (held() !== undefined) setHeld(valueAt(event));
+      }}
+      onPointerUp={() => {
+        const value = held();
+        setHeld(undefined);
+        if (value !== undefined) props.onSet(value);
+      }}
+      onPointerCancel={() => setHeld(undefined)}
+      onKeyDown={(event) => {
+        if (!props.settable) return;
+        const step = event.key === "ArrowUp" ? 10 : event.key === "ArrowDown" ? -10 : 0;
+        if (!step) return;
+        event.preventDefault();
+        props.onSet(Math.max(0, Math.min(100, Math.round(props.at) + step)));
+      }}
+    >
+      <div class="rb-cw-frame">
+        <div class="rb-cw-glass">
+          <i class="rb-cw-sun" />
+          <i class="rb-cw-hill" />
+          <i class="rb-cw-mullion" />
+        </div>
+        {/* Rolled from the top: its height is what is closed. */}
+        <div class="rb-cw-panel" />
+        {/* Drawn from the sides: two curtains, each half of what is closed. */}
+        <div class="rb-cw-curtain" data-side="left" />
+        <div class="rb-cw-curtain" data-side="right" />
+        <div class="rb-cw-box" />
+      </div>
+      <span class="rb-cw-figure">
+        <b>{Math.round(shown())}</b>
+        <i>% open</i>
+      </span>
+    </div>
+  );
+}
+
+const PRESETS = [100, 75, 50, 25, 0];
+const presetName = (value: number) => (value === 100 ? "Open" : value === 0 ? "Closed" : `${value}%`);
 
 export function CoverPanel(props: { covers: EntityView[] }) {
   const { callService } = useService();
-
   const [chosen, setChosen] = createSignal("");
-  const cover = () =>
-    props.covers.find((entity) => entity.id === chosen()) ?? props.covers[0];
-
+  const cover = () => props.covers.find((entity) => entity.id === chosen()) ?? props.covers[0];
   const call = (service: string, data: Record<string, unknown> = {}) => {
     const id = cover()?.id;
     if (id) void callService("cover", service, data, { entity_id: id });
   };
-
   const kind = () => coverKind(cover()!);
-  const at = () => positionOf(cover()) ?? 0;
+  const at = () => positionOf(cover()) ?? (cover()?.state === "open" ? 100 : 0);
+  const settable = () => positionOf(cover()) !== undefined;
   const tilt = () => tiltOf(cover());
-  const allShut = () => props.covers.every((entity) => (positionOf(entity) ?? 0) <= 1);
+  const allShut = () => props.covers.every((entity) => (positionOf(entity) ?? (entity.state === "open" ? 100 : 0)) <= 1);
+  const all = (service: string) =>
+    void callService("cover", service, {}, { entity_id: props.covers.map((entity) => entity.id) });
 
   return (
-    <div class="rb-cov-sheet">
-      <header class="rb-cov-sheet-head">
-        <div class="rb-cov-sheet-titles">
-          <h2 class="rb-cov-sheet-name rb-truncate">
-            {cover()?.friendlyName ?? "Covers"}
-          </h2>
-          <span class="rb-cov-sheet-sub">
-            <Icon icon={ICONS[kind()]} width="13" />
-            {KIND_NAME[kind()]} · {coverLabel(cover())}
-          </span>
-        </div>
-
-        <Show when={props.covers.length > 1}>
-          <button
-            class="rb-cov-allbtn"
-            onClick={() =>
-              props.covers.forEach((entity) =>
-                void callService(
-                  "cover",
-                  allShut() ? "open_cover" : "close_cover",
-                  {},
-                  { entity_id: entity.id },
-                ),
-              )
-            }
-          >
-            <Icon icon={allShut() ? "mdi:chevron-up" : "mdi:chevron-down"} width="15" />
+    <div class="rb-cov2">
+      <Show when={props.covers.length > 1}>
+        <div class="rb-cov2-strip">
+          <Keyed each={props.covers}>
+            {(entity) => (
+              <button class="rb-cov2-chip" data-active={entity.id === cover()?.id} onClick={() => setChosen(entity.id)}>
+                <span class="rb-cov2-chip-art">
+                  <CoverArt kind={coverKind(entity)} at={positionOf(entity) ?? 0} tilt={tiltOf(entity)} moving={moving(entity)} />
+                </span>
+                <span class="rb-cov2-chip-text">
+                  <b class="rb-truncate">{entity.friendlyName ?? entity.id}</b>
+                  <small>{coverLabel(entity)}</small>
+                </span>
+              </button>
+            )}
+          </Keyed>
+          <button class="rb-cov2-all" onClick={() => all(allShut() ? "open_cover" : "close_cover")}>
+            <Icon icon={allShut() ? "mdi:arrow-up-bold-box-outline" : "mdi:arrow-down-bold-box-outline"} width="18" />
             <span>{allShut() ? "Open all" : "Close all"}</span>
           </button>
-        </Show>
-      </header>
-
-      <div class="rb-cov-body">
-        {/* The room's covers, as tiles: which one you are holding, and where
-            each of the others stands, without opening anything. */}
-        <Show when={props.covers.length > 1}>
-          <div class="rb-cov-list">
-            <Keyed each={props.covers}>
-              {(entity) => (
-                <button
-                  class="rb-cov-tile"
-                  data-active={entity.id === cover()?.id}
-                  onClick={() => setChosen(entity.id)}
-                >
-                  <CoverArt
-                    kind={coverKind(entity)}
-                    at={positionOf(entity) ?? 0}
-                    tilt={tiltOf(entity)}
-                    moving={moving(entity)}
-                  />
-                  <span class="rb-cov-tile-meta">
-                    <span class="rb-truncate">{entity.friendlyName ?? entity.id}</span>
-                    <b>{coverLabel(entity)}</b>
-                  </span>
-                </button>
-              )}
-            </Keyed>
-          </div>
-        </Show>
-
-        {/* The cover itself, big. */}
-        <div class="rb-cov-stage">
-          <CoverArt kind={kind()} at={at()} tilt={tilt()} moving={moving(cover())} />
-
-          <span class="rb-cov-value">
-            {Math.round(at())}
-            <i>%</i>
-          </span>
-
-          <div class="rb-cov-keys rb-cov-keys--lg">
-            <button aria-label="Open" onClick={() => call("open_cover")}>
-              <Icon icon="mdi:chevron-up" width="20" />
-            </button>
-            <button aria-label="Stop" onClick={() => call("stop_cover")}>
-              <Icon icon="mdi:stop" width="16" />
-            </button>
-            <button aria-label="Close" onClick={() => call("close_cover")}>
-              <Icon icon="mdi:chevron-down" width="20" />
-            </button>
-          </div>
         </div>
+      </Show>
 
-        {/* Dragged rather than aimed at: the column is the cover, and pushing
-            it up opens it. */}
-        <div class="rb-cov-side">
-          <Show when={positionOf(cover()) !== undefined}>
-            <FillSlider
-              class="rb-cov-fill"
-              vertical
-              value={at()}
-              color="120 170 255"
-              label={`Position of ${cover()?.friendlyName ?? "cover"}`}
-              onCommit={(value) => call("set_cover_position", { position: value })}
-            >
-              <span class="rb-cov-fill-top">
-                <Icon icon="mdi:chevron-up" width="15" />
-              </span>
-              {/* The position, on the surface that sets it. Only the phone
-                  layout shows it — the wide one has the same number under the
-                  drawing, and two of them is one too many. */}
-              <b class="rb-cov-fill-val">
-                {Math.round(at())}
-                <i>%</i>
-              </b>
-              <span class="rb-cov-fill-foot">
-                <Icon icon="mdi:chevron-down" width="15" />
-              </span>
-            </FillSlider>
+      <div class="rb-cov2-main">
+        <CoverWindow
+          kind={kind()}
+          at={at()}
+          tilt={tilt()}
+          moving={moving(cover())}
+          settable={settable()}
+          onSet={(value) => call("set_cover_position", { position: value })}
+        />
+
+        <div class="rb-cov2-side">
+          <div class="rb-cov2-titles">
+            <span class="rb-cov2-kind">
+              <Icon icon={ICONS[kind()]} width="15" />
+              {kindName(cover())}
+            </span>
+            <h2 class="rb-truncate">{cover()?.friendlyName ?? "Cover"}</h2>
+            <span class="rb-cov2-state" data-moving={moving(cover())}>
+              {coverLabel(cover())}
+              <Show when={cover()?.lastChanged}> · {sinceLabel(cover()!.lastChanged)}</Show>
+            </span>
+          </div>
+
+          <div class="rb-cov2-keys">
+            <button aria-label="Open" data-key="open" onClick={() => call("open_cover")}>
+              <Icon icon="mdi:arrow-up" width="22" />
+              <span>Open</span>
+            </button>
+            <button aria-label="Stop" data-key="stop" onClick={() => call("stop_cover")}>
+              <Icon icon="mdi:stop" width="20" />
+              <span>Stop</span>
+            </button>
+            <button aria-label="Close" data-key="close" onClick={() => call("close_cover")}>
+              <Icon icon="mdi:arrow-down" width="22" />
+              <span>Close</span>
+            </button>
+          </div>
+
+          <Show when={settable()}>
+            <div class="rb-cov2-presets" role="group" aria-label="Positions">
+              <For each={PRESETS}>
+                {(value) => (
+                  <button data-active={Math.abs(at() - value) < 3} onClick={() => call("set_cover_position", { position: value })}>
+                    {presetName(value)}
+                  </button>
+                )}
+              </For>
+            </div>
           </Show>
 
           <Show when={tilt() !== undefined}>
-            <div class="rb-cov-tilt">
-              <span class="rb-cov-label">Tilt</span>
+            <div class="rb-cov2-tilt">
+              <span class="rb-cov2-tilt-head">
+                <Icon icon="mdi:angle-acute" width="15" />
+                Slats
+                <b>{Math.round(tilt()!)}%</b>
+              </span>
               <FillSlider
                 class="rb-cov-tiltfill"
                 value={tilt()!}
                 color="120 170 255"
                 label="Tilt"
                 onCommit={(value) => call("set_cover_tilt_position", { tilt_position: value })}
-              >
-                <b>{Math.round(tilt()!)}%</b>
-              </FillSlider>
+              />
+              <span class="rb-cov2-tilt-ends">
+                <span>Closed</span>
+                <span>Open</span>
+              </span>
             </div>
           </Show>
-
-          {/* The three positions anyone actually asks for. */}
-          <div class="rb-cov-presets">
-            <For each={[0, 50, 100]}>
-              {(value) => (
-                <button
-                  data-active={Math.round(at()) === value}
-                  onClick={() => call("set_cover_position", { position: value })}
-                >
-                  {PRESET_LABEL[value]}
-                </button>
-              )}
-            </For>
-          </div>
         </div>
       </div>
     </div>

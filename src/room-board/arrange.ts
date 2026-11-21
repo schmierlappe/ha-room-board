@@ -291,7 +291,10 @@ export function attachControls(
       const sizes = document.createElement("div");
       sizes.className = "rb-arrange-sizes";
       for (const size of SIZES) {
+        /* Half a tile is a phone's; 16:9 is not — on two columns it is only
+           the big square again, a sixth button that changes nothing. */
         if (size === "half" && !narrow) continue;
+        if (size === "cinema" && narrow) continue;
         const button = document.createElement("button");
         button.type = "button";
         button.dataset.action = "size";
