@@ -15631,7 +15631,7 @@
    resting just above the switch, cord running up out of the card. */
 .rb-card--light > .rb-half > .rb-half-art { top: 0 !important; bottom: 2.05rem !important; overflow: visible !important; }
 .rb-card--light > .rb-half > .rb-half-art > * { --half-art-scale: 1 !important; transform: none !important; }
-.rb-card--light > .rb-half .rb-globe { top: auto; bottom: -0.2rem; left: 50%; height: 4.4rem; translate: -50% 0; }
+.rb-card--light > .rb-half .rb-globe { top: auto; bottom: 0.1rem; left: 50%; height: 3.5rem; translate: -50% 0; }
 @container (min-height: 5.5rem) {
-  .rb-card--light > .rb-half .rb-globe { height: 5.6rem; bottom: 0.25rem; }
+  .rb-card--light > .rb-half .rb-globe { height: 4.4rem; bottom: 0.3rem; }
 }
