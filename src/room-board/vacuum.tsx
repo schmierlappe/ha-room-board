@@ -13,6 +13,7 @@ import { Keyed } from "./keyed";
 import { keyStep } from "../keys";
 import { inOrder } from "../async";
 import { errorMessage } from "../errors";
+import { Half } from "./half";
 
 const CLEANING = new Set(["cleaning", "returning", "going_to_spot", "spot_cleaning"]);
 
@@ -283,6 +284,7 @@ export function VacuumCard(props: {
         <Icon icon={cleaning() ? "mdi:home-import-outline" : "mdi:play"} width="14" />
         <span>{cleaning() ? "Dock" : "Clean"}</span>
       </button>
+      <Half icon="mdi:robot-vacuum" name={props.vacuum.friendlyName ?? "Vacuum"} status={fault() ?? (cleaning() ? "Cleaning" : charging() ? "Charging" : stateLabel(props.vacuum))} tone={fault() ? "#ef4444" : "#a78bfa"} lit={cleaning() || !!fault()} value={battery() === undefined ? undefined : `${Math.round(battery()!)}%`} />
     </article>
   );
 }

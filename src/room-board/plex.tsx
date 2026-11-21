@@ -9,6 +9,7 @@ import type { EntityView } from "@glasshome/widget-sdk";
 import { resolveArtwork } from "../media-player/cover";
 import { openable, sinceLabel } from "./util";
 import { Keyed } from "./keyed";
+import { Half } from "./half";
 
 /**
  * What a "recently added" sensor publishes.
@@ -156,6 +157,7 @@ export function PlexCard(props: { entity: EntityView; items: Media[]; onOpen: ()
           </div>
         </div>
       </Show>
+      <Half icon="mdi:plex" name={lead()?.title ?? "Plex"} status={lead()?.line1 || "Recently added"} tone="#e5a00d" value={props.items.length > 1 ? `+${props.items.length - 1}` : undefined} />
     </article>
   );
 }

@@ -13,6 +13,7 @@ import {
   type WasteItem,
 } from "../waste-scheduler/util";
 import { openable } from "./util";
+import { Half } from "./half";
 
 /**
  * Whether a sensor is a waste schedule at all.
@@ -112,6 +113,7 @@ export function WasteCard(props: { entityId: string; onOpen: () => void }) {
           </For>
         </div>
       </Show>
+      <Half icon={look().icon} name={next()?.type ?? "Waste"} status={next() ? next()!.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) : "Nothing planned"} tone={look().color} lit={soon()} />
     </article>
   );
 }

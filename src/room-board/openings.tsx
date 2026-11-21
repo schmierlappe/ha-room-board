@@ -3,6 +3,7 @@ import { Icon } from "@glasshome/widget-sdk";
 import type { EntityView } from "@glasshome/widget-sdk";
 import { openable, sinceLabel } from "./util";
 import { Keyed } from "./keyed";
+import { Half } from "./half";
 
 /**
  * What is open in this room.
@@ -186,6 +187,7 @@ export function OpeningsCard(props: { openings: Opening[]; onOpen: () => void })
           {open().length > 3 ? ` · +${open().length - 3}` : ""}
         </span>
       </Show>
+      <Half icon={open().length ? "mdi:door-open" : "mdi:door-closed"} name="Doors & windows" status={open().length ? verdict() : "All closed"} tone="#38bdf8" lit={open().length > 0} value={open().length ? String(open().length) : undefined} />
     </article>
   );
 }

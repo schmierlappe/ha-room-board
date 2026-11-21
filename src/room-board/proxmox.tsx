@@ -12,6 +12,7 @@ import {
 } from "../proxmox/model";
 import { unifiVars } from "../unifi/styles";
 import { openable } from "./util";
+import { Half } from "./half";
 
 /**
  * Proxmox on the board: its own card and overlay, drawn from the Proxmox
@@ -196,6 +197,7 @@ export function ProxmoxCard(props: { cluster: Cluster; onOpen: () => void }) {
           </div>
         </Show>
       </div>
+      <Half icon="mdi:server" name={clusterTitle(props.cluster.nodes)} status={state().text} tone="#e57000" lit={state().tone !== "ok"} value={`${sum().running}/${sum().guests}`} />
     </article>
   );
 }

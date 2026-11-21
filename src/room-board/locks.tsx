@@ -3,6 +3,7 @@ import { For, Show, createMemo, createSignal, onCleanup } from "solid-js";
 import { Icon, useEntities, useService, type EntityView } from "@glasshome/widget-sdk";
 import { numeric, openable, sinceLabel } from "./util";
 import { Keyed } from "./keyed";
+import { Half } from "./half";
 
 /** HA's lock domain: 1 is "can pull the latch". */
 const FEATURE_OPEN = 1;
@@ -286,6 +287,7 @@ export function LockCard(props: { locks: EntityView[]; onOpen: () => void }) {
           </button>
         </Show>
       </div>
+      <Half icon={state() === "locked" ? "mdi:lock" : "mdi:lock-open-variant"} name={lock()?.friendlyName ?? "Lock"} status={state() === "locked" ? "Locked" : state() === "unlocked" ? "Unlocked" : state()} tone={state() === "locked" ? "#22c55e" : "#fb923c"} lit={state() !== "locked"} />
     </article>
   );
 }

@@ -3,6 +3,7 @@ import { Icon } from "@glasshome/widget-sdk";
 import type { EntityView } from "@glasshome/widget-sdk";
 import { Spark } from "./spark";
 import { classOf, health, numeric, sinceLabel, toneOf, verdict, warmth } from "./util";
+import { Half } from "./half";
 
 const ICONS: Record<string, string> = {
   temperature: "mdi:thermometer",
@@ -80,6 +81,7 @@ export function HeroMetric(props: { entity: EntityView; hours: number }) {
           kind() === "temperature" && value() !== undefined ? warmth(value()!) : undefined
         }
       />
+      <Half icon={ICONS[kind()] ?? "mdi:gauge"} name={props.entity.friendlyName ?? props.entity.id} status={value() !== undefined ? verdict(kind(), value()!) || "" : "Unavailable"} tone={tone()} value={value() === undefined ? "—" : `${Math.round(value()! * 10) / 10}${props.entity.unitOfMeasurement ?? ""}`} />
     </article>
   );
 }
@@ -122,6 +124,7 @@ export function Metric(props: { entity: EntityView; hours: number }) {
           kind() === "temperature" && value() !== undefined ? warmth(value()!) : undefined
         }
       />
+      <Half icon={ICONS[kind()] ?? "mdi:gauge"} name={props.entity.friendlyName ?? props.entity.id} status={value() !== undefined ? verdict(kind(), value()!) || "" : "Unavailable"} tone={tone()} value={value() === undefined ? "—" : `${Math.round(value()! * 10) / 10}${props.entity.unitOfMeasurement ?? ""}`} />
     </article>
   );
 }

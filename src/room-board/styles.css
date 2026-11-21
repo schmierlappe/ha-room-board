@@ -15050,51 +15050,77 @@
 .rb-mtile > .mp-backdrop, .rb-mtile > .mp-scrim { z-index: 0; }
 :where(.rb-board[data-scheme="light"]) .rb-card.rb-mtile { background: var(--rb-card, #fff); }
 
-/* ---------- half height, on a phone ----------
+/* ---------- half a tile, on a phone ----------
  *
- * Half a tile: one column wide and half a tile high, two of them stacked in
- * the space of one small tile. One line — its name and what it says on the
- * left, its one control or reading on the right, and nothing else. The media card has a layout of its own for this (the media
- * widget's strip, media-tile.tsx). */
+ * Arrange's ½ size: one column, half a tile high. Every card draws a half
+ * face (half.tsx) — its icon, name, one line of status, and its switch or
+ * reading — shown here in place of everything else on the card. The media
+ * card has a layout of its own for this (the media widget's strip). */
+.rb-half { display: none; }
 .rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 0.75rem !important;
-  padding: 0.5rem 0.9rem !important;
+  position: relative !important;
+  display: block !important;
+  padding: 0 !important;
   overflow: hidden;
 }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) > :not(:is(
-  .rb-card-head, .rb-lock-top, .rb-read, .rb-hero-read, .rb-light-row, .rb-light-fill, .rb-arrange,
-  .rb-sw-list, .rb-wx-sky, .rb-wx-scrim, .rb-cal-head, .rb-sport-head
-)) { display: none !important; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > :is(.rb-card-head, .rb-lock-top, .rb-cal-head, .rb-sport-head) {
-  flex: 1 1 auto;
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) > :not(.rb-half, .rb-arrange) { display: none !important; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > .rb-half {
+  --rb-half-tone: var(--rb-primary, #7c6cf0);
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
   min-width: 0;
-  margin: 0 !important;
-  position: relative;
-  z-index: 1;
+  color: var(--rb-ink);
 }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > :is(.rb-read, .rb-hero-read, .rb-light-row, .rb-sw-list) {
+.rb-half-icon {
+  display: grid;
+  place-items: center;
   flex: none;
-  margin: 0 !important;
-  position: relative;
-  z-index: 1;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 0.75rem;
+  color: var(--rb-half-tone);
+  background: color-mix(in srgb, var(--rb-half-tone) 17%, transparent);
+  transition: background 0.2s ease, color 0.2s ease;
 }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-hero-value { font-size: 1.8rem; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-hero-badge { display: none; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > .rb-sw-list > :not(:first-child) { display: none; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-card-name { font-size: 0.92rem; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] :is(.rb-wx-sky, .rb-wx-scrim, .rb-light-fill) { position: absolute; inset: 0; }
-
-/* Half a tile is narrow: the name over its status, the control beside them. */
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) { gap: 0.45rem !important; padding: 0.45rem 0.7rem !important; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-card-name { font-size: 0.82rem; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-card-verdict { font-size: 0.68rem; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-hero-value { font-size: 1.3rem; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-read-value { font-size: 1.15rem; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] :is(.rb-read-badge, .rb-hero-unit, .rb-read-unit, .rb-light-pct) { display: none; }
-/* A switch shows its toggle alone; the name is the card's. */
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-sw-list > * > :not(:last-child) { display: none; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] .rb-sw-list > * { padding: 0.2rem; min-width: 0; }
+.rb-half[data-lit="true"] .rb-half-icon {
+  color: #fff;
+  background: var(--rb-half-tone);
+  box-shadow: 0 6px 14px -6px var(--rb-half-tone);
+}
+.rb-half-text { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.2; }
+.rb-half-text > b { font-size: 0.82rem; font-weight: 650; }
+.rb-half-text > small { font-size: 0.68rem; color: var(--rb-dim); }
+.rb-half-value { flex: none; font-size: 0.92rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rb-half-toggle {
+  position: relative;
+  flex: none;
+  width: 2.35rem;
+  height: 1.4rem;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--rb-ink) 18%, transparent);
+  transition: background 0.2s ease;
+}
+.rb-half-toggle > i {
+  position: absolute;
+  top: 0.18rem;
+  left: 0.18rem;
+  width: 1.04rem;
+  height: 1.04rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  transition: transform 0.2s ease;
+}
+.rb-half-toggle[data-on="true"] { background: var(--rb-half-tone); }
+.rb-half-toggle[data-on="true"] > i { transform: translateX(0.95rem); }
+/* On a phone, Updates beside Arrange as its icon and count: the Overview
+   line has no room for the word as well. */
+.rb-board[data-narrow="true"] .rb-updates-toggle > span { display: none; }
+.rb-board[data-narrow="true"] .rb-updates-toggle { padding: 0.3rem 0.32rem 0.3rem 0.45rem; }
