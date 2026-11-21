@@ -15590,24 +15590,48 @@
 .rb-cov2-chip-art { position: relative; }
 .rb-cov2-chip-art > .rb-cov-art { position: relative !important; inset: auto !important; top: auto !important; right: auto !important; flex: none; }
 
-/* The lights at half a tile: the lamp and its switch on one row at the right,
-   the switch at the edge and the lamp beside it, both on the card's middle. */
+/* The lights at half a tile: one column at the right — the lamp hanging at
+   the top, its switch under it at the foot, both on the same centre line. */
+.rb-card--light > .rb-half {
+  --lt-switch: 2.35rem;
+  --lt-edge: 0.7rem;
+  --lt-col: 4.6rem;
+}
 .rb-card--light > .rb-half > .rb-half-toggle {
-  top: 50% !important;
-  bottom: auto !important;
-  right: 0.7rem !important;
-  translate: 0 -50%;
+  top: auto !important;
+  bottom: 0.55rem !important;
+  right: var(--lt-edge) !important;
+  translate: none;
 }
 .rb-card--light > .rb-half > .rb-half-art {
-  right: 3.3rem;
-  width: 30%;
-  align-items: center;
+  /* Centred on the switch's middle. */
+  right: calc(var(--lt-edge) + var(--lt-switch) / 2 - var(--lt-col) / 2);
+  width: var(--lt-col);
+  bottom: 2.2rem;
+  align-items: start;
+  overflow: visible;
 }
-.rb-card--light > .rb-half > .rb-half-art > * { margin-top: 0 !important; --half-art-scale: 0.72; }
-.rb-card--light > .rb-half[data-art="true"] { padding-right: calc(30% + 3.4rem) !important; }
+.rb-card--light > .rb-half > .rb-half-art > * { margin-top: -0.55rem !important; --half-art-scale: 0.78; }
+.rb-card--light > .rb-half[data-art="true"] { padding-right: calc(var(--lt-col) + 0.6rem) !important; }
 @container (min-height: 5.5rem) {
-  .rb-card--light > .rb-half > .rb-half-art { width: 34%; }
-  .rb-card--light > .rb-half > .rb-half-art > * { --half-art-scale: 1.05; }
-  .rb-card--light > .rb-half[data-art="true"] { padding-right: calc(34% + 3.4rem) !important; }
+  .rb-card--light > .rb-half > .rb-half-art > * { --half-art-scale: 0.95; margin-top: -0.3rem !important; }
+  .rb-card--light > .rb-half[data-art="true"] { padding-right: calc(var(--lt-col) + 0.6rem) !important; }
 }
-.rb-card--light > .rb-half > .rb-half-art { overflow: visible; }
+/* The globe sits just above its switch; the cord runs up out of the card. */
+.rb-card--light > .rb-half > .rb-half-art { top: -2rem !important; bottom: 2.15rem !important; align-items: end !important; }
+.rb-card--light > .rb-half > .rb-half-art > * { margin: 0 !important; transform-origin: bottom center !important; --half-art-scale: 0.95; }
+@container (min-height: 5.5rem) {
+  .rb-card--light > .rb-half > .rb-half-art > * { --half-art-scale: 1.1; }
+}
+.rb-card--light > .rb-half > .rb-half-art > * { --half-art-scale: 1.2; }
+@container (min-height: 5.5rem) {
+  .rb-card--light > .rb-half > .rb-half-art > * { --half-art-scale: 1.4; }
+}
+/* The globe itself is placed absolutely in its box: size it directly, globe
+   resting just above the switch, cord running up out of the card. */
+.rb-card--light > .rb-half > .rb-half-art { top: 0 !important; bottom: 2.05rem !important; overflow: visible !important; }
+.rb-card--light > .rb-half > .rb-half-art > * { --half-art-scale: 1 !important; transform: none !important; }
+.rb-card--light > .rb-half .rb-globe { top: auto; bottom: -0.2rem; left: 50%; height: 4.4rem; translate: -50% 0; }
+@container (min-height: 5.5rem) {
+  .rb-card--light > .rb-half .rb-globe { height: 5.6rem; bottom: 0.25rem; }
+}
