@@ -6,6 +6,7 @@ import { calendarColour, createCalendarAgenda } from "../room/calendars";
 import type { AgendaEntry } from "../room/util";
 import { TodoChips, TodoLists } from "./todo";
 import { openable } from "./util";
+import { Half } from "./half";
 
 const startOfDay = (date: Date) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
@@ -120,6 +121,7 @@ export function CalendarCard(props: { ids: string[]; todoIds?: string[]; onOpen:
           </p>
         </Show>
       </div>
+      <Half icon="mdi:calendar-today" name={today.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" })} status={countLine()} tone="#8b7cf6" lit={todayCount() > 0} />
     </article>
   );
 }

@@ -6,6 +6,7 @@ import { MonitorRow } from "../uptime/heartbeat";
 import { GroupRow } from "../uptime/group";
 import { uptimeVars } from "../uptime/styles";
 import { openable } from "./util";
+import { Half } from "./half";
 
 /**
  * Uptime Kuma, on the board, drawn as the Uptime widget draws it.
@@ -121,6 +122,7 @@ export function UptimeCard(props: {
           </Show>
         </Show>
       </div>
+      <Half icon="mdi:heart-pulse" name="Uptime" status={summary().down ? `${summary().down} down` : "All up"} tone={summary().down ? "#ef4444" : "#22c55e"} lit={summary().down > 0} value={`${summary().up}/${summary().total}`} />
     </article>
   );
 }

@@ -1,6 +1,7 @@
 import { For, Show, createUniqueId } from "solid-js";
 import type { EntityView } from "@glasshome/widget-sdk";
 import { numeric, openable } from "./util";
+import { Half } from "./half";
 
 /**
  * A washing machine, out of the pile of sensors an appliance integration
@@ -375,6 +376,7 @@ export function ApplianceCard(props: { machine: Appliance; onOpen: () => void })
       <Show when={program()}>
         <span class="rb-wash-line rb-truncate">{program()}</span>
       </Show>
+      <Half icon={/dry/i.test(machine().name ?? "") ? "mdi:tumble-dryer" : "mdi:washing-machine"} name={machine().name ?? "Appliance"} status={verdict() || state()} tone="#a78bfa" lit={running() || done()} value={running() && percent() !== undefined ? `${Math.round(percent()!)}%` : undefined} />
     </article>
   );
 }

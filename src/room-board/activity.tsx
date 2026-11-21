@@ -3,6 +3,7 @@ import { Icon } from "@glasshome/widget-sdk";
 import type { EntityView } from "@glasshome/widget-sdk";
 import { openable, sinceLabel } from "./util";
 import { Keyed } from "./keyed";
+import { Half } from "./half";
 
 /**
  * What has been happening in this room.
@@ -237,6 +238,7 @@ export function ActivityCard(props: { entities: EntityView[]; onOpen: () => void
           <p class="rb-act-none">This room has nothing that reports events yet.</p>
         </Show>
       </div>
+      <Half icon="mdi:history" name={recent()[0]?.name ?? "Activity"} status={recent()[0]?.said ?? "Nothing yet"} tone="#8b7cf6" lit={live()} />
     </article>
   );
 }

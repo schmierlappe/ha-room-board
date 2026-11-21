@@ -4,6 +4,7 @@ import { TileView } from "../unifi/tile";
 import { UnifiPanel } from "../unifi/panel";
 import { unifiVars } from "../unifi/styles";
 import { openable } from "./util";
+import { Half } from "./half";
 
 /**
  * The UniFi network, on the board: the UniFi widget's own card, two tiles
@@ -17,6 +18,7 @@ export function UnifiCard(props: { network: Network; pings: Ping[]; onOpen: () =
   return (
     <article class="rb-card rb-card--unifi" {...openable(props.onOpen, "Network")}>
       <TileView network={props.network} pings={props.pings} />
+      <Half icon="mdi:router-wireless" name={props.network.gateway?.name ?? "Network"} status={props.network.clients !== undefined ? `${props.network.clients} clients` : "Network"} tone="#3d8bff" value={props.network.throughput.down ? `${Math.round(props.network.throughput.down.value)} ${props.network.throughput.down.unit}` : undefined} />
     </article>
   );
 }

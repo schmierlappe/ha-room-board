@@ -19,6 +19,7 @@ import {
   type Match,
   type StandingRow,
 } from "../soccer/util";
+import { Half } from "./half";
 
 /**
  * A team's next, live or last match, from the TeamTracker integration
@@ -221,6 +222,7 @@ export function SportCard(props: {
           </span>
         </Show>
       </Show>
+      <Half icon="mdi:soccer" name={us().name || props.entity.friendlyName} status={live() ? `Live · ${clock()}` : pre() ? `${when().day} ${when().time}` : done() ? "Full time" : chip()} tone={live() ? "#ef4444" : "#22c55e"} lit={live()} value={pre() ? undefined : `${left().score ?? 0}:${right().score ?? 0}`} />
     </article>
   );
 }

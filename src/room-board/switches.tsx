@@ -2,6 +2,7 @@ import { Show, createMemo } from "solid-js";
 import { Icon, useService, type EntityView } from "@glasshome/widget-sdk";
 import { openable, safeIcon } from "./util";
 import { Keyed } from "./keyed";
+import { Half } from "./half";
 
 const isOn = (entity: EntityView) => entity.state === "on";
 
@@ -79,6 +80,16 @@ export function SwitchCard(props: { switches: EntityView[]; onOpen: () => void }
           )}
         </Keyed>
       </div>
+      <Half
+        icon="mdi:toggle-switch-outline"
+        name={props.switches.length === 1 ? (props.switches[0]!.friendlyName ?? "Switch") : "Switches"}
+        status={on() ? `${on()} of ${props.switches.length} on` : "All off"}
+        tone="#8b7cf6"
+        lit={on() > 0}
+        on={props.switches.length === 1 ? on() > 0 : undefined}
+        onToggle={props.switches.length === 1 ? () => void callService("switch", "toggle", {}, { entity_id: props.switches[0]!.id }) : undefined}
+        value={props.switches.length === 1 ? undefined : `${on()}/${props.switches.length}`}
+      />
     </article>
   );
 }

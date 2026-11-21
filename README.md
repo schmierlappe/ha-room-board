@@ -80,7 +80,7 @@ On a screen taller than it is wide — a wall display such as the Shelly Wall Di
 - **Small** (1×1), **Wide** (2×1), **Tall** (1×2), **Big** (2×2).
 - **16:9** (3×2): bigger than the big square, in a picture's shape. Good for the player, a camera, the weather or the reading that matters most.
 
-On a two-column phone, 16:9 takes the full width and is drawn like Big. Phones (and portrait screens) also get **Half** (½ tile): one column wide and half a tile high, so two stack in the space of one small tile — one line with the card's name and its one control or reading; the media card becomes a strip with the cover, the title, play and the volume.
+On a two-column phone, 16:9 takes the full width and is drawn like Big. Phones (and portrait screens) also get **Half** (½ tile): one column wide and half a tile high, so two stack in the space of one small tile — every card type shows its icon, its name, one line of status and its switch or reading; the media card becomes a strip with the cover, the title, play and the volume.
 
 ### A layout for each screen
 

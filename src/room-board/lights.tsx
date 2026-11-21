@@ -6,6 +6,7 @@ import { FillSlider } from "./slider";
 import { attr, openable, safeIcon } from "./util";
 import { Keyed } from "./keyed";
 import { keyStep } from "../keys";
+import { Half } from "./half";
 
 export const isLit = (entity: EntityView) => entity.state === "on";
 
@@ -152,6 +153,8 @@ export function LightCard(props: { lights: EntityView[]; onOpen: () => void }) {
           <Icon icon="mdi:power" width="18" />
         </button>
       </div>
+      {/* Half a tile (Arrange's ½ size): the lights and their switch. */}
+      <Half icon={on() ? "mdi:lightbulb-group" : "mdi:lightbulb-group-outline"} name="Lights" status={on() ? `${on()} of ${props.lights.length} on` : "All off"} tone="#fbbf24" lit={on() > 0} on={on() > 0} onToggle={() => void callService("light", on() ? "turn_off" : "turn_on", {}, { entity_id: props.lights.map((entity) => entity.id) })} />
     </article>
   );
 }

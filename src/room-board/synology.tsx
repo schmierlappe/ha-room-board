@@ -2,6 +2,7 @@ import { For, Show, createMemo, createSignal, onCleanup } from "solid-js";
 import { Icon, useService } from "@glasshome/widget-sdk";
 import { healthOf, rate, size, upFor, type Drive, type Nas, type Volume } from "./synology-model";
 import { openable } from "./util";
+import { Half } from "./half";
 
 /**
  * Synology on the board: every NAS as a small front panel — its drive bays
@@ -128,6 +129,7 @@ export function SynologyCard(props: { list: Nas[]; onOpen: () => void }) {
           }}
         </For>
       </div>
+      <Half icon="mdi:nas" name={props.list.length === 1 ? props.list[0]!.name : "Synology"} status={overall().text} tone={overall().tone === "ok" ? "#2f7cf6" : overall().tone === "warn" ? "#f59e0b" : "#ef4444"} lit={overall().tone !== "ok"} value={props.list[0]?.volumes[0]?.used !== undefined ? `${Math.round(props.list[0]!.volumes[0]!.used!)}%` : undefined} />
     </article>
   );
 }

@@ -3,6 +3,7 @@ import { Icon, useService, type EntityView } from "@glasshome/widget-sdk";
 import { FillSlider } from "./slider";
 import { openable, sinceLabel } from "./util";
 import { Keyed } from "./keyed";
+import { Half } from "./half";
 
 /**
  * Covers: shutters, blinds, curtains, awnings, the garage.
@@ -329,6 +330,7 @@ export function CoverCard(props: { covers: EntityView[]; onOpen: () => void }) {
         moving={moving(cover())}
       />
 
+      <Half icon={(position() ?? 0) <= 1 ? "mdi:window-shutter" : "mdi:window-shutter-open"} name={cover()?.friendlyName ?? "Shutters"} status={bigLabel()} tone="#38bdf8" value={position() === undefined ? undefined : `${Math.round(position()!)}%`} />
     </article>
   );
 }

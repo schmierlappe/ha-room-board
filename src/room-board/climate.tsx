@@ -4,6 +4,7 @@ import { StateGlyph, Thermostat } from "./thermostat";
 import { Spark } from "./spark";
 import { TickDial } from "./dial";
 import { attr, openable, verdict, warmth } from "./util";
+import { Half } from "./half";
 
 const MODE_ICONS: Record<string, string> = {
   auto: "mdi:autorenew",
@@ -306,6 +307,7 @@ export function ClimateCard(props: { climate: EntityView; onOpen: () => void }) 
         on={active()}
         action={action()}
       />
+      <Half icon="mdi:thermostat" name={props.climate.friendlyName ?? "Climate"} status={room() !== undefined ? `${word()} · room ${room()}°` : word()} tone={running() ? "#ff8a3d" : "#94a3b8"} lit={running()} value={target() === undefined ? undefined : `${target()}°`} />
     </article>
   );
 }

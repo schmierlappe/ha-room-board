@@ -9,6 +9,7 @@ import { companionIds, isMotion, motionOn, sinceLabel, stillUrl } from "../camer
 import { Keyed } from "./keyed";
 import { openable } from "./util";
 import { errorMessage } from "../errors";
+import { Half } from "./half";
 
 /** The still, as a background rather than an <img>, so it can crop freely. */
 function Shot(props: { camera: EntityView | undefined; tick: number }) {
@@ -163,6 +164,7 @@ export function CameraCard(props: {
           </span>
         </Show>
       </div>
+      <Half icon={moving() ? "mdi:motion-sensor" : "mdi:cctv"} name={camera()?.friendlyName ?? "Camera"} status={moving() ? "Motion" : "Live"} tone={moving() ? "#ef4444" : "#38bdf8"} lit={moving()} value={props.cameras.length > 1 ? `${index() + 1}/${props.cameras.length}` : undefined} />
     </article>
   );
 }
