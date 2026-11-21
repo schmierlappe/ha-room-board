@@ -145,6 +145,38 @@ const AURORA_CSS = `
 :host([data-theme="aurora"]) .rb-dock > .rb-act-bar { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
 `;
 
+/* Forest: Aurora with a green touch. The night is a deep blue-green
+   (#0C1D28), the accent emerald, and the glows behind the glass emerald,
+   teal and a little lime; by day a pale mint with a deeper green. */
+const FOREST_CSS = `
+:host([data-theme="aurora"][data-forest]) {
+  --background: #0c1d28;
+  --foreground: #e7f3ef;
+  --card: rgba(18, 46, 56, 0.48);
+  --popover: #102633;
+  --popover-foreground: #e7f3ef;
+  --border: rgba(190, 255, 230, 0.1);
+  --primary: #2fd39a;
+  --primary-foreground: #04261b;
+  --rb-glow-1: rgba(16, 185, 129, 0.55);
+  --rb-glow-2: rgba(20, 160, 170, 0.5);
+  --rb-glow-3: rgba(150, 214, 60, 0.26);
+}
+:host([data-theme="aurora"][data-forest][data-mode="light"]) {
+  --background: #ecf5f1;
+  --foreground: #0f2a24;
+  --card: rgba(255, 255, 255, 0.55);
+  --popover: #ffffff;
+  --popover-foreground: #0f2a24;
+  --border: rgba(15, 42, 36, 0.1);
+  --primary: #0e9f6e;
+  --primary-foreground: #ffffff;
+  --rb-glow-1: rgba(52, 211, 153, 0.5);
+  --rb-glow-2: rgba(45, 180, 190, 0.42);
+  --rb-glow-3: rgba(190, 230, 110, 0.45);
+}
+`;
+
 /* Home Assistant's theme, in the tokens the widgets read (src/theme.ts). The
    card is the theme root, so getComputedStyle on it resolves these. */
 const HOST_CSS = `
@@ -174,6 +206,7 @@ const HOST_CSS = `
 }
 .ha-rb-error { padding: 16px; color: var(--error-color, #db4437); }
 ${AURORA_CSS}
+${FOREST_CSS}
 /* Reads the safe-area insets for the card (--rb-safe-* stand in for them in
    a test page). */
 .ha-rb-safe {
@@ -235,6 +268,9 @@ class RoomBoardCard extends HTMLElement {
     /* Aurora unless Home Assistant's own theme is asked for. */
     const theme = config.theme === "home_assistant" || config.theme === "home-assistant" ? "home_assistant" : "aurora";
     this.setAttribute("data-theme", theme);
+    /* Forest is Aurora's glass and glow in greens, on a deep blue-green
+       night: the same theme, another palette. */
+    this.toggleAttribute("data-forest", config.theme === "forest" || config.theme === "green");
     /* The status bar hidden (the companion app's full screen): nothing of the
        system's is drawn at the top, so the clock may go up into that strip.
        A page cannot tell on its own — the safe area is the same either way. */
