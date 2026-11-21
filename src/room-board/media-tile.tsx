@@ -18,6 +18,7 @@ import {
 } from "../media-player/util";
 import { artworkOf, pickPlayer, readNowPlaying } from "./media";
 import { openable } from "./util";
+import { Half } from "./half";
 
 /**
  * The board's media card, drawn the way the GlassHome media widget draws its
@@ -519,6 +520,42 @@ export function MediaTile(props: {
 
   return (
     <article class="rb-card rb-card--media rb-mtile" data-card="media" style={themeVars()} {...openable(props.onOpen, "Now playing")}>
+      {/* Half a tile (Arrange's ½ size on a phone): like every other card's
+          half — the cover at the right, and on the left what is playing with
+          a play key. */}
+      <Half
+        icon={playing() ? "mdi:music-note" : "mdi:speaker"}
+        name={heading()}
+        status={sub()}
+        tone="var(--rb-primary, #7c6cf0)"
+        lit={playing()}
+        value={
+          <button
+            class="rb-half-play"
+            data-on={playing()}
+            aria-label={playing() ? "Pause" : "Play"}
+            onPointerDown={swallow}
+            onClick={ownTap(() => command("media_play_pause"))}
+          >
+            <Icon icon={playing() ? "mdi:pause" : "mdi:play"} width="18" />
+          </button>
+        }
+        art={
+          <Show
+            when={artworkOk()}
+            fallback={
+              <Show
+                when={channelLogo()}
+                fallback={<span class="rb-half-mediabrand" style={brand() ? brandStyle(brand()!) : undefined}><Icon icon={brand()?.icon ?? "mdi:music"} /></span>}
+              >
+                {(logo) => <img class="rb-half-logo" src={logo()} alt="" />}
+              </Show>
+            }
+          >
+            <img class="rb-half-poster" src={artwork()} alt="" />
+          </Show>
+        }
+      />
       <Show when={artworkOk() && classic()}>
         <div class="mp-backdrop" style={{ "background-image": `url("${artwork()}")` }} />
         <div class="mp-scrim" />

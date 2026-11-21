@@ -15057,13 +15057,13 @@
  * reading — shown here in place of everything else on the card. The media
  * card has a layout of its own for this (the media widget's strip). */
 .rb-half { display: none; }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) {
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] {
   position: relative !important;
   display: block !important;
   padding: 0 !important;
   overflow: hidden;
 }
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) > :not(.rb-half, .rb-arrange) { display: none !important; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > :not(.rb-half, .rb-arrange) { display: none !important; }
 .rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > .rb-half {
   --rb-half-tone: var(--rb-primary, #7c6cf0);
   position: absolute;
@@ -15132,7 +15132,7 @@
  * manner of Apple's Home: the icon at the top left with the switch or the
  * reading opposite, the name and its status along the foot — and a card that
  * is on or wants a look glows in its own colour. */
-.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) { container-type: size; }
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] { container-type: size; }
 @container (min-height: 5.5rem) {
   .rb-half {
     display: grid !important;
@@ -15297,3 +15297,33 @@
   text-shadow: 0 6px 18px color-mix(in srgb, var(--bin) 45%, transparent);
 }
 .rb-half-days > small { margin-top: 0.1rem; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.8; }
+
+/* The media card's half: a round play key where the others have a switch,
+   and the cover at the right. */
+.rb-half-play {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  background: var(--rb-primary, #7c6cf0);
+  box-shadow: 0 6px 14px -6px var(--rb-primary, #7c6cf0);
+  transition: transform 0.12s ease;
+}
+.rb-half-play:active { transform: scale(0.92); }
+.rb-half-value:has(> .rb-half-play) { line-height: 0; }
+.rb-mtile .rb-half-art { --half-art-scale: 1; }
+.rb-half-logo { width: 78%; height: 70%; object-fit: contain; transform: none !important; }
+.rb-half-mediabrand {
+  display: grid;
+  place-items: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 0.9rem;
+  color: var(--brand-fg, #fff);
+  background: var(--brand-bg, var(--rb-primary, #7c6cf0));
+}
+.rb-half-mediabrand > svg { width: 60%; height: 60%; }
