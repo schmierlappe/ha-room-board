@@ -258,7 +258,7 @@ export function WeatherCard(props: { entityId: string; title: string; onOpen: ()
           </Show>
         </div>
       </Show>
-      <Half icon="mdi:weather-partly-cloudy" name={props.title || entity()?.friendlyName || "Weather"} status={conditionLabel(entity()?.state)} tone="#38bdf8" value={temp(tempOf(entity()))} />
+      <Half art={<WeatherScene scene={scene()} size="3.4rem" animate night={night()} />} icon="mdi:weather-partly-cloudy" name={props.title || entity()?.friendlyName || "Weather"} status={conditionLabel(entity()?.state)} tone="#38bdf8" value={temp(tempOf(entity()))} />
     </article>
   );
 }

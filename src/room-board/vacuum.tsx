@@ -284,7 +284,7 @@ export function VacuumCard(props: {
         <Icon icon={cleaning() ? "mdi:home-import-outline" : "mdi:play"} width="14" />
         <span>{cleaning() ? "Dock" : "Clean"}</span>
       </button>
-      <Half icon="mdi:robot-vacuum" name={props.vacuum.friendlyName ?? "Vacuum"} status={fault() ?? (cleaning() ? "Cleaning" : charging() ? "Charging" : stateLabel(props.vacuum))} tone={fault() ? "#ef4444" : "#a78bfa"} lit={cleaning() || !!fault()} value={battery() === undefined ? undefined : `${Math.round(battery()!)}%`} />
+      <Half art={<Robot cleaning={cleaning()} docked={props.vacuum.state === "docked"} />} icon="mdi:robot-vacuum" name={props.vacuum.friendlyName ?? "Vacuum"} status={fault() ?? (cleaning() ? "Cleaning" : charging() ? "Charging" : stateLabel(props.vacuum))} tone={fault() ? "#ef4444" : "#a78bfa"} lit={cleaning() || !!fault()} value={battery() === undefined ? undefined : `${Math.round(battery()!)}%`} />
     </article>
   );
 }
