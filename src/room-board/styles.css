@@ -15124,3 +15124,46 @@
    line has no room for the word as well. */
 .rb-board[data-narrow="true"] .rb-updates-toggle > span { display: none; }
 .rb-board[data-narrow="true"] .rb-updates-toggle { padding: 0.3rem 0.32rem 0.3rem 0.45rem; }
+
+/* ---------- half a tile, where it has the height: a Home-style tile ----------
+ *
+ * On a larger phone half a tile is tall enough for two rows, and one line
+ * across the middle left most of it empty. There it becomes a tile in the
+ * manner of Apple's Home: the icon at the top left with the switch or the
+ * reading opposite, the name and its status along the foot — and a card that
+ * is on or wants a look glows in its own colour. */
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:not(.rb-mtile) { container-type: size; }
+@container (min-height: 5.5rem) {
+  .rb-half {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "icon . end"
+      "text text text";
+    align-items: start;
+    gap: 0.2rem 0.5rem !important;
+    padding: 0.65rem 0.75rem 0.6rem !important;
+  }
+  .rb-half-icon { grid-area: icon; width: 2rem; height: 2rem; border-radius: 50%; }
+  .rb-half-value, .rb-half-toggle { grid-area: end; align-self: center; }
+  .rb-half-value { font-size: 1.15rem; font-weight: 650; letter-spacing: -0.01em; }
+  .rb-half-text { grid-area: text; align-self: end; }
+  .rb-half-text > b { font-size: 0.86rem; }
+  .rb-half-text > small { font-size: 0.7rem; }
+}
+/* On, or wanting a look: the tile lit in its colour. */
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"]:has(> .rb-half[data-lit="true"]) {
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--rb-half-tone-card, transparent) 0%, transparent), transparent),
+    color-mix(in srgb, var(--rb-ink) 6%, transparent);
+}
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > .rb-half[data-lit="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(130% 150% at 0% 0%, color-mix(in srgb, var(--rb-half-tone) 30%, transparent), transparent 70%);
+  pointer-events: none;
+}
+.rb-board[data-narrow="true"] .rb-grid > .rb-card[data-shape="half"] > .rb-half { isolation: isolate; }
