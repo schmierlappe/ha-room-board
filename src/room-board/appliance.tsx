@@ -1,6 +1,7 @@
 import { For, Show, createUniqueId } from "solid-js";
+import { Icon } from "@glasshome/widget-sdk";
 import type { EntityView } from "@glasshome/widget-sdk";
-import { numeric, openable } from "./util";
+import { numeric, openable, sinceLabel } from "./util";
 import { Half } from "./half";
 
 /**
@@ -25,11 +26,26 @@ export type Appliance = {
   power?: EntityView;
   energy?: EntityView;
   running?: EntityView;
+  /* What WashData and its like add: the run so far and the last one. */
+  elapsed?: EntityView;
+  cycles?: EntityView;
+  maintenance?: EntityView;
+  lastStart?: EntityView;
+  lastDuration?: EntityView;
+  lastEnergy?: EntityView;
   /** Everything the device publishes, for the overlay's list. */
   all: EntityView[];
 };
 
 const ROLES: [keyof Appliance, RegExp][] = [
+  /* The last run's before the general ones: "last_cycle_energy" also ends in
+     "energy", "last_cycle_duration" in "duration". */
+  ["lastStart", /last_cycle_start$/],
+  ["lastDuration", /last_cycle_duration$/],
+  ["lastEnergy", /last_cycle_energy$/],
+  ["elapsed", /elapsed(_time)?$/],
+  ["cycles", /cycle_count$/],
+  ["maintenance", /maintenance(_due)?$/],
   ["phase", /(current_)?phase$/],
   ["progress", /progress$/],
   ["remaining", /(time_)?remaining$/],
@@ -309,137 +325,376 @@ const meaningful = (entity: EntityView | undefined, state: string) => {
   return value !== state.toLowerCase() && !["off", "none", "idle", "0"].includes(value);
 };
 
+/** Minutes, whichever unit the integration chose. */
+const minutesOf = (entity: EntityView | undefined): number | undefined => {
+  if (!known(entity)) return undefined;
+  const raw = numeric(entity);
+  if (raw === undefined) return undefined;
+  const unit = entity!.unitOfMeasurement ?? "";
+  if (/^s(ec)?/i.test(unit)) return raw / 60;
+  if (/^h/i.test(unit)) return raw * 60;
+  return raw;
+};
+
+/** "38 min" as a number and its unit, for the big figure: "38" "min", "1:05" "h". */
+const splitTime = (minutes: number | undefined): [string, string] | undefined => {
+  if (minutes === undefined || minutes <= 0) return undefined;
+  const m = Math.round(minutes);
+  if (m < 60) return [String(m), "min"];
+  return [`${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}`, "h"];
+};
+
+const spoken = (minutes: number | undefined) => {
+  const parts = splitTime(minutes);
+  if (!parts) return "";
+  return parts[1] === "min" ? `${parts[0]} min` : `${parts[0].replace(":", " h ")}`;
+};
+
+/** When it will be done, on the clock: "22:31". */
+const readyAt = (minutes: number | undefined) => {
+  if (minutes === undefined || minutes <= 0) return "";
+  return new Date(Date.now() + minutes * 60_000).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+};
+
+const kwh = (entity: EntityView | undefined) => {
+  const value = known(entity) ? numeric(entity) : undefined;
+  if (value === undefined) return "";
+  return `${value < 10 ? value.toFixed(2) : value.toFixed(value < 100 ? 1 : 0)} kWh`;
+};
+
+const watts = (entity: EntityView | undefined) => {
+  const value = known(entity) ? numeric(entity) : undefined;
+  return value === undefined ? "" : `${Math.round(value)} W`;
+};
+
+/** Its colour: water for the washer, warmth for the dryer, green when done. */
+const ACCENT: Record<MachineKind, string> = { washer: "#38bdf8", dryer: "#fb923c" };
+
+/** Everything the card and the overlay say about one machine, read once. */
+function readMachine(machine: Appliance) {
+  const running = isRunning(machine);
+  const done = isDone(machine);
+  const kind = kindOf(machine);
+  const stateText = label(machine.state?.state) || "Off";
+  const sleeping = machine.state?.state ?? "";
+  const phase = meaningful(machine.phase, sleeping) ? label(machine.phase!.state) : "";
+  const program = meaningful(machine.program, sleeping) ? label(machine.program!.state) : "";
+  const left = running ? minutesOf(machine.remaining) : undefined;
+  const lastStart = known(machine.lastStart) ? machine.lastStart!.state : undefined;
+  const due = machine.maintenance?.state === "on";
+  return {
+    running,
+    done,
+    kind,
+    stateText,
+    phase,
+    program,
+    percent: progressOf(machine),
+    left,
+    spinning: /spin|schleuder/i.test(machine.phase?.state ?? ""),
+    pill: done ? "Ready" : stateText,
+    accent: done ? "#22c55e" : ACCENT[kind],
+    lastAgo: lastStart ? sinceLabel(lastStart) : "",
+    lastDuration: spoken(minutesOf(machine.lastDuration)),
+    lastEnergy: kwh(machine.lastEnergy),
+    elapsed: spoken(minutesOf(machine.elapsed)),
+    power: running ? watts(machine.power) : "",
+    cycles: known(machine.cycles) ? numeric(machine.cycles) : undefined,
+    energy: kwh(machine.energy),
+    due,
+    finishedAgo: done ? sinceLabel(machine.state?.lastChanged) : "",
+  };
+}
+
 /**
- * The board card.
- *
- * Stacked rather than side by side: on a one-column tile a machine drawn
- * beside its own name left both of them too narrow — the name came out as
- * "Washin…" over two lines that both said "Off". The machine gets the middle
- * of the card, the name gets the full width above it, and the line
- * underneath is whatever is actually worth saying: how long is left while it
- * runs, the programme when one is set, and nothing at all when it is asleep.
+ * The board card: the machine at the left, turning while it runs, with how
+ * far it is round its door; at the right the one thing worth reading from
+ * across the room — the minutes left and when it will be done, "Ready" once
+ * it is, or when it last ran while it sleeps.
  */
 export function ApplianceCard(props: { machine: Appliance; onOpen: () => void }) {
-  const machine = () => props.machine;
-  const running = () => isRunning(machine());
-  const done = () => isDone(machine());
-  const spinning = () => /spin/i.test(machine().phase?.state ?? "");
-  const percent = () => progressOf(machine());
+  const m = () => readMachine(props.machine);
+  const time = () => splitTime(m().left);
 
-  const state = () => label(machine().state?.state) || "Off";
-
-  /* One line, and the time left is on it while the machine runs: a second
-     line under the drawing shrank the machine to two thirds of its size on
-     exactly the cards where it is doing something worth seeing. */
+  /* The words for the half tile, and for a screen reader on the full one. */
   const verdict = () => {
-    if (done()) return "Ready to unload";
-    const phase = machine().phase;
-    const hasPhase = meaningful(phase, machine().state?.state ?? "");
-    const left = running() ? timeLeft(machine().remaining) : "";
-    if (left) return `${hasPhase ? label(phase!.state) : state()} · ${left} left`;
-    return hasPhase ? `${state()} · ${label(phase!.state)}` : state();
+    const now = m();
+    if (now.done) return "Ready to unload";
+    if (now.running) {
+      const left = spoken(now.left);
+      return left ? `${now.phase || now.stateText} · ${left} left` : now.phase || now.stateText;
+    }
+    return now.lastAgo ? `${now.stateText} · ran ${now.lastAgo}` : now.stateText;
   };
-
-  /* The programme, for a standing card, which has the height for a line
-     under the machine (the stylesheet shows it only there). */
-  const program = () =>
-    running() && meaningful(machine().program, machine().state?.state ?? "")
-      ? label(machine().program!.state)
-      : "";
 
   return (
     <article
       class="rb-card rb-card--wash"
       data-card={`wash:${props.machine.key}`}
-      data-on={running()}
-      data-done={done()}
+      data-kind={m().kind}
+      data-on={m().running}
+      data-done={m().done}
+      style={{ "--wash-accent": m().accent }}
       {...openable(props.onOpen, "Laundry")}
     >
       <header class="rb-card-head">
         <div class="rb-card-titles">
-          <h3 class="rb-card-name rb-truncate">{machine().name}</h3>
-          <span class="rb-card-verdict rb-truncate">{verdict()}</span>
+          <h3 class="rb-card-name rb-truncate">{props.machine.name}</h3>
+          <span class="rb-wash-pills">
+            <span class="rb-wash-pill" data-live={m().running || m().done}>
+              <i />
+              <span class="rb-truncate">{m().pill}</span>
+            </span>
+            <Show when={m().due}>
+              <span class="rb-wash-care" title="Maintenance due" aria-label="Maintenance due">
+                <Icon icon="mdi:wrench-clock" width="12" />
+              </span>
+            </Show>
+          </span>
         </div>
       </header>
 
-      {/* How far through is the arc round the door now, not a bar under it. */}
-      <div class="rb-wash-stage">
-        <Washer
-          kind={kindOf(machine())}
-          running={running()}
-          spinning={spinning()}
-          done={done()}
-          progress={percent()}
-        />
+      <div class="rb-wash-body" aria-label={verdict()}>
+        <div class="rb-wash-stage">
+          <Washer kind={m().kind} running={m().running} spinning={m().spinning} done={m().done} progress={m().percent} />
+        </div>
+
+        <div class="rb-wash-facts">
+          <Show
+            when={m().running}
+            fallback={
+              <Show
+                when={m().done}
+                fallback={
+                  <>
+                    <span class="rb-wash-k">{m().lastAgo ? "Last run" : m().stateText}</span>
+                    <b class="rb-wash-mid">{m().lastAgo || (m().cycles !== undefined ? `${m().cycles}×` : "—")}</b>
+                    <span class="rb-wash-sub">
+                      {[m().lastDuration, m().lastEnergy].filter(Boolean).join(" · ") ||
+                        (m().cycles !== undefined && m().lastAgo ? `${m().cycles} cycles` : "")}
+                    </span>
+                  </>
+                }
+              >
+                <span class="rb-wash-k">Finished{m().finishedAgo ? ` ${m().finishedAgo}` : ""}</span>
+                <b class="rb-wash-mid rb-wash-ready">
+                  <Icon icon="mdi:check-circle" width="18" />
+                  Ready
+                </b>
+                <span class="rb-wash-sub">to unload</span>
+              </Show>
+            }
+          >
+            <span class="rb-wash-k rb-truncate">{m().phase || m().stateText}</span>
+            <Show
+              when={time()}
+              fallback={<b class="rb-wash-mid">{m().percent !== undefined ? `${Math.round(m().percent!)}%` : "Running"}</b>}
+            >
+              {(parts) => (
+                <b class="rb-wash-big">
+                  {parts()[0]}
+                  <small>{parts()[1]}</small>
+                </b>
+              )}
+            </Show>
+            <span class="rb-wash-sub">
+              {[
+                time() && m().percent !== undefined ? `${Math.round(m().percent!)}%` : "",
+                readyAt(m().left) ? `ready ${readyAt(m().left)}` : "",
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+            <Show when={m().program || m().power}>
+              <span class="rb-wash-tags">
+                <Show when={m().program}>
+                  <span class="rb-truncate">{m().program}</span>
+                </Show>
+                <Show when={m().power}>
+                  <span>
+                    <Icon icon="mdi:flash" width="11" />
+                    {m().power}
+                  </span>
+                </Show>
+              </span>
+            </Show>
+          </Show>
+        </div>
       </div>
 
-      <Show when={program()}>
-        <span class="rb-wash-line rb-truncate">{program()}</span>
+      <Show when={m().running && m().percent !== undefined}>
+        <span class="rb-wash-track" aria-hidden="true">
+          <i style={{ width: `${m().percent}%` }} />
+        </span>
       </Show>
-      <Half art={<Washer kind={kindOf(machine())} running={running()} spinning={spinning()} done={done()} progress={percent()} />} icon={/dry/i.test(machine().name ?? "") ? "mdi:tumble-dryer" : "mdi:washing-machine"} name={machine().name ?? "Appliance"} status={verdict() || state()} tone="#a78bfa" lit={running() || done()} value={running() && percent() !== undefined ? `${Math.round(percent()!)}%` : undefined} />
+
+      <Half art={<Washer kind={m().kind} running={m().running} spinning={m().spinning} done={m().done} progress={m().percent} />} icon={m().kind === "dryer" ? "mdi:tumble-dryer" : "mdi:washing-machine"} name={props.machine.name ?? "Appliance"} status={verdict()} tone={m().accent} lit={m().running || m().done} value={m().running && m().percent !== undefined ? `${Math.round(m().percent!)}%` : undefined} />
     </article>
   );
 }
 
-/** The overlay: the machine at size, and everything it reports. */
+/** One figure in the overlay's grid. */
+function Stat(props: { icon: string; label: string; value: string; sub?: string }) {
+  return (
+    <div class="rb-wash-stat">
+      <span class="rb-wash-stat-icon">
+        <Icon icon={props.icon} width="16" />
+      </span>
+      <span class="rb-wash-stat-text">
+        <small>{props.label}</small>
+        <b class="rb-truncate">{props.value}</b>
+        <Show when={props.sub}>
+          <span class="rb-truncate">{props.sub}</span>
+        </Show>
+      </span>
+    </div>
+  );
+}
+
+/** "Washing Machine Current Power" → "Current Power", under the machine's own heading. */
+const shortName = (entity: EntityView, machine: Appliance) => {
+  const name = entity.friendlyName ?? entity.id;
+  const words = machine.name.toLowerCase();
+  const trimmed = name.replace(/^laundry\s+/i, "");
+  return trimmed.toLowerCase().startsWith(words) ? trimmed.slice(words.length).trim() || name : name;
+};
+
+const reading = (entity: EntityView) => {
+  if (entity.deviceClass === "timestamp") {
+    const since = sinceLabel(entity.state);
+    if (since) return since;
+  }
+  const value = numeric(entity);
+  const unit = entity.unitOfMeasurement ?? "";
+  if (value !== undefined && /^s$/i.test(unit) && value >= 60) return spoken(value / 60);
+  return `${label(entity.state)}${unit ? ` ${unit}` : ""}`;
+};
+
+/** The overlay: each machine at size, what it is doing, its last run, and everything it reports. */
 export function AppliancePanel(props: { machines: Appliance[] }) {
   const readings = (machine: Appliance) =>
     machine.all
       .filter((entity) => known(entity))
-      .sort((a, b) => (a.friendlyName ?? a.id).localeCompare(b.friendlyName ?? b.id));
+      .sort((a, b) => shortName(a, machine).localeCompare(shortName(b, machine)));
 
   return (
     <div class="rb-wash-panel">
       <For each={props.machines}>
         {(machine) => {
-          const running = isRunning(machine);
-          const done = isDone(machine);
-          const percent = progressOf(machine);
+          const m = () => readMachine(machine);
+          const headline = () => {
+            const now = m();
+            if (now.done) return `Ready to unload${now.finishedAgo ? ` · finished ${now.finishedAgo}` : ""}`;
+            if (now.running) return [now.program, now.phase].filter(Boolean).join(" · ") || now.stateText;
+            return now.lastAgo ? `Last ran ${now.lastAgo}` : now.stateText;
+          };
 
           return (
-            <section class="rb-wash-block" data-on={running} data-done={done}>
+            <section
+              class="rb-wash-block"
+              data-kind={m().kind}
+              data-on={m().running}
+              data-done={m().done}
+              style={{ "--wash-accent": m().accent }}
+            >
               <div class="rb-wash-hero">
-                <Washer
-                  kind={kindOf(machine)}
-                  running={running}
-                  spinning={/spin/i.test(machine.phase?.state ?? "")}
-                  done={done}
-                  progress={percent}
-                />
+                <div class="rb-wash-hero-art">
+                  <Washer kind={m().kind} running={m().running} spinning={m().spinning} done={m().done} progress={m().percent} />
+                </div>
 
                 <div class="rb-wash-hero-meta">
-                  <h3 class="rb-wash-name">{machine.name}</h3>
-                  <span class="rb-wash-state">
-                    {done ? "Ready to unload" : label(machine.state?.state)}
+                  <span class="rb-wash-pill" data-live={m().running || m().done}>
+                    <i />
+                    <span>{m().pill}</span>
                   </span>
+                  <h3 class="rb-wash-name">{machine.name}</h3>
+                  <span class="rb-wash-state">{headline()}</span>
 
-                  <Show when={percent !== undefined}>
-                    <span class="rb-wash-bar rb-wash-bar--lg" aria-hidden="true">
-                      <i style={{ width: `${percent}%` }} />
-                    </span>
-                    <span class="rb-wash-numbers">
-                      <span>{Math.round(percent!)}%</span>
-                      <Show when={timeLeft(machine.remaining)}>
-                        <span>{timeLeft(machine.remaining)} left</span>
+                  <Show when={m().running}>
+                    <div class="rb-wash-countdown">
+                      <Show when={splitTime(m().left)}>
+                        {(parts) => (
+                          <b class="rb-wash-big">
+                            {parts()[0]}
+                            <small>{parts()[1]} left</small>
+                          </b>
+                        )}
                       </Show>
-                    </span>
+                      <Show when={readyAt(m().left)}>
+                        <span class="rb-wash-eta">
+                          <Icon icon="mdi:clock-check-outline" width="14" />
+                          Ready at <b>{readyAt(m().left)}</b>
+                        </span>
+                      </Show>
+                    </div>
+                    <Show when={m().percent !== undefined}>
+                      <span class="rb-wash-bar rb-wash-bar--lg" aria-hidden="true">
+                        <i style={{ width: `${m().percent}%` }} />
+                      </span>
+                      <span class="rb-wash-numbers">
+                        <span>{Math.round(m().percent!)}% done</span>
+                        <Show when={m().elapsed}>
+                          <span>{m().elapsed} in</span>
+                        </Show>
+                      </span>
+                    </Show>
                   </Show>
                 </div>
               </div>
 
-              <div class="rb-cam-readings">
-                <For each={readings(machine)}>
-                  {(entity) => (
-                    <span class="rb-cam-reading">
-                      <span class="rb-truncate">{entity.friendlyName ?? entity.id}</span>
-                      <b>
-                        {label(entity.state)}
-                        {entity.unitOfMeasurement ? ` ${entity.unitOfMeasurement}` : ""}
-                      </b>
-                    </span>
-                  )}
-                </For>
+              <Show when={m().due}>
+                <div class="rb-wash-care-banner">
+                  <Icon icon="mdi:wrench-clock" width="18" />
+                  <span>
+                    <b>Maintenance due</b>
+                    <small>Time to clean the {m().kind === "dryer" ? "lint filter and condenser" : "drum, filter and drawer"}.</small>
+                  </span>
+                </div>
+              </Show>
+
+              <div class="rb-wash-stats">
+                <Show when={m().running && m().power}>
+                  <Stat icon="mdi:flash" label="Power now" value={m().power} />
+                </Show>
+                <Show when={m().running && m().program}>
+                  <Stat icon="mdi:tune-variant" label="Programme" value={m().program} />
+                </Show>
+                <Show when={m().lastAgo || m().lastDuration}>
+                  <Stat
+                    icon="mdi:history"
+                    label="Last run"
+                    value={m().lastAgo || m().lastDuration}
+                    sub={m().lastAgo ? m().lastDuration : undefined}
+                  />
+                </Show>
+                <Show when={m().lastEnergy}>
+                  <Stat icon="mdi:lightning-bolt-outline" label="Last run used" value={m().lastEnergy} />
+                </Show>
+                <Show when={m().cycles !== undefined}>
+                  <Stat icon="mdi:counter" label="Cycles" value={String(m().cycles)} />
+                </Show>
+                <Show when={m().energy}>
+                  <Stat icon="mdi:chart-bar" label="Energy, all time" value={m().energy} />
+                </Show>
               </div>
+
+              <details class="rb-wash-all">
+                <summary>
+                  <Icon icon="mdi:format-list-bulleted" width="14" />
+                  All sensors <small>{readings(machine).length}</small>
+                  <Icon class="rb-wash-all-caret" icon="mdi:chevron-down" width="16" />
+                </summary>
+                <div class="rb-cam-readings">
+                  <For each={readings(machine)}>
+                    {(entity) => (
+                      <span class="rb-cam-reading">
+                        <span class="rb-truncate">{shortName(entity, machine)}</span>
+                        <b>{reading(entity)}</b>
+                      </span>
+                    )}
+                  </For>
+                </div>
+              </details>
             </section>
           );
         }}
