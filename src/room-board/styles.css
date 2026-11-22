@@ -15635,3 +15635,33 @@
 @container (min-height: 5.5rem) {
   .rb-card--light > .rb-half .rb-globe { height: 4.4rem; bottom: 0.3rem; }
 }
+
+/* ---------- restart required ----------
+ * A banner over the updates while Home Assistant waits on a restart to
+ * finish one (HACS integrations, some others), with the button for it. */
+.rb-restart {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 1rem;
+  background: linear-gradient(120deg, rgb(245 158 11 / 0.2), rgb(245 158 11 / 0.07));
+  box-shadow: inset 0 0 0 1px rgb(245 158 11 / 0.35);
+}
+.rb-restart-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.8rem;
+  color: #14161c;
+  background: #f59e0b;
+}
+.rb-restart-text { display: grid; gap: 0.1rem; min-width: 0; flex: 1; font-size: 0.78rem; color: var(--rb-dim); }
+.rb-restart-text b { color: var(--rb-ink); font-size: 0.92rem; }
+.rb-restart-btn { background: #f59e0b; color: #14161c; }
+.rb-restart-btn[data-asking="true"] { background: #ef4444; color: #fff; }
+.rb-restart[data-busy="true"] .rb-restart-icon { background: color-mix(in srgb, var(--rb-ink) 14%, transparent); color: var(--rb-ink); }
+.rb-updates-toggle[data-restart="true"] { box-shadow: inset 0 0 0 1px rgb(245 158 11 / 0.6); }
+.rb-updates-toggle[data-restart="true"] > svg, .rb-updates-toggle[data-restart="true"] > iconify-icon { color: #f59e0b; }
