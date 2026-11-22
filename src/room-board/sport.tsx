@@ -57,6 +57,43 @@ const side = (entity: EntityView, who: "team" | "opponent"): Side => {
   };
 };
 
+/* ---------- tennis sets ----------
+ * TeamTracker gives the games of the set being played as the score, and the
+ * sets so far only as text in last_play: "Set 1: A. Zverev 2 C. Alcaraz 6;
+ * Set 2: A. Zverev 6 C. Alcaraz 6;". The finished ones are read from there. */
+type SetScore = { n: number; us: string; them: string };
+
+const surname = (name: string) => name.trim().split(/\s+/).pop()?.toLowerCase() ?? "";
+
+export const isTennis = (entity: EntityView) =>
+  attr<string>(entity, "sport_path", attr<string>(entity, "sport", "")) === "tennis";
+
+/** The sets finished so far, from our side: all of them once the match is over. */
+export function finishedSets(entity: EntityView): SetScore[] {
+  if (!isTennis(entity)) return [];
+  const text = attr<string>(entity, "last_play", "") || "";
+  const ours = surname(attr<string>(entity, "team_long_name", "") || attr<string>(entity, "team_name", ""));
+  const theirs = surname(attr<string>(entity, "opponent_long_name", "") || attr<string>(entity, "opponent_name", ""));
+  const state = String(entity.state ?? "").toUpperCase();
+  const current = Number(attr<number | string>(entity, "quarter", 0)) || 0;
+  const sets: SetScore[] = [];
+  for (const m of text.matchAll(/Set\s*(\d+)\s*:\s*(.+?)\s+(\d+(?:\s*\(\d+\))?)\s+(.+?)\s+(\d+(?:\s*\(\d+\))?)\s*(?:;|$)/gi)) {
+    const n = Number(m[1]);
+    if (state === "IN" && current && n >= current) continue;
+    if (state !== "IN" && state !== "POST") continue;
+    const first = m[2].toLowerCase();
+    /* Whichever name is ours; the feed has listed the players either way round. */
+    const firstIsUs = ours ? first.includes(ours) : theirs ? !first.includes(theirs) : true;
+    const [a, b] = [m[3].replace(/\s+/g, ""), m[5].replace(/\s+/g, "")];
+    sets.push(firstIsUs ? { n, us: a, them: b } : { n, us: b, them: a });
+  }
+  return sets.sort((x, y) => x.n - y.n);
+}
+
+/** "2:6 6:4", written from the left side of the card. */
+const setsText = (sets: SetScore[], weAreLeft: boolean) =>
+  sets.map((set) => (weAreLeft ? `${set.us}:${set.them}` : `${set.them}:${set.us}`)).join(" ");
+
 /** Kick-off as a person says it: today's time, a weekday this week, or the date. */
 function kickoff(raw: string): { day: string; time: string } {
   const date = new Date(raw);
@@ -130,6 +167,8 @@ export function SportCard(props: {
   };
 
   const hasMatch = () => live() || done() || pre();
+  /* Tennis: the sets already played, under the games of this one. */
+  const sets = () => finishedSets(props.entity);
   /* A finished match, from our side. */
   const result = () => {
     if (!done()) return undefined;
@@ -184,7 +223,7 @@ export function SportCard(props: {
         <div class="rb-sport-fixture">
           <div class="rb-sport-side">
             <Crest side={left()} proxy={props.proxy} haBase={props.haBase} />
-            <span class="rb-sport-name rb-truncate" data-us={left() === us()}>
+            <span class="rb-sport-name rb-truncate" data-us={weAreHome()}>
               {left().name}
             </span>
           </div>
@@ -204,12 +243,21 @@ export function SportCard(props: {
                 <i>:</i>
                 {right().score ?? "0"}
               </b>
+              <Show when={sets().length}>
+                <span class="rb-sport-sets" title="Sets so far">
+                  {sets().map((set) => (
+                    <span data-won={Number.parseInt(set.us) > Number.parseInt(set.them)}>
+                      {weAreHome() ? `${set.us}:${set.them}` : `${set.them}:${set.us}`}
+                    </span>
+                  ))}
+                </span>
+              </Show>
             </Show>
           </div>
 
           <div class="rb-sport-side">
             <Crest side={right()} proxy={props.proxy} haBase={props.haBase} />
-            <span class="rb-sport-name rb-truncate" data-us={right() === us()}>
+            <span class="rb-sport-name rb-truncate" data-us={!weAreHome()}>
               {right().name}
             </span>
           </div>
@@ -222,7 +270,7 @@ export function SportCard(props: {
           </span>
         </Show>
       </Show>
-      <Half art={<Crest side={them()} proxy={props.proxy} haBase={props.haBase} />} icon="mdi:soccer" name={us().name || props.entity.friendlyName} status={live() ? `Live · ${clock()}` : pre() ? `${when().day} ${when().time}` : done() ? "Full time" : chip()} tone={live() ? "#ef4444" : "#22c55e"} lit={live()} value={pre() ? undefined : `${left().score ?? 0}:${right().score ?? 0}`} />
+      <Half art={<Crest side={them()} proxy={props.proxy} haBase={props.haBase} />} icon="mdi:soccer" name={us().name || props.entity.friendlyName} status={live() ? `Live · ${clock()}${sets().length ? ` · ${setsText(sets(), weAreHome())}` : ""}` : pre() ? `${when().day} ${when().time}` : done() ? "Full time" : chip()} tone={live() ? "#ef4444" : "#22c55e"} lit={live()} value={pre() ? undefined : `${left().score ?? 0}:${right().score ?? 0}`} />
     </article>
   );
 }
@@ -368,8 +416,9 @@ export function MatchBar(props: { entity: EntityView; proxy: string; haBase: str
     ),
   );
 
+  const sets = () => finishedSets(props.entity);
   const status = () => {
-    if (live()) return clock() || "Live";
+    if (live()) return `${clock() || "Live"}${sets().length ? ` · ${setsText(sets(), weAreHome())}` : ""}`;
     if (done()) return result() === "won" ? "Won" : result() === "lost" ? "Lost" : "Full time";
     return when().time;
   };
@@ -391,7 +440,7 @@ export function MatchBar(props: { entity: EntityView; proxy: string; haBase: str
       </span>
 
       <span class="rb-matchbar-fixture">
-        <span class="rb-matchbar-side" data-us={left() === us()}>
+        <span class="rb-matchbar-side" data-us={weAreHome()}>
           <span class="rb-truncate">{left().abbr || left().name}</span>
           <Crest side={left()} proxy={props.proxy} haBase={props.haBase} />
         </span>
@@ -402,7 +451,7 @@ export function MatchBar(props: { entity: EntityView; proxy: string; haBase: str
             {right().score ?? "0"}
           </b>
         </Show>
-        <span class="rb-matchbar-side" data-us={right() === us()}>
+        <span class="rb-matchbar-side" data-us={!weAreHome()}>
           <Crest side={right()} proxy={props.proxy} haBase={props.haBase} />
           <span class="rb-truncate">{right().abbr || right().name}</span>
         </span>

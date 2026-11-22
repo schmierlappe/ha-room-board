@@ -90,6 +90,37 @@ export interface Match {
   venue?: string;
   home: TeamSide;
   away: TeamSide;
+  /** Who scored, in order — from ESPN's match details, where it lists them. */
+  goals?: Goal[];
+}
+
+export interface Goal {
+  /** "23'", "90'+2'". */
+  minute: string;
+  /** The side the goal counts for. */
+  side: "home" | "away";
+  player: string;
+  penalty: boolean;
+  own: boolean;
+}
+
+/** The scoring plays of a competition, as ESPN details them. */
+function goalsOf(competition: any, homeId: string): Goal[] {
+  const details: any[] = Array.isArray(competition?.details) ? competition.details : [];
+  return details
+    /* scoringPlay where ESPN sets it; a "Goal…" type where it does not. */
+    .filter((d) => d?.scoringPlay === true || (d?.scoringPlay === undefined && /^(own )?goal/i.test(String(d?.type?.text ?? ""))))
+    .map((d) => {
+      const athlete = (d?.athletesInvolved ?? [])[0] ?? {};
+      const player = String(athlete.shortName ?? athlete.displayName ?? "").trim();
+      return {
+        minute: String(d?.clock?.displayValue ?? ""),
+        side: String(d?.team?.id ?? "") === homeId ? ("home" as const) : ("away" as const),
+        player,
+        penalty: d?.penaltyKick === true,
+        own: d?.ownGoal === true,
+      };
+    });
 }
 
 export interface StandingRow {
@@ -157,6 +188,7 @@ function parseEvent(event: any): Match | undefined {
     venue: competition?.venue?.fullName,
     home: side(home),
     away: side(away),
+    goals: goalsOf(competition, String(home?.team?.id ?? home?.id ?? "")),
   };
 }
 

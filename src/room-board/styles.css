@@ -15665,3 +15665,8 @@
 .rb-restart[data-busy="true"] .rb-restart-icon { background: color-mix(in srgb, var(--rb-ink) 14%, transparent); color: var(--rb-ink); }
 .rb-updates-toggle[data-restart="true"] { box-shadow: inset 0 0 0 1px rgb(245 158 11 / 0.6); }
 .rb-updates-toggle[data-restart="true"] > svg, .rb-updates-toggle[data-restart="true"] > iconify-icon { color: #f59e0b; }
+
+/* Tennis: the finished sets under the games of the one being played. */
+.rb-sport-sets { display: flex; gap: 0.3rem; justify-content: center; margin-top: 0.15rem; font-size: 0.72rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.rb-sport-sets > span { padding: 0.05rem 0.4rem; border-radius: 999px; color: var(--rb-dim); background: color-mix(in srgb, var(--rb-ink) 9%, transparent); }
+.rb-sport-sets > span[data-won="true"] { color: var(--rb-ink); background: color-mix(in srgb, #22c55e 22%, transparent); }
