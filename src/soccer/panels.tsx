@@ -47,6 +47,33 @@ function MatchdayTab(props: { matches: Match[]; favourite: string; proxyBase: st
                   ? match.statusDetail
                   : match.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric" })}
               </div>
+
+              {/* Who scored, under each side's name, in the order they did. */}
+              <Show when={match.state !== "pre" && match.goals?.length}>
+                <div class="sc-goals">
+                  <For each={(["home", "away"] as const)}>
+                    {(which) => (
+                      <ul class="sc-goals-side" data-align={which === "away" ? "right" : undefined}>
+                        <For each={match.goals!.filter((goal) => goal.side === which)}>
+                          {(goal) => (
+                            <li>
+                              <Icon icon="mdi:soccer" width="10" />
+                              <span class="sc-truncate">{goal.player || "Goal"}</span>
+                              <b>{goal.minute}</b>
+                              <Show when={goal.penalty}>
+                                <i>(P)</i>
+                              </Show>
+                              <Show when={goal.own}>
+                                <i>(OG)</i>
+                              </Show>
+                            </li>
+                          )}
+                        </For>
+                      </ul>
+                    )}
+                  </For>
+                </div>
+              </Show>
             </div>
           )}
         </For>

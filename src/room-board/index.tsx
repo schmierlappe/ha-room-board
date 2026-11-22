@@ -115,7 +115,7 @@ import { attr, classOf, metricsOf, numeric, safeIcon, themeVars } from "./util";
 import { Keyed } from "./keyed";
 import { errorMessage } from "../errors";
 import { CLOCK_STYLES, SceneClock } from "./clock";
-import { UpdatesButton, UpdatesPanel, pending as updatePending } from "./updates";
+import { UpdatesButton, UpdatesPanel, pending as updatePending, useRestartNeeded } from "./updates";
 import { WifiQr, useTablet } from "./wifi";
 
 /**
@@ -553,6 +553,9 @@ function RoomBoard(props: { config: Config }) {
      watched closely; the rest are filtered out here. */
   const updateAll = useEntities(() => (props.config.updates === false ? [] : (domains().update ?? [])));
   const updates = createMemo(() => updateAll().filter(updatePending), NONE, SAME_ITEMS);
+  /* What waits on a restart, read again whenever the updates change. */
+  const restartFor = useRestartNeeded(() => (props.config.updates === false ? 0 : updates().map((u) => `${u.id}:${u.state}:${u.attributes.in_progress}`).join()));
+  const restartNeeded = () => props.config.updates !== false && restartFor().length > 0;
 
   /* Shopping and to-do lists are the household's, not a room's — Bring's
      list sits in no area — so they are offered in every room's list of what
@@ -1652,8 +1655,8 @@ function RoomBoard(props: { config: Config }) {
 
                 {/* Waiting updates, beside Arrange on a wide screen; on a
                     phone they are in the bar at the foot instead. */}
-                <Show when={updates().length}>
-                  <UpdatesButton updates={updates()} onOpen={() => openPanel("updates")} />
+                <Show when={updates().length || restartNeeded()}>
+                  <UpdatesButton updates={updates()} restart={restartNeeded()} onOpen={() => openPanel("updates")} />
                 </Show>
 
                 {/* Arrange: move the cards and choose the big ones. */}
@@ -2132,7 +2135,7 @@ function RoomBoard(props: { config: Config }) {
                       </Show>
 
                       <Show when={panel() === "updates"}>
-                        <UpdatesPanel updates={updates()} />
+                        <UpdatesPanel updates={updates()} restart={props.config.updates === false ? [] : restartFor()} />
                       </Show>
 
                       <Show when={panel() === "activity"}>
