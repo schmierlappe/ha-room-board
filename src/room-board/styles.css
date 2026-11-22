@@ -15670,3 +15670,290 @@
 .rb-sport-sets { display: flex; gap: 0.3rem; justify-content: center; margin-top: 0.15rem; font-size: 0.72rem; font-weight: 650; font-variant-numeric: tabular-nums; }
 .rb-sport-sets > span { padding: 0.05rem 0.4rem; border-radius: 999px; color: var(--rb-dim); background: color-mix(in srgb, var(--rb-ink) 9%, transparent); }
 .rb-sport-sets > span[data-won="true"] { color: var(--rb-ink); background: color-mix(in srgb, #22c55e 22%, transparent); }
+
+/* ---------- washer and dryer, redrawn ----------
+ * The machine at the left with its progress round the door; at the right the
+ * figure worth reading from across the room. Tinted by the machine: water
+ * blue for the washer, warm orange for the dryer, green once it is done. */
+.rb-card--wash { --wash-accent: #38bdf8; position: relative; overflow: hidden; }
+.rb-card--wash::before {
+  content: "";
+  position: absolute;
+  inset: auto -20% -45% -20%;
+  height: 90%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--wash-accent) 26%, transparent), transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.rb-card--wash:is([data-on="true"], [data-done="true"])::before { opacity: 1; }
+.rb-card--wash > * { position: relative; }
+.rb-card--wash .rb-card-titles { gap: 0.3rem; }
+.rb-card--wash .rb-card-verdict { display: none; }
+
+.rb-wash-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  width: fit-content;
+  padding: 0.16rem 0.55rem 0.16rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--rb-dim);
+  background: color-mix(in srgb, var(--rb-ink) 8%, transparent);
+}
+.rb-wash-pill > i { flex: none; width: 0.42rem; height: 0.42rem; border-radius: 50%; background: currentColor; opacity: 0.5; }
+.rb-wash-pill[data-live="true"] {
+  color: color-mix(in srgb, var(--wash-accent) 80%, var(--rb-ink));
+  background: color-mix(in srgb, var(--wash-accent) 18%, transparent);
+}
+.rb-wash-pill[data-live="true"] > i { opacity: 1; box-shadow: 0 0 0 0 var(--wash-accent); animation: rb-wash-ping 2s ease-out infinite; }
+.rb-card--wash[data-done="true"] .rb-wash-pill > i { animation: none; }
+@keyframes rb-wash-ping {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--wash-accent) 70%, transparent); }
+  100% { box-shadow: 0 0 0 0.45rem transparent; }
+}
+
+.rb-wash-body {
+  container-type: inline-size;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.rb-card--wash .rb-wash-stage { position: relative; flex: 0 0 46%; padding: 0; height: 100%; max-height: 7rem; }
+.rb-card--wash .rb-wash-svg { width: 100%; height: 100%; max-height: none; }
+.rb-wash-arc { stroke: var(--wash-accent, #3b82f6); filter: drop-shadow(0 0 1.5px var(--wash-accent, #3b82f6)); stroke-width: 2.4; }
+.rb-card--wash[data-on="false"][data-done="false"] .rb-wash-svg { opacity: 0.78; filter: saturate(0.6); }
+
+.rb-wash-care {
+  position: absolute;
+  top: 6%;
+  right: 4%;
+  display: grid;
+  place-items: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  color: #1c1405;
+  background: #fbbf24;
+  box-shadow: 0 0 0 2px var(--rb-card-bg, rgb(20 24 32)), 0 2px 6px rgb(0 0 0 / 0.3);
+}
+
+.rb-wash-facts { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 0.05rem; }
+.rb-wash-k { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em; color: var(--rb-dim); }
+.rb-wash-big {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-size: 2rem;
+  font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--rb-ink);
+}
+.rb-wash-big > small { font-size: 0.78rem; font-weight: 600; letter-spacing: 0; color: var(--rb-dim); }
+.rb-wash-mid { display: flex; align-items: center; gap: 0.3rem; font-size: 1.2rem; font-weight: 720; line-height: 1.2; letter-spacing: -0.01em; color: var(--rb-ink); }
+.rb-wash-ready { color: #4ade80; }
+.rb-wash-sub { font-size: 0.72rem; color: var(--rb-dim); font-variant-numeric: tabular-nums; }
+.rb-wash-tags { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.35rem; min-width: 0; }
+.rb-wash-tags > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  max-width: 100%;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.45rem;
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--rb-dim);
+  background: color-mix(in srgb, var(--rb-ink) 7%, transparent);
+}
+
+/* A hairline of progress along the card's foot. */
+.rb-wash-track {
+  position: absolute !important;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: color-mix(in srgb, var(--wash-accent) 15%, transparent);
+}
+.rb-wash-track > i { display: block; height: 100%; background: var(--wash-accent); box-shadow: 0 0 8px var(--wash-accent); transition: width 0.6s ease; }
+
+/* Narrow (a phone's one column): the machine smaller, the figure a touch less. */
+@container (max-width: 10rem) {
+  .rb-card--wash .rb-wash-stage { flex-basis: 42%; }
+  .rb-wash-big { font-size: 1.6rem; }
+  .rb-wash-mid { font-size: 1.02rem; }
+  .rb-wash-tags > span:nth-child(n + 2) { display: none; }
+}
+
+/* Standing: the machine large on top, the figures centred under it. */
+.rb-card--wash[data-shape="portrait"] .rb-wash-body,
+.rb-card--wash[data-shape="tall"] .rb-wash-body { flex-direction: column; justify-content: center; text-align: center; }
+.rb-card--wash:is([data-shape="portrait"], [data-shape="tall"]) .rb-wash-stage { flex: 1 1 auto; width: 100%; max-height: 9.5rem; }
+.rb-card--wash:is([data-shape="portrait"], [data-shape="tall"]) .rb-wash-facts { flex: none; align-items: center; }
+.rb-card--wash:is([data-shape="portrait"], [data-shape="tall"]) :is(.rb-wash-big, .rb-wash-mid, .rb-wash-tags) { justify-content: center; }
+
+/* Big and wide: more machine, a bigger figure. */
+.rb-card--wash:is([data-shape="big"], [data-shape="wide"]) .rb-wash-stage { max-height: 11rem; flex-basis: 48%; }
+.rb-card--wash[data-shape="big"] .rb-wash-big { font-size: 3rem; }
+.rb-card--wash[data-shape="big"] .rb-wash-mid { font-size: 1.6rem; }
+.rb-card--wash[data-shape="big"] :is(.rb-wash-k, .rb-wash-sub) { font-size: 0.82rem; }
+.rb-card--wash[data-shape="big"] .rb-wash-tags > span { font-size: 0.74rem; }
+.rb-card--wash[data-shape="small"] .rb-wash-facts { display: none; }
+.rb-card--wash[data-shape="small"] .rb-wash-stage { flex: 1; }
+
+/* ---------- the overlay ---------- */
+.rb-wash-block {
+  --wash-accent: #38bdf8;
+  position: relative;
+  overflow: hidden;
+  gap: 0.9rem !important;
+  padding: 1.1rem !important;
+}
+.rb-wash-block::before {
+  content: "";
+  position: absolute;
+  inset: -40% 40% 40% -20%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--wash-accent) 22%, transparent), transparent);
+  opacity: 0.35;
+}
+.rb-wash-block:is([data-on="true"], [data-done="true"])::before { opacity: 1; }
+.rb-wash-block > * { position: relative; }
+.rb-wash-hero { gap: 1.2rem !important; }
+.rb-wash-hero-art { flex: none; width: 8.5rem; height: 8.5rem; }
+.rb-wash-hero-art .rb-wash-svg { width: 100%; height: 100%; max-height: none; }
+.rb-wash-hero-meta { gap: 0.25rem; }
+.rb-wash-name { font-size: 1.35rem !important; font-weight: 700 !important; letter-spacing: -0.01em; }
+.rb-wash-state { opacity: 1 !important; color: var(--rb-dim); text-transform: none !important; }
+.rb-wash-countdown { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.35rem; }
+.rb-wash-countdown .rb-wash-big { font-size: 2.4rem; }
+.rb-wash-eta { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; color: var(--rb-dim); }
+.rb-wash-eta b { color: var(--rb-ink); font-variant-numeric: tabular-nums; }
+.rb-wash-block .rb-wash-bar > i { background: var(--wash-accent); box-shadow: 0 0 10px color-mix(in srgb, var(--wash-accent) 60%, transparent); }
+.rb-wash-block .rb-wash-numbers { opacity: 1; color: var(--rb-dim); margin-top: 0.3rem; }
+
+.rb-wash-care-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.9rem;
+  color: #fbbf24;
+  background: rgb(251 191 36 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(251 191 36 / 0.28);
+}
+.rb-wash-care-banner > span { display: grid; gap: 0.05rem; }
+.rb-wash-care-banner b { color: var(--rb-ink); font-size: 0.86rem; }
+.rb-wash-care-banner small { color: var(--rb-dim); font-size: 0.74rem; }
+
+.rb-wash-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8rem), 1fr)); gap: 0.5rem; }
+.rb-wash-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.65rem 0.7rem;
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--rb-ink) 6%, transparent);
+}
+.rb-wash-stat-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.65rem;
+  color: var(--wash-accent);
+  background: color-mix(in srgb, var(--wash-accent) 16%, transparent);
+}
+.rb-wash-stat-text { display: grid; min-width: 0; }
+.rb-wash-stat-text small { font-size: 0.68rem; color: var(--rb-dim); }
+.rb-wash-stat-text b { font-size: 0.95rem; font-weight: 700; color: var(--rb-ink); font-variant-numeric: tabular-nums; }
+.rb-wash-stat-text > span { font-size: 0.7rem; color: var(--rb-dim); }
+
+.rb-wash-all > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--rb-dim);
+  cursor: pointer;
+  list-style: none;
+  background: color-mix(in srgb, var(--rb-ink) 6%, transparent);
+}
+.rb-wash-all > summary::-webkit-details-marker { display: none; }
+.rb-wash-all > summary small { opacity: 0.7; }
+.rb-wash-all[open] .rb-wash-all-caret { rotate: 180deg; }
+.rb-wash-all > .rb-cam-readings { margin-top: 0.6rem; }
+
+@media (max-width: 520px) {
+  .rb-wash-hero { flex-direction: column; align-items: flex-start !important; }
+  .rb-wash-hero-art { width: 7rem; height: 7rem; align-self: center; }
+  .rb-wash-hero-meta { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rb-wash-pill > i { animation: none !important; }
+}
+.rb-wash-pills { display: flex; align-items: center; gap: 0.3rem; min-width: 0; }
+.rb-card--wash .rb-wash-care { position: static; flex: none; width: 1.25rem; height: 1.25rem; box-shadow: none; }
+.rb-card--wash .rb-wash-stage { flex-basis: 42%; }
+.rb-wash-sub { line-height: 1.3; overflow-wrap: anywhere; }
+.rb-wash-sub { overflow-wrap: normal; }
+/* A phone's tile: the machine above, the figure under it, centred. */
+.rb-card--wash[data-shape="small"] .rb-wash-body { flex-direction: column; justify-content: center; gap: 0.25rem; text-align: center; }
+.rb-card--wash[data-shape="small"] .rb-wash-stage { flex: 1 1 auto; width: 100%; max-height: 5.2rem; min-height: 3rem; }
+.rb-card--wash[data-shape="small"] .rb-wash-facts { display: flex; flex: none; align-items: center; }
+.rb-card--wash[data-shape="small"] :is(.rb-wash-big, .rb-wash-mid) { justify-content: center; }
+.rb-card--wash[data-shape="small"] .rb-wash-big { font-size: 1.5rem; }
+.rb-card--wash[data-shape="small"] .rb-wash-mid { font-size: 1rem; }
+.rb-card--wash[data-shape="small"] :is(.rb-wash-k, .rb-wash-tags) { display: none; }
+.rb-card--wash[data-shape="small"] .rb-wash-sub { font-size: 0.68rem; }
+
+/* "Mark unloaded": the one thing to do once it is done. */
+.rb-wash-unload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.38rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #052e16;
+  background: #4ade80;
+  box-shadow: 0 4px 14px rgb(74 222 128 / 0.3);
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.2s ease, background 0.2s ease;
+}
+.rb-wash-unload:hover { filter: brightness(1.08); }
+.rb-wash-unload:active { transform: scale(0.95); }
+.rb-wash-unload[data-pressed="true"] { color: var(--rb-ink); background: color-mix(in srgb, var(--rb-ink) 12%, transparent); box-shadow: none; cursor: default; }
+.rb-wash-unload[data-size="lg"] { margin-top: 0.6rem; padding: 0.55rem 1.1rem; font-size: 0.86rem; }
+.rb-card--wash:is([data-shape="portrait"], [data-shape="tall"], [data-shape="small"]) .rb-wash-unload { align-self: center; }
+.rb-card--wash[data-shape="small"] .rb-wash-unload { margin-top: 0.25rem; padding: 0.32rem 0.6rem; font-size: 0.68rem; }
+.rb-card--wash > .rb-wash-unload { width: 100%; margin-top: 0.45rem; padding: 0.48rem 0.7rem; font-size: 0.76rem; }
+.rb-card--wash[data-shape="small"] > .rb-wash-unload { margin-top: 0.3rem; padding: 0.4rem 0.5rem; font-size: 0.7rem; }
+/* With the button there, the word under "Ready" is the button's to say. */
+.rb-card--wash:has(> .rb-wash-unload) .rb-wash-ready + .rb-wash-sub { display: none; }
+.rb-card--wash[data-shape="small"]:has(> .rb-wash-unload) .rb-wash-stage { max-height: 4.3rem; }
+.rb-card--wash[data-shape="half"] > .rb-wash-unload { display: none; }
