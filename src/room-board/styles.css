@@ -15922,3 +15922,38 @@
 .rb-card--wash[data-shape="small"] .rb-wash-mid { font-size: 1rem; }
 .rb-card--wash[data-shape="small"] :is(.rb-wash-k, .rb-wash-tags) { display: none; }
 .rb-card--wash[data-shape="small"] .rb-wash-sub { font-size: 0.68rem; }
+
+/* "Mark unloaded": the one thing to do once it is done. */
+.rb-wash-unload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.38rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #052e16;
+  background: #4ade80;
+  box-shadow: 0 4px 14px rgb(74 222 128 / 0.3);
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.2s ease, background 0.2s ease;
+}
+.rb-wash-unload:hover { filter: brightness(1.08); }
+.rb-wash-unload:active { transform: scale(0.95); }
+.rb-wash-unload[data-pressed="true"] { color: var(--rb-ink); background: color-mix(in srgb, var(--rb-ink) 12%, transparent); box-shadow: none; cursor: default; }
+.rb-wash-unload[data-size="lg"] { margin-top: 0.6rem; padding: 0.55rem 1.1rem; font-size: 0.86rem; }
+.rb-card--wash:is([data-shape="portrait"], [data-shape="tall"], [data-shape="small"]) .rb-wash-unload { align-self: center; }
+.rb-card--wash[data-shape="small"] .rb-wash-unload { margin-top: 0.25rem; padding: 0.32rem 0.6rem; font-size: 0.68rem; }
+.rb-card--wash > .rb-wash-unload { width: 100%; margin-top: 0.45rem; padding: 0.48rem 0.7rem; font-size: 0.76rem; }
+.rb-card--wash[data-shape="small"] > .rb-wash-unload { margin-top: 0.3rem; padding: 0.4rem 0.5rem; font-size: 0.7rem; }
+/* With the button there, the word under "Ready" is the button's to say. */
+.rb-card--wash:has(> .rb-wash-unload) .rb-wash-ready + .rb-wash-sub { display: none; }
+.rb-card--wash[data-shape="small"]:has(> .rb-wash-unload) .rb-wash-stage { max-height: 4.3rem; }
+.rb-card--wash[data-shape="half"] > .rb-wash-unload { display: none; }

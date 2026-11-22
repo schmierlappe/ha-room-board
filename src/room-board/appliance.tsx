@@ -1,5 +1,5 @@
-import { For, Show, createUniqueId } from "solid-js";
-import { Icon } from "@glasshome/widget-sdk";
+import { For, Show, createEffect, createSignal, createUniqueId, on } from "solid-js";
+import { Icon, useService } from "@glasshome/widget-sdk";
 import type { EntityView } from "@glasshome/widget-sdk";
 import { numeric, openable, sinceLabel } from "./util";
 import { Half } from "./half";
@@ -33,6 +33,8 @@ export type Appliance = {
   lastStart?: EntityView;
   lastDuration?: EntityView;
   lastEnergy?: EntityView;
+  /** WashData's "Mark unloaded" button: offered while the integration enables it. */
+  unload?: EntityView;
   /** Everything the device publishes, for the overlay's list. */
   all: EntityView[];
 };
@@ -106,8 +108,54 @@ export function appliancesOf(entities: EntityView[]): Appliance[] {
     machine.name = titleCase(deviceSlug(machine.state));
     found.push(machine);
   }
+  /* The "unloaded" button sits on the same device, as a button. */
+  for (const entity of entities) {
+    if (entity.domain !== "button" || entity.isHidden) continue;
+    if (!/(mark_)?unload(ed)?$/.test(entity.id.split(".")[1] ?? "")) continue;
+    const key = entity.deviceId ?? deviceSlug(entity);
+    const machine = found.find((m) => m.key === key);
+    if (machine && !machine.unload) machine.unload = entity;
+  }
   found.sort((a, b) => a.name.localeCompare(b.name));
   return found;
+}
+
+/** Waiting to be emptied: WashData enables its button only then. */
+export const canUnload = (machine: Appliance) =>
+  /* A button's state is when it was last pressed, "unknown" if never —
+     either way available; "unavailable" is the integration saying not now. */
+  !!machine.unload && machine.unload.state !== "unavailable" && !isRunning(machine);
+
+/**
+ * "Mark unloaded": presses the integration's button, so its count of what
+ * waits in the drum is right — and the card goes back to sleep. Inside a card
+ * that opens its overlay on a tap, so the tap stops here.
+ */
+function UnloadButton(props: { machine: Appliance; size?: "lg" }) {
+  const { callService } = useService();
+  const [pressed, setPressed] = createSignal(false);
+  /* Back to normal once Home Assistant reports the press (or the machine moves on). */
+  createEffect(on(() => `${props.machine.unload?.lastChanged}${props.machine.state?.state}`, () => setPressed(false), { defer: true }));
+  const stop = (event: Event) => event.stopPropagation();
+  return (
+    <button
+      class="rb-wash-unload"
+      data-size={props.size}
+      data-pressed={pressed()}
+      disabled={pressed()}
+      onPointerDown={stop}
+      onKeyDown={stop}
+      onClick={(event) => {
+        event.stopPropagation();
+        if (!props.machine.unload) return;
+        setPressed(true);
+        void callService("button", "press", {}, { entity_id: props.machine.unload.id });
+      }}
+    >
+      <Icon icon={pressed() ? "mdi:check" : "mdi:basket-check-outline"} width={props.size === "lg" ? "18" : "15"} />
+      <span>{pressed() ? "Unloaded" : "Mark unloaded"}</span>
+    </button>
+  );
 }
 
 /* ---------- what it is doing ---------- */
@@ -403,6 +451,7 @@ function readMachine(machine: Appliance) {
     energy: kwh(machine.energy),
     due,
     finishedAgo: done ? sinceLabel(machine.state?.lastChanged) : "",
+    unload: canUnload(machine),
   };
 }
 
@@ -522,6 +571,11 @@ export function ApplianceCard(props: { machine: Appliance; onOpen: () => void })
         </div>
       </div>
 
+      {/* Done (or gone quiet with the drum still full): the one thing to do. */}
+      <Show when={m().unload}>
+        <UnloadButton machine={props.machine} />
+      </Show>
+
       <Show when={m().running && m().percent !== undefined}>
         <span class="rb-wash-track" aria-hidden="true">
           <i style={{ width: `${m().percent}%` }} />
@@ -609,6 +663,9 @@ export function AppliancePanel(props: { machines: Appliance[] }) {
                   </span>
                   <h3 class="rb-wash-name">{machine.name}</h3>
                   <span class="rb-wash-state">{headline()}</span>
+                  <Show when={m().unload}>
+                    <UnloadButton machine={machine} size="lg" />
+                  </Show>
 
                   <Show when={m().running}>
                     <div class="rb-wash-countdown">
