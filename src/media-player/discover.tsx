@@ -9,8 +9,21 @@ import { Keyed } from "./keyed";
 import { firstAnswer } from "../async";
 import { errorMessage } from "../errors";
 
-/* Every widget runs in the sealed engine from Dash 1.5 on. */
-const SEALED = true;
+/* The Room Board is a Lovelace card, not a GlassHome widget: there is no
+   sealed engine metering its work, so nothing here needs pacing for one. */
+const SEALED = false;
+
+/*
+ * Music Assistant's recommendations, kept per player for a while. Building
+ * them is the slow part of Discover — Music Assistant asks its providers
+ * (Apple Music, Last.fm, MusicBrainz) each time — and they change over hours,
+ * not between two openings of the tab. "Refresh suggestions" asks again.
+ */
+const RECS_FOR = 10 * 60_000;
+const recsCache = new Map<string, { at: number; rows: Row[] }>();
+/* One question at a time per player: the popup can hold Discover twice (the
+   tab and the side drawer), and both used to ask on mounting. */
+const recsAsking = new Map<string, Promise<Row[]>>();
 
 type Row = { label: string; items: GridItem[] };
 
@@ -512,7 +525,15 @@ export function DiscoverPanel(props: {
 
   onCleanup(() => shelfObserver?.disconnect());
 
-  const build = async () => {
+  const build = async (fresh = false) => {
+    const player = props.player()?.id ?? "";
+    const kept = recsCache.get(player);
+    if (!fresh && kept && Date.now() - kept.at < RECS_FOR) {
+      setStatus(null);
+      setRows(kept.rows);
+      filledRows.clear();
+      return;
+    }
     setLoading(true);
     setStatus(null);
     try {
@@ -526,7 +547,25 @@ export function DiscoverPanel(props: {
        * tab silently there was no way to tell a working setup from a missing
        * integration. The tab now shows Music Assistant's own recommendations
        * or says plainly what provides them. */
-      const recommended = await buildFromRecommendations().catch(() => [] as Row[]);
+      let asking = player ? recsAsking.get(player) : undefined;
+      if (!asking || fresh) {
+        asking = buildFromRecommendations().catch(() => [] as Row[]);
+        if (player) {
+          recsAsking.set(player, asking);
+          const done = asking;
+          void done.finally(() => {
+            if (recsAsking.get(player) === done) recsAsking.delete(player);
+          });
+        }
+      }
+      const recommended = await asking;
+      if (recommended.length && player) recsCache.set(player, { at: Date.now(), rows: recommended });
+      if (!SEALED) {
+        if (disposed) return;
+        setRows(recommended);
+        filledRows.clear();
+        return;
+      }
       /* Two shelves at once and the rest one by one, a moment apart: built in
          one go they were more work than one step of the sealed engine may do,
          and the pause between them lets its budget refill. */
@@ -688,7 +727,7 @@ export function DiscoverPanel(props: {
               class="mp-action"
               onClick={() => {
                 recsMemory.forget();
-                void build();
+                void build(true);
               }}
             >
               <Icon icon="mdi:refresh" width="17" />Try again
@@ -697,7 +736,7 @@ export function DiscoverPanel(props: {
         </Show>
 
         <Show when={!loading() && rows().length}>
-          <button class="mp-action" onClick={build}>
+          <button class="mp-action" onClick={() => void build(true)}>
             <Icon icon="mdi:refresh" width="17" />Refresh suggestions
           </button>
         </Show>
