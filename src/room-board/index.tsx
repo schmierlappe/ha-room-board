@@ -1,3 +1,4 @@
+import { useMusicAssistantEntry } from "../media-player/entry";
 import { setVars } from "../theme";
 import { useArtworkService } from "../artwork";
 import { clearData, clearStyle, setData, setStyle } from "./dom";
@@ -596,6 +597,7 @@ function RoomBoard(props: { config: Config }) {
      it rather than every player in the house. */
   const players = createMemo(() => ofDomain("media_player"), NONE, SAME_ITEMS);
   const [chosenPlayer, setChosenPlayer] = createSignal("");
+  const maEntry = useMusicAssistantEntry(() => props.config.configEntryId);
 
   /* The player the media overlay opened on, held for as long as it is open.
      Unchosen, the card follows whichever player is playing — and with two
@@ -2034,7 +2036,7 @@ function RoomBoard(props: { config: Config }) {
                           onSelectPlayer={setChosenPlayer}
                           musicAssistant={props.config.musicAssistant !== false}
                           lookupArtwork={false}
-                          configEntryId={props.config.configEntryId ?? ""}
+                          configEntryId={maEntry()}
                           artworkProxy={NO_ADDRESS}
                           haBaseUrl={NO_ADDRESS}
                           remoteProfiles={props.config.remoteProfiles ?? []}
