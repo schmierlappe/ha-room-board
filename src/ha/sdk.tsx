@@ -382,6 +382,8 @@ export function useCalendarEvents(
   options: { daysBehind?: number; daysAhead?: number } = {},
 ): Accessor<CalendarEventsData | undefined> {
   const [tick, setTick] = createSignal(0);
+  /* The last answer that came back, to keep showing while a calendar is down. */
+  let last: CalendarEventsData | undefined;
   const timer = setInterval(() => setTick((n) => n + 1), CALENDAR_REFRESH_MS);
   onCleanup(() => clearInterval(timer));
   const [events] = createResource(
@@ -395,22 +397,41 @@ export function useCalendarEvents(
       now.setHours(0, 0, 0, 0);
       const start = new Date(now.getTime() - (options.daysBehind ?? 0) * day).toISOString();
       const end = new Date(now.getTime() + ((options.daysAhead ?? 7) + 1) * day).toISOString();
-      const rows = await hass().callApi<any[]>(
-        "GET",
-        `calendars/${id}?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
-      );
-      return {
+      /* One calendar failing — its integration down, the entity unavailable —
+         must not take the agenda with it: a thrown fetch leaves the resource
+         in error, and reading it then throws into the card. It reports no
+         events instead (or keeps the last ones it had), and says why. */
+      const quiet = (error: string): CalendarEventsData => ({
+        entityId: id,
+        loading: false,
+        error: new Error(error),
+        start,
+        end,
+        events: last?.entityId === id ? last.events : [],
+      });
+      if (entity(id)?.state === "unavailable") return quiet("unavailable");
+      let rows: any[];
+      try {
+        rows = await hass().callApi<any[]>(
+          "GET",
+          `calendars/${id}?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
+        );
+      } catch (error) {
+        console.warn(`Room Board: calendar ${id} could not be read`, error);
+        return quiet(error instanceof Error ? error.message : String((error as any)?.message ?? error));
+      }
+      return (last = {
         entityId: id,
         loading: false,
         error: null,
         start,
         end,
-        events: (rows ?? []).map((row) => ({
+        events: (Array.isArray(rows) ? rows : []).map((row) => ({
           ...row,
           start: row.start?.dateTime ?? row.start?.date ?? row.start,
           end: row.end?.dateTime ?? row.end?.date ?? row.end,
         })),
-      };
+      });
     },
   );
   return () => events.latest;

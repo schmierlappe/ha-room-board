@@ -1,4 +1,4 @@
-import { For, Show, createMemo } from "solid-js";
+import { For, Show, createMemo, createSignal, onCleanup } from "solid-js";
 import { Icon } from "@glasshome/widget-sdk";
 /* The room widget's own agenda plumbing: one subscription per calendar, merged
    and tagged so a colour can still say where an entry came from. */
@@ -57,13 +57,31 @@ function Row(props: { entry: AgendaEntry; ids: string[] }) {
  * that is read rather than glanced at — a temperature says everything it has
  * to say at a glance, and can sit in a small tile beside this quite happily.
  */
-export function CalendarCard(props: { ids: string[]; todoIds?: string[]; onOpen: () => void }) {
-  const { Feeds, agenda } = createCalendarAgenda(() => props.ids, 30);
+/**
+ * The time, a minute at a time: a board stays open for days, and a date read
+ * once when it mounted is still yesterday's the morning after.
+ */
+function useMinute() {
+  const [now, setNow] = createSignal(new Date());
+  const timer = setInterval(() => {
+    const next = new Date();
+    if (next.getMinutes() !== now().getMinutes() || next.getDate() !== now().getDate()) setNow(next);
+  }, 15_000);
+  onCleanup(() => clearInterval(timer));
+  return now;
+}
 
-  const today = new Date();
+export function CalendarCard(props: { ids: string[]; todoIds?: string[]; onOpen: () => void }) {
+  const { Feeds, agenda: everything } = createCalendarAgenda(() => props.ids, 30);
+  const now = useMinute();
+  /* What has ended drops off as the day goes, not only when the calendars
+     are next asked. */
+  const agenda = createMemo(() => everything().filter((entry) => entry.end.getTime() >= now().getTime()));
+
+  const today = () => now();
   const groups = createMemo(() => byDay(agenda()).slice(0, 3));
   const todayCount = () =>
-    agenda().filter((entry) => startOfDay(entry.start) === startOfDay(new Date())).length;
+    agenda().filter((entry) => startOfDay(entry.start) === startOfDay(now())).length;
   const countLine = () => {
     if (todayCount()) return `${todayCount()} today`;
     return agenda().length ? "Nothing today" : "Nothing ahead";
@@ -76,11 +94,11 @@ export function CalendarCard(props: { ids: string[]; todoIds?: string[]; onOpen:
       <header class="rb-cal-head">
         <div class="rb-cal-date">
           <span class="rb-cal-weekday">
-            {today.toLocaleDateString(undefined, { weekday: "long" })}
+            {today().toLocaleDateString(undefined, { weekday: "long" })}
           </span>
-          <span class="rb-cal-day">{today.getDate()}</span>
+          <span class="rb-cal-day">{today().getDate()}</span>
           <span class="rb-cal-month">
-            {today.toLocaleDateString(undefined, { month: "long" })}
+            {today().toLocaleDateString(undefined, { month: "long" })}
           </span>
         </div>
 
@@ -121,7 +139,7 @@ export function CalendarCard(props: { ids: string[]; todoIds?: string[]; onOpen:
           </p>
         </Show>
       </div>
-      <Half art={<span class="rb-half-date"><small>{today.toLocaleDateString(undefined, { month: "short" })}</small><b>{today.getDate()}</b></span>} icon="mdi:calendar-today" name={today.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" })} status={countLine()} tone="#8b7cf6" lit={todayCount() > 0} />
+      <Half art={<span class="rb-half-date"><small>{today().toLocaleDateString(undefined, { month: "short" })}</small><b>{today().getDate()}</b></span>} icon="mdi:calendar-today" name={today().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" })} status={countLine()} tone="#8b7cf6" lit={todayCount() > 0} />
     </article>
   );
 }
