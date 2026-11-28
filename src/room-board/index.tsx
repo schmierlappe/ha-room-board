@@ -40,6 +40,7 @@ import {
 } from "../media-player/remote-config";
 import { ActivityBar, ActivityCard, ActivityPanel } from "./activity";
 import { ApplianceCard, AppliancePanel, appliancesOf } from "./appliance";
+import { RouteCard, RoutesPanel, routesFor } from "./route";
 import { CalendarCard, CalendarPanel } from "./calendar";
 import { CameraCard, CameraPanel } from "./camera";
 /* Shutters, blinds, curtains, awnings and the garage — one domain, drawn by
@@ -854,6 +855,7 @@ function RoomBoard(props: { config: Config }) {
     | "locks"
     | "plex"
     | "appliance"
+    | "routes"
     | "vacuum"
     | "climate"
     | "camera"
@@ -881,6 +883,7 @@ function RoomBoard(props: { config: Config }) {
     locks: "Locks",
     plex: "Recently added",
     appliance: "Appliances",
+    routes: "Routes",
     vacuum: "Vacuum",
     climate: "Air temperature",
     camera: "Cameras",
@@ -955,6 +958,12 @@ function RoomBoard(props: { config: Config }) {
   /* An appliance's sensors belong to its own card: a "Washing Machine
      Progress 0%" tile beside the machine that is already showing it is the
      same fact twice, and the second one has no history to chart. */
+  /* TomTom's routes: this area's, and on the Home room every route with no
+     area (route.tsx). Their sensors are the route card's, not readings. */
+  const isHomeRoom = () => /^home$/i.test((current()?.label || area()?.name || current()?.area || "").trim());
+  const routes = createMemo(() => routesFor(current()?.area, isHomeRoom()));
+  const routeIds = createMemo(() => new Set(routes().flatMap((route) => route.all)));
+
   const machineIds = createMemo(() => {
     const ids = new Set<string>();
     for (const machine of machines()) for (const entity of machine.all) ids.add(entity.id);
@@ -1039,6 +1048,7 @@ function RoomBoard(props: { config: Config }) {
       entities().filter(
         (entity) =>
           !machineIds().has(entity.id) &&
+          !routeIds().has(entity.id) &&
           !uptimeIds().has(entity.id) &&
           !rateIds().has(entity.id) &&
           !isUnifi(entity.id) &&
@@ -1307,6 +1317,10 @@ function RoomBoard(props: { config: Config }) {
     key.includes(":") ? allEntities().find((item) => item.id === key.slice(key.indexOf(":") + 1)) : undefined;
   const cardName = (key: string) => {
     if (key.startsWith("wash:")) return machines().find((m) => `wash:${m.key}` === key)?.name ?? "Appliance";
+    if (key.startsWith("route:")) {
+      const route = routes().find((r) => `route:${r.key}` === key);
+      return route ? `${route.name}${route.back ? " (back)" : ""}` : "Route";
+    }
     if (key.includes(":")) {
       const full = entityOfCard(key)?.friendlyName ?? key.slice(key.indexOf(":") + 1);
       let short = full.replace(/^sensor\s+/i, "");
@@ -1788,6 +1802,12 @@ function RoomBoard(props: { config: Config }) {
                     )}
                   </Keyed>
 
+                  <Keyed each={routes()} by={(route) => route.key}>
+                    {(route) => (
+                      <Guard name="Route"><RouteCard route={route} onOpen={() => openPanel("routes")} /></Guard>
+                    )}
+                  </Keyed>
+
                   <Show when={weathers().length}>
                     <Guard name="Weather"><WeatherCard
                       entityId={weathers()[0]!.id}
@@ -2055,6 +2075,10 @@ function RoomBoard(props: { config: Config }) {
                         <AppliancePanel machines={machines()} />
                       </Show>
 
+                      <Show when={panel() === "routes" && routes().length}>
+                        <RoutesPanel routes={routes()} />
+                      </Show>
+
                       <Show when={panel() === "calendar" && calendarIds().length}>
                         <CalendarPanel ids={calendarIds()} todoIds={todoIds()} />
                       </Show>
@@ -2156,7 +2180,7 @@ function RoomBoard(props: { config: Config }) {
                       <Show when={panel() === "setup"}>
                         <SetupPanel
                           entities={setupEntities()}
-                          onCards={applianceSensors()}
+                          onCards={new Set([...applianceSensors(), ...routeIds()])}
                           hidden={hidden()}
                           onSet={setHidden}
                         />
