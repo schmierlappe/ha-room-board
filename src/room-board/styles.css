@@ -15957,3 +15957,22 @@
 .rb-card--wash:has(> .rb-wash-unload) .rb-wash-ready + .rb-wash-sub { display: none; }
 .rb-card--wash[data-shape="small"]:has(> .rb-wash-unload) .rb-wash-stage { max-height: 4.3rem; }
 .rb-card--wash[data-shape="half"] > .rb-wash-unload { display: none; }
+
+/* ---------- a portrait tablet ---------- */
+
+/* A wall display on its side (the Shelly 10") stacks like a phone, but the
+   phone's band — at most 16rem — was a strip across a 1280px screen. The
+   photograph takes about a third of the screen there (vh: the board is as
+   tall as its content, so a percentage fell to the minimum), and the clock, the
+   room's name and the day grow with it. */
+.rb-board[data-portrait="true"] {
+  grid-template-rows: clamp(18rem, 34vh, 30rem) 1fr;
+}
+.rb-board[data-portrait="true"] .rb-scene { padding: 1.4rem 1.5rem; }
+.rb-board[data-portrait="true"] .rb-scene-clock {
+  --rb-clock-size: 4rem;
+  gap: 0.4rem;
+}
+.rb-board[data-portrait="true"] .rb-clock-room { font-size: 1.35rem; }
+.rb-board[data-portrait="true"] .rb-clock-day { font-size: 0.95rem; }
+.rb-board[data-portrait="true"] .rb-roompick { margin-bottom: 1.6rem; }
