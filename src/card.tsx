@@ -207,6 +207,22 @@ const HOST_CSS = `
 .ha-rb-error { padding: 16px; color: var(--error-color, #db4437); }
 ${AURORA_CSS}
 ${FOREST_CSS}
+/* Lite: for a slow screen (a wall display's small chip). Frosted glass
+   re-blurs whatever is behind it on every frame anything there moves, and
+   the looping animations keep the screen redrawing while nothing happens;
+   measured with the CPU slowed to a wall display's, the idle board drew 20
+   frames a second and kept the main thread a fifth busy. Without both it
+   drew 60 and idled at 2%. Surfaces keep their tint; animations play once,
+   so what appears still eases in. */
+:host([data-lite]) *, :host([data-lite]) *::before, :host([data-lite]) *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  animation-iteration-count: 1 !important;
+}
+/* The aurora's glow: a screen-sized layer blurred by 18px and drifting for
+   46 seconds a pass, the most expensive thing on the board. Held still and
+   unblurred — its radial gradients are soft on their own. */
+:host([data-lite]) .ha-rb-widget::before { animation: none !important; filter: none !important; }
 /* Reads the safe-area insets for the card (--rb-safe-* stand in for them in
    a test page). */
 .ha-rb-safe {
@@ -235,6 +251,27 @@ ${FOREST_CSS}
 `;
 
 type Config = Record<string, unknown> & { type?: string; storage_key?: string; height?: string; theme?: string };
+
+/* Where Auto remembers what it measured on this screen. Per browser, so the
+   wall display and the phone that share a dashboard each keep their own. */
+const PERF_KEY = "ha-room-board-perf";
+function readPerf(): string {
+  try {
+    return localStorage.getItem(PERF_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+function writePerf(value: string): void {
+  try {
+    if (value) localStorage.setItem(PERF_KEY, value);
+    else localStorage.removeItem(PERF_KEY);
+  } catch {
+    /* No storage: Auto measures again next time. */
+  }
+}
+/** A median frame slower than this (about 35 fps) at rest is a slow screen. */
+const SLOW_FRAME_MS = 28;
 
 class RoomBoardCard extends HTMLElement {
   private readonly configSignal = createSignal<Config>({});
@@ -275,6 +312,68 @@ class RoomBoardCard extends HTMLElement {
        system's is drawn at the top, so the clock may go up into that strip.
        A page cannot tell on its own — the safe area is the same either way. */
     this.toggleAttribute("data-statusbar-hidden", config.statusBar === "hidden" || config.statusBar === false);
+    this.applyPerformance();
+  }
+
+  /* `performance`: lite, full, or auto (the default) — auto measures the
+     frame rate once the board has settled and keeps the answer. */
+  private perfTimer?: ReturnType<typeof setTimeout>;
+  private slowOnce = false;
+  private get perfMode(): string {
+    const mode = this.configSignal[0]().performance;
+    return mode === "lite" || mode === "full" ? mode : "auto";
+  }
+
+  private applyPerformance(): void {
+    clearTimeout(this.perfTimer);
+    const mode = this.perfMode;
+    if (mode !== "auto") {
+      // Chosen outright; going back to Auto measures afresh.
+      writePerf("");
+      this.toggleAttribute("data-lite", mode === "lite");
+      return;
+    }
+    const remembered = readPerf();
+    this.toggleAttribute("data-lite", remembered === "lite");
+    if (!remembered && this.isConnected) this.perfTimer = setTimeout(this.measure, 6000);
+  }
+
+  private readonly measure = () => {
+    if (!this.isConnected || this.perfMode !== "auto") return;
+    // A screen that is off draws no frames; ask again when it is on.
+    if (document.visibilityState !== "visible") {
+      this.perfTimer = setTimeout(this.measure, 15000);
+      return;
+    }
+    const gaps: number[] = [];
+    let last = performance.now();
+    const end = last + 2000;
+    const step = (now: number) => {
+      gaps.push(now - last);
+      last = now;
+      if (now < end) requestAnimationFrame(step);
+      else this.judge(gaps);
+    };
+    requestAnimationFrame(step);
+  };
+
+  private judge(gaps: number[]): void {
+    if (gaps.length < 8 || document.visibilityState !== "visible") {
+      this.perfTimer = setTimeout(this.measure, 15000);
+      return;
+    }
+    const sorted = [...gaps].sort((a, b) => a - b);
+    const slow = sorted[sorted.length >> 1] > SLOW_FRAME_MS;
+    /* Slow once may be Home Assistant still loading around the card: slow
+       twice, 20 seconds apart, is the screen. */
+    if (slow && !this.slowOnce) {
+      this.slowOnce = true;
+      this.perfTimer = setTimeout(this.measure, 20000);
+      return;
+    }
+    this.slowOnce = false;
+    writePerf(slow ? "lite" : "full");
+    if (this.perfMode === "auto") this.toggleAttribute("data-lite", slow);
   }
 
   set hass(next: Hass) {
@@ -354,11 +453,13 @@ class RoomBoardCard extends HTMLElement {
 
   connectedCallback(): void {
     this.startFitting();
+    this.applyPerformance();
     if (hasHass()) this.mount();
   }
 
   disconnectedCallback(): void {
     this.stopFitting();
+    clearTimeout(this.perfTimer);
     this.dispose?.();
     this.dispose = undefined;
   }

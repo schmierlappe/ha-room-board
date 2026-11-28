@@ -136,6 +136,7 @@ They use Home Assistant's own [UniFi Network](https://www.home-assistant.io/inte
 | `vacuumSensors` | `[]` | Consumable sensors (filter, brushes) for the vacuum card. |
 | `theme` | `aurora` | `aurora`: the board's own look — soft glows of colour drifting behind frosted glass, in dark and light following Home Assistant's dark-mode setting. `forest`: the same look with a green touch — a deep blue-green night (#0C1D28) with emerald, teal and lime glows, and pale mint by day. `home_assistant`: the colours of your Home Assistant theme. |
 | `statusBar` | `visible` | `hidden` when the phone shows no status bar (the Home Assistant app's full-screen mode): the clock, date and temperature move up to the very top of the screen. |
+| `performance` | `auto` | `lite` for a slow screen (a wall display such as the Shelly Wall Display): no frosted-glass blur, and animations play once instead of looping. `full`: every effect. `auto` measures the frame rate on each screen once the board has settled and goes lite where it is slow; it remembers the answer per browser. |
 | `height` | full screen | The board's height, e.g. `800px`. On a panel view it fills the screen. |
 | `wifiQr` | auto | The image entity with the Wi-Fi QR code; empty finds UniFi's guest QR code. |
 | `wifiQrShow` | `true` | Show the Wi-Fi QR code on tablets. |
