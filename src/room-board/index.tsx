@@ -1465,6 +1465,7 @@ function RoomBoard(props: { config: Config }) {
             }}
             class="rb-board"
             data-narrow={narrow()}
+            data-portrait={narrow() && size().w >= 560}
             data-cols={columns()}
             style={{ "--rb-cols": String(columns()) }}
             data-overlay={panel() !== undefined}
